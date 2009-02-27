@@ -9,8 +9,10 @@ import sys, os, re, shutil
 import countydata, newproject
 from database.createDBConnection import createDBC
 
+from intro_toolbar import *
 
-qgis_prefix = "C:\qgis\Quantum GIS"
+
+qgis_prefix = "C:\qgis"
 
 
 class QWizardValidatePage(QWizardPage):
@@ -223,14 +225,19 @@ class Wizard(QWizard):
         cl = QgsMapCanvasLayer(layer)
         layers = [cl]
         canvas.setLayerSet(layers)
-        # Vertical layout of all elements
-        vLayout = QVBoxLayout()
-        vLayout.addLayout(projectVLayout)
-        vLayout.addWidget(self.countySelectTree)
+        # Vertical layout of project description elements
+        vLayout1 = QVBoxLayout()
+        vLayout1.addLayout(projectVLayout)
+        vLayout1.addWidget(self.countySelectTree)
+        # Vertical layout of map elements
+        vLayout2 = QVBoxLayout()
+        self.toolbar = Toolbar(canvas, layer)
+        vLayout2.addWidget(self.toolbar)
+        vLayout2.addWidget(canvas)        
         # Horizontal layout of all elements
         hLayout = QHBoxLayout()
-        hLayout.addLayout(vLayout)
-        hLayout.addWidget(canvas)
+        hLayout.addLayout(vLayout1)
+        hLayout.addLayout(vLayout2)
         page.setLayout(hLayout)
 
 
