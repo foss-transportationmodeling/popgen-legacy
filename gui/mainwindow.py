@@ -10,7 +10,7 @@ from file_menu.process_raw_data import PrepareData, PopulateFileManager
 from file_menu.import_data import autoProcessPUMSData
 
 
-qgis_prefix = "C:\qgis\Quantum GIS"
+qgis_prefix = "C:\qgis"
 
 class QTreeWidgetCMenu(QTreeWidget):
     def __init__(self, parent = None):
