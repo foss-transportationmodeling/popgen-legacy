@@ -14,33 +14,38 @@ class Toolbar(QToolBar):
         super(Toolbar, self).__init__(parent)
 
         self.canvas = canvas
-	self.layer = layer
+        self.layer = layer
         
         self.mpActionZoomIn = QAction(self.canvas)
         self.mpActionZoomIn.setIcon(QIcon("./images/viewmag+.png"))
         self.mpActionZoomIn.setObjectName("mpActionZoomIn")
+        self.mpActionZoomIn.setToolTip("Zoom In")
 
         self.mpActionZoomOut = QAction(self.canvas)
         self.mpActionZoomOut.setIcon(QIcon("./images/viewmag-.png"))
         self.mpActionZoomOut.setObjectName("mpActionZoomOut")
+        self.mpActionZoomOut.setToolTip("Zoom Out")
 
         self.mpActionZoomFull = QAction(self.canvas)
         self.mpActionZoomFull.setIcon(QIcon("./images/viewmagfit.png"))
         self.mpActionZoomFull.setObjectName("mpActionZoomFull")
+        self.mpActionZoomFull.setToolTip("Zoom Fit")
 
         self.mpActionPan = QAction(self.canvas)
         self.mpActionPan.setIcon(QIcon("./images/pan.png"))
         self.mpActionPan.setObjectName("mpActionPan")
+        self.mpActionPan.setToolTip("Pan")
 
         self.mpActionSelect = QAction(self.canvas)
         self.mpActionSelect.setIcon(QIcon("./images/highlight.png"))
         self.mpActionSelect.setObjectName("mpActionSelect")
+        self.mpActionSelect.setToolTip("Select")
 	           
         # create a little toolbar
         self.addAction(self.mpActionZoomIn);
         self.addAction(self.mpActionZoomOut);
         self.addAction(self.mpActionZoomFull);
-	self.addAction(self.mpActionPan);
+        self.addAction(self.mpActionPan);
         self.addAction(self.mpActionSelect);
         # create the map tools
         self.toolSelect = regionTool(self.canvas)
@@ -55,10 +60,10 @@ class Toolbar(QToolBar):
         # create the actions behaviours
         self.connect(self.mpActionZoomIn, SIGNAL("triggered()"), self.zoomIn)
         self.connect(self.mpActionZoomOut, SIGNAL("triggered()"), self.zoomOut)
-	self.connect(self.mpActionZoomFull, SIGNAL("triggered()"), self.zoomFull)
+        self.connect(self.mpActionZoomFull, SIGNAL("triggered()"), self.zoomFull)
         self.connect(self.mpActionPan, SIGNAL("triggered()"), self.pan)
         self.connect(self.mpActionSelect, SIGNAL("triggered()"), self.select)
-	self.connect(self.toolSelect.o, SIGNAL("finished()"), self.doneRectangle)
+        self.connect(self.toolSelect.o, SIGNAL("finished()"), self.doneRectangle)
 	
     def zoomIn(self):
         self.canvas.setMapTool(self.toolZoomIn)
@@ -77,22 +82,22 @@ class Toolbar(QToolBar):
         self.toolSelect.canvas.setCursor(self.toolSelect.cursor)	
 	
     def doneRectangle(self):
-	print "done rectangle"
-	provider = self.layer.getDataProvider()
-	allAttrs = provider.allAttributesList()
-	renderer = self.layer.renderer()
-	self.layer.select(self.toolSelect.bb, False)
-	provider.select(allAttrs, self.toolSelect.bb, True, True)
-	feat = QgsFeature()
-	while provider.getNextFeature(feat):
-		attrMap = feat.attributeMap()
-		for (i, attr) in attrMap.iteritems():
-			if i == 0:
-				str = '"%s"' % attr.toString().trimmed()
-			else:
-				str += ',"%s"' % attr.toString().trimmed()
-		print "Field Values: " + str
-        #self.canvas.setMapTool(self.toolSelect)   
+        print "done rectangle"
+        provider = self.layer.getDataProvider()
+        allAttrs = provider.allAttributesList()
+        renderer = self.layer.renderer()
+        self.layer.select(self.toolSelect.bb, False)
+        provider.select(allAttrs, self.toolSelect.bb, True, True)
+        feat = QgsFeature()
+        while provider.getNextFeature(feat):
+            attrMap = feat.attributeMap()
+            for (i, attr) in attrMap.iteritems():
+                if i == 0:
+                    str = '"%s"' % attr.toString().trimmed()
+                else:
+                    str += ',"%s"' % attr.toString().trimmed()
+            print "Field Values: " + str
+            #self.canvas.setMapTool(self.toolSelect)   
 
 def main():
     app = QApplication(sys.argv)
