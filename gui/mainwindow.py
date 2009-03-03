@@ -9,6 +9,8 @@ from file_menu.test_new2 import Wizard
 from file_menu.process_raw_data import PrepareData, PopulateFileManager
 from file_menu.import_data import autoProcessPUMSData
 
+from results_menu.view_results import *
+
 
 qgis_prefix = "C:\qgis"
 
@@ -155,6 +157,10 @@ class MainWindow(QMainWindow):
                                                     icon="individualgeo",
                                                     tip = "Display performance statistics for individual geographies")
 
+        resultsViewHHAction = self.createAction("&View Households",
+                                                    self.resultsViewHH,
+                                                    icon="viewhh",
+                                                    tip = "Display synthesized households for the entire region")
 
 # Adding actions to menu
         self.resultsMenu = self.menuBar().addMenu("&Results")
@@ -163,6 +169,7 @@ class MainWindow(QMainWindow):
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
 
         self.addActions(self.resultsMenu, (resultsIndividualAction,))
+        self.addActions(self.resultsMenu, (resultsViewHHAction,))
 # Adding actions to toolbar
 
         self.resultsToolBar = self.addToolBar("Results")
@@ -277,7 +284,11 @@ class MainWindow(QMainWindow):
     
     def resultsIndividual(self):
         QMessageBox.information(self, "Results", "Individual Performance Statistics", QMessageBox.Ok)
-
+        
+    def resultsViewHH(self):
+        res = Results()
+        res.exec_()
+        
 
 
 
