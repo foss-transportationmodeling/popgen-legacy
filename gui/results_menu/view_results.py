@@ -4,8 +4,8 @@ from qgis.core import *
 from qgis.gui import *
 import sys, os
 import shutil
+from numpy.random import randint
 
-#from dbfpy import dbf
 from dbf import *
 
 from gui.file_menu.intro_toolbar import *
@@ -40,21 +40,22 @@ class Results(QDialog):
             return
         
         #modlayer = 
-        self.outSelectGeogs()   
-        self.addLayer(self.layer)
+        #Output a new layer with selected geographies
+        self.outSelectGeogs()
+        #Create a field for hhfreq in the new layer
+        self.addHHField()
+        rp = RandPoints(self)
+        hhlayerloc = rp.accept(self.path,hhcount_fieldname)
+        self.hhlayer = QgsVectorLayer(hhlayerloc, "hh", layerProvider)
+        
+        self.layers = []   
+        self.addLayer(self.hhlayer)
         self.addLayer(self.geoglayer)
-        self.canvas.setExtent(self.layer.extent())
         
         
-        #QgsMapLayerRegistry.instance().addMapLayer(self.geoglayer)
-        #QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        self.canvas.setExtent(self.geoglayer.extent())
+        print "MapCanvas layer count: ",self.canvas.layerCount()
         
-        #self.canvas.setExtent(self.layer.extent())
-        #gl = QgsMapCanvasLayer(self.layer)
-        #hl = QgsMapCanvasLayer(self.geoglayer)
-        #layers = [gl,hl]
-        #self.canvas.setLayerSet(layers)
-
         self.toolbar = Toolbar(self.canvas, self.geoglayer)
         vLayout = QVBoxLayout()
         vLayout.addWidget(self.toolbar)
@@ -74,17 +75,26 @@ class Results(QDialog):
         
         basepath = inlayer_loc.split('.shp')
         dbfpath = basepath[0] + '.dbf'
-        fdst = basepath[0] + '_test' + '.shp'
-        QgsVectorFileWriter.deleteShapeFile(fdst)
-        provider = self.layer.getDataProvider()
-        writer = QgsVectorFileWriter(fdst, "CP1250", provider.fields(), QGis.WKBPolygon, None)
-        del writer
-        newlayer = QgsVectorLayer(fdst,"SelCounties", "ogr")
-        newlayer.startEditing()
-        newlayer.addFeatures(sel_feats)
-        newlayer.commitChanges()
-        print newlayer.featureCount()
-        self.setGeogLayer(newlayer)
+        fdst = basepath[0] + '_sel' + '.shp'
+        self.path = basepath[0]
+        if not os.path.isfile(fdst): 
+            #QgsVectorFileWriter.deleteShapeFile(fdst):
+            provider = self.layer.getDataProvider()
+            writer = QgsVectorFileWriter(fdst, "CP1250", provider.fields(), QGis.WKBPolygon, None)
+            del writer
+            newlayer = QgsVectorLayer(fdst,"SelCounties", "ogr")
+            print "old layer feature count: ",newlayer.featureCount()
+            newlayer.startEditing()
+            newlayer.setSelectedFeatures(range(newlayer.featureCount()))
+            newlayer.deleteSelectedFeatures()
+            newlayer.addFeatures(sel_feats)
+            newlayer.commitChanges()
+            print "new layer feature count: ",newlayer.featureCount()
+            self.setGeogLayer(newlayer)
+        else:
+            newlayer = QgsVectorLayer(fdst,"SelCounties", "ogr")
+            print "layer feature count: ",newlayer.featureCount()
+            self.setGeogLayer(newlayer)
 
         
     def getFeatId(self, id):
@@ -107,16 +117,37 @@ class Results(QDialog):
             if (featstate.compare(state) == 0 and featcounty.compare(county) == 0):
                 return feat.featureId()
         return -1
-
-        #print self.layer.selectedFeaturesIds()
+    
     def setGeogLayer(self, layer):
         self.geoglayer = layer
-
+    
+    def addHHField(self):
+        basepath = inlayer_loc.split('.shp')
+        dbfpath = basepath[0] + '_sel' + '.dbf'
+        f = open(dbfpath, 'rb')
+        db = list(dbfreader(f))
+        f.close()
+        fieldnames, fieldspecs, records = db[0], db[1], db[2:]
+        if hhcount_fieldname not in fieldnames:
+            print hhcount_fieldname + " Absent"
+            fieldnames.append(hhcount_fieldname)
+            fieldspecs.append(('N',11,0))
+            for rec in records:
+                rec.append(self.getHHFreq())
+            f = open(dbfpath, 'wb')
+            dbfwriter(f, fieldnames, fieldspecs, records)
+            f.close()
+        else:
+            print hhcount_fieldname + " Present"
+    
     def addLayer(self, layer):
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         cl = QgsMapCanvasLayer(layer)
-        layers = [cl]
-        self.canvas.setLayerSet(layers)
+        self.layers.append(cl)
+        self.canvas.setLayerSet(self.layers)
+    
+    def getHHFreq(self):
+        return randint(100,300)
     
     def out(self):
         layerpath = inlayer_loc
@@ -161,32 +192,6 @@ class Results(QDialog):
                        
             f = open(dbfpath, 'wb')
             dbfwriter(f, fieldnames, fieldspecs, records)
-
-
-            
-            provider.select(allAttrs, QgsRect())
-            
-            #print provider.featureCount()
-            feat = QgsFeature()
-            
-            #copyfeatures = []
-            print "Old Features Count"
-            print provider.featureCount()
-            
-            #while provider.getNextFeature(feat):
-            #    feat.addAttribute(12, QVariant(hhcount_fieldname))
-            #    copyfeatures.append(feat)
-
-            #provider.deleteFeatures(range(provider.featureCount()))
-            #layer.commitChanges()
-            #provider.deleteFeatures([i])
-            
-            #provider.addAttributes( {hhcount_fieldname : "OFTInteger"})
-            
-            #provider.addFeatures(copyfeatures)
-
-            
-        print provider.fieldCount()
 
 
     
