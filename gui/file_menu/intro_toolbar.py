@@ -82,7 +82,6 @@ class Toolbar(QToolBar):
         self.toolSelect.canvas.setCursor(self.toolSelect.cursor)	
 	
     def doneRectangle(self):
-        print "done rectangle"
         provider = self.layer.getDataProvider()
         allAttrs = provider.allAttributesList()
         renderer = self.layer.renderer()
