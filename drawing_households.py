@@ -1,7 +1,6 @@
 # Running IPF on Person and Household data
 
 import MySQLdb
-import pylab
 import time
 import os
 from numpy import asarray as arr
@@ -17,11 +16,11 @@ def person_index_matrix(db, pumano = 0):
             dbc.execute('create table person_pums_%s select * from person_pums group by hhid, personid'%(pumano))
     else:
         try:
-            dbc.execute('create table person_pums_%s select * from person_pums where pumano = %s group by hhid, personid'%(pumano, pumano))            
-        except:
-            dbc.execute('drop table person_pums_%s'%(pumano))            
             dbc.execute('create table person_pums_%s select * from person_pums where pumano = %s group by hhid, personid'%(pumano, pumano))
-            
+        except:
+            dbc.execute('drop table person_pums_%s'%(pumano))
+            dbc.execute('create table person_pums_%s select * from person_pums where pumano = %s group by hhid, personid'%(pumano, pumano))
+
     dbc.execute('alter table person_pums_%s add column id int primary key auto_increment not null first'%(pumano))
     dbc.execute('select hhid, min(id), max(id) from person_pums_%s group by hhid'%(pumano))
     result = arr(dbc.fetchall())
@@ -29,13 +28,13 @@ def person_index_matrix(db, pumano = 0):
     dbc.close()
     db.commit()
     return result
-    
+
 
 def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract = 0, bg = 0):
     dbc = db.cursor()
     table_name = ('%s_%s_ipf'%(synthesis_type, pumano))
 
-    
+
 
     try:
         dbc.execute('create table %s select pumano, tract, bg, frequency from hhld_%s_joint_dist where 0;' %(table_name, pumano))
@@ -52,7 +51,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
 
     dbc.execute('select frequency from %s_0_joint_dist order by %s' %(synthesis_type, order_string))
     prior = arr(dbc.fetchall())
-    
+
     rowcount = dbc.rowcount
     dummy_table = zeros((rowcount, 6))
     dummy_table[:,:-3] = [pumano, tract, bg]
@@ -69,7 +68,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     result = dbc.fetchall()
     diff_total = round(result[0][0])
 
-  
+
     if diff_total < 0:
         dbc.execute('select %suniqueid from %s where r_marginal <>0 and tract = %s and bg = %s order by diff_marginals '%(synthesis_type, table_name, tract, bg))
     else:
@@ -81,13 +80,13 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     for i in range(int(abs(diff_total))):
 #        print 'record - %s changed by %s' %(result[i][0], diff_total / abs(diff_total))
         dbc.execute('update %s set r_marginal = r_marginal + %s where %suniqueid = %s and tract = %s and bg = %s' %(table_name, diff_total / abs(diff_total), synthesis_type, result[i][0], tract, bg))
-        
+
     dbc.execute('select r_marginal from %s where prior <> 0 and tract = %s and bg = %s order by %suniqueid'%(table_name, tract, bg, synthesis_type))
     marginals = arr(dbc.fetchall())
     dbc.close()
     db.commit()
     return marginals
-    
+
 
 
 def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
@@ -97,7 +96,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
     hhld_colno = dbc.rowcount
     dbc.execute('select gquniqueid from gq_pums group by gquniqueid')
     gq_colno = dbc.rowcount
-    
+
     hh_colno = hhld_colno + gq_colno
     synthetic_population=[]
     j = 0
@@ -112,7 +111,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
             probability_lower_limit = arr(probability_lower_limit)
             random_numbers = random.rand(frequencies[j])
             freq, probability_lower_limit = histogram(random_numbers, probability_lower_limit)
-            hhldid_by_type = sp_matrix[i[1]-1:i[2],2] 
+            hhldid_by_type = sp_matrix[i[1]-1:i[2],2]
 
             for k in range(len(freq)):
                 if freq[k]<>0:
@@ -164,7 +163,7 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
         if objective_frequency[i] > 0:
             counter = counter + 1
             statistic = statistic + sum(((objective_frequency[i] - estimated_frequency[i]) ** 2)/ objective_frequency[i])
-    
+
     return statistic, counter, estimated_frequency
 
 def storing_synthetic_attributes(db, synthesis_type, attributes, pumano = 0, tract = 0, bg = 0):
@@ -188,7 +187,7 @@ def create_synthetic_attribute_tables(db):
          dbc.execute('alter table housing_synthetic_data add column bg int after tract ')
          dbc.execute('alter table housing_synthetic_data add column frequency int')
          dbc.execute('alter table housing_synthetic_data add column colno int')
-        
+
          dbc.execute('create table person_synthetic_data select * from person_pums where 0')
          dbc.execute('alter table person_synthetic_data add column tract int after pumano ')
          dbc.execute('alter table person_synthetic_data add column bg int after tract ')
@@ -196,13 +195,13 @@ def create_synthetic_attribute_tables(db):
     except:
          dbc.execute('delete from housing_synthetic_data')
          dbc.execute('delete from person_synthetic_data')
-    
+
     dbc.close()
     db.commit()
 
 if __name__ == '__main__':
     pass
 
-    
 
-    
+
+
