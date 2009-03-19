@@ -38,10 +38,10 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
 
     try:
         dbc.execute('create table %s select pumano, tract, bg, frequency from hhld_%s_joint_dist where 0;' %(table_name, pumano))
-        dbc.execute('alter table %s change frequency marginal float'%(table_name))
+        dbc.execute('alter table %s change frequency marginal float(27)'%(table_name))
         dbc.execute('alter table %s add prior int default 0' %(table_name))
         dbc.execute('alter table %s add r_marginal int default 0'%(table_name))
-        dbc.execute('alter table %s add diff_marginals float default 0'%(table_name))
+        dbc.execute('alter table %s add diff_marginals float(27) default 0'%(table_name))
         dbc.execute('alter table %s add %suniqueid int'%(table_name, synthesis_type))
         dbc.execute('alter table %s add index(tract, bg)'%(table_name))
     except:
@@ -106,7 +106,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
         else:
             cumulative_weights = weights[sp_matrix[i[1]-1:i[2], 2]].cumsum()
             probability_distribution = cumulative_weights / cumulative_weights[-1]
-            probability_lower_limit = probability_distribution[:-1].tolist()
+            probability_lower_limit = probability_distribution.tolist()
             probability_lower_limit.insert(0,0)
             probability_lower_limit = arr(probability_lower_limit)
             random_numbers = random.rand(frequencies[j])
