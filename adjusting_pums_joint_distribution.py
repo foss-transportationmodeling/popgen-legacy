@@ -59,7 +59,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
     pums = database(db, '%s_pums'%synthesis_type)
     dummy = create_aggregation_string(control_variables)
 
-    table_rows = dimensions.cumprod()[-1] 
+    table_rows = dimensions.cumprod()[-1]
     table_cols = len(dimensions) + 4
     dummy_table = zeros((table_rows, table_cols), dtype =int)
     index_array = num_breakdown(dimensions)
@@ -70,7 +70,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dbc.execute('alter table %s_%s_joint_dist add pumano int first'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add tract int after pumano'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add bg int after tract'%(synthesis_type, pumano))
-        dbc.execute('alter table %s_%s_joint_dist add frequency float'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add frequency float(27)'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add index(tract, bg)'%(synthesis_type, pumano))
     except:
 #        print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
@@ -78,6 +78,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
 
     if pumano ==0:
         dbc.execute('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+        print ('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         result = arr(dbc.fetchall())
         dummy_table[:,:3] = [pumano, tract, bg]
         dummy_table[:,3:-1] = index_array
@@ -89,7 +90,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dummy_table[:,3:-1] = index_array
         dummy_table[result[:,-1]-1,-1] = result[:,-2]
 
-    
+
     dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
     dummy_table = str([tuple(i) for i in dummy_table])
     dbc.execute('insert into %s_%s_joint_dist values %s' %(synthesis_type, pumano, dummy_table[1:-1]))
@@ -103,7 +104,7 @@ def num_breakdown(dimensions):
     index = []
     table_size = dimensions.cumprod()[-1]
     composite_index = range(table_size)
-    
+
     for j in composite_index:
         n = j
         for i in reversed(dimensions):
@@ -115,7 +116,7 @@ def num_breakdown(dimensions):
         index_array.append(index)
         index = []
     return index_array
-        
+
 def create_aggregation_string(control_variables):
     string = ''
     for dummy in control_variables:
@@ -137,7 +138,7 @@ def adjust_weights(db, synthesis_type, control_variables, pumano = 0, tract = 0,
     adjustment_old = []
     target_adjustment = []
     while (tol):
-        
+
         iteration = iteration +1
         adjustment_all = []
 
@@ -205,7 +206,7 @@ def tolerance (adjustment_all, adjustment_old, iteration):
     else:
 #        print "Convergence Criterion - %s" %adjustment_convergence_characteristic
         return 0
-    
+
 def prepare_control_marginals(db, synthesis_type, control_variables, pumano, tract, bg):
 
     dbc = db.cursor()
@@ -251,11 +252,11 @@ def create_adjusted_frequencies(db, synthesis_type, control_variables, pumano, t
     puma_joint = arr(dbc.fetchall())
     puma_prob = puma_joint[:,-1] / sum(puma_joint[:,-1])
     upper_prob_bound = 0.5 / sum(puma_joint[:,-1])
-   
+
     dbc.execute('select * from %s order by %s' %(pums_table, dummy_order_string))
     pums_joint = arr(dbc.fetchall())
     pums_prob = pums_joint[:,-1] / sum(pums_joint[:,-1])
-    
+
     puma_adjustment = (pums_prob <= upper_prob_bound) * pums_prob + (pums_prob > upper_prob_bound) * upper_prob_bound
     correction = 1 - sum((puma_prob == 0) * puma_adjustment)
     puma_prob = ((puma_prob <> 0) * correction * puma_prob +
@@ -272,5 +273,5 @@ if __name__ == '__main__':
     pass
 
 
-  
+
 
