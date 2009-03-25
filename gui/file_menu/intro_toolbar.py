@@ -90,6 +90,10 @@ class Toolbar(QToolBar):
         feat = QgsFeature()
         while provider.getNextFeature(feat):
             attrMap = feat.attributeMap()
+            if feat.geometry().wkbType() == QGis.WKBPoint:
+                transform = self.canvas.getCoordinateTransform()
+                devicepoint = transform.transform(feat.geometry().asPoint())
+                print devicepoint.x(), devicepoint.y()
             for (i, attr) in attrMap.iteritems():
                 if i == 0:
                     str = '"%s"' % attr.toString().trimmed()
