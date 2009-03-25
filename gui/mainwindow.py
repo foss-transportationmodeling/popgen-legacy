@@ -9,7 +9,13 @@ from file_menu.test_new2 import Wizard
 from file_menu.process_raw_data import PrepareData, PopulateFileManager
 from file_menu.import_data import autoProcessPUMSData
 
-from results_menu.view_results import *
+from results_menu.view_aard import *
+from results_menu.view_pval import *
+from results_menu.view_hhdist import *
+from results_menu.view_ppdist import *
+from results_menu.view_indgeo import *
+from results_menu.view_hhmap import *
+from results_menu.coreplot import *
 
 
 qgis_prefix = "C:\qgis"
@@ -268,25 +274,26 @@ class MainWindow(QMainWindow):
 
     
     def resultsRegionalAARD(self):
-        QMessageBox.information(self, "Results", "Regional AARD distribution", QMessageBox.Ok)
-    
+        aard = Absreldiff()
+        aard.exec_()
     def resultsRegionalPValue(self):
-        QMessageBox.information(self, "Results", "Regional P-Value Distribution", QMessageBox.Ok)
-    
+        pval = Pval()
+        pval.exec_()  
     def resultsRegionalHousDist(self):
-        QMessageBox.information(self, "Results", "Regional Housing Attribute Distribution", QMessageBox.Ok)
-    
+        hhdist = Hhdist()
+        hhdist.exec_()
     def resultsRegionalPersDist(self):
-        QMessageBox.information(self, "Results", "Regional Person Attribute Distribution", QMessageBox.Ok)
-    
+        ppdist = Ppdist()
+        ppdist.exec_()    
+        
     def resultsRegional(self):
         QMessageBox.information(self, "Results", "Regional Performance Statistics", QMessageBox.Ok)
     
     def resultsIndividual(self):
-        QMessageBox.information(self, "Results", "Individual Performance Statistics", QMessageBox.Ok)
-        
+        indgeo = Indgeo()
+        indgeo.exec_()         
     def resultsViewHH(self):
-        res = Results()
+        res = Hhmap()
         res.exec_()
         
 
