@@ -15,12 +15,16 @@ class regionTool(QgsMapTool):
         self.ll = None
         self.ur = None
         self.o = QObject()
-	self.cursor = QCursor(QPixmap(["16 16 3 1","# c None","a c #000000",". c #ffffff",".###############","...#############",".aa..###########","#.aaa..a.a.a.a.#","#.aaaaa..#####a#","#a.aaaaaa..###.#","#..aaaaaa...##a#","#a.aaaaa.#####.#","#.#.aaaaa.####a#","#a#.aa.aaa.###.#","#.##..#..aa.##a#","#a##.####.aa.#.#","#.########.aa.a#","#a#########.aa..","#.a.a.a.a.a..a.#","#############.##"]))
+        self.cursor = QCursor(QPixmap(["16 16 3 1","# c None","a c #000000",". c #ffffff",".###############","...#############",".aa..###########","#.aaa..a.a.a.a.#","#.aaaaa..#####a#","#a.aaaaaa..###.#","#..aaaaaa...##a#","#a.aaaaa.#####.#","#.#.aaaaa.####a#","#a#.aa.aaa.###.#","#.##..#..aa.##a#","#a##.####.aa.#.#","#.########.aa.a#","#a#########.aa..","#.a.a.a.a.a..a.#","#############.##"]))
 
 
     def canvasPressEvent(self,event):
         print "got an event"
         self.selectRect.setRect(event.pos().x(),event.pos().y(),0,0)
+        print event.pos().x(),event.pos().y()
+        transform = self.canvas.getCoordinateTransform()
+        coord = transform.toMapCoordinates(event.pos().x(),event.pos().y())
+        print coord.x(), coord.y()
 
     def canvasMoveEvent(self,event):
         if not event.buttons() == Qt.LeftButton:
