@@ -91,15 +91,7 @@ class Wizard(QWizard):
                                                  controlUserProv,
                                                  db)
 
-            region = {}
-            if self.project.region is not None:
-                for i in self.project.region:
-                    region[i.text(0)] = i.parent().text(0)
-
-            self.project.region = region
             self.page6.fillPage(self.project)
-
-
 
             self.page6.checkProjectLocation(self.project.location, self.project.name)
             self.page6.checkProjectDatabase(self.project.db, self.project.name)
