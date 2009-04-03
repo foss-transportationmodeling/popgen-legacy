@@ -50,7 +50,7 @@ class CountyContainer(object):
                 stateID = int(a[0])
                 stateName = a[1]
                 countyID = int(a[2])
-                countyName = a[3][:-2]
+                countyName = a[3]
                 county = County(stateID, stateName, countyID, countyName)
                 self.counties[id(county)] = county
                 self.countyNames.add(countyName)
