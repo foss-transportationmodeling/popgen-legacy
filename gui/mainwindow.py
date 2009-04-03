@@ -1,13 +1,17 @@
-import os
-import sys
+from __future__ import with_statement
+
+
+import os, sys, pickle
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 import qrc_resources
-from file_menu.test_new2 import Wizard
-from file_menu.process_raw_data import PrepareData, PopulateFileManager
-from file_menu.import_data import autoProcessPUMSData
+from file_menu.wizard_window_validate import Wizard
+from file_menu.filemanager import QTreeWidgetCMenu
+from file_menu.open_project import OpenProject
+from data_menu.data_process_status import DataDialog
+from file_menu.summary_page import SummaryPage
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -17,34 +21,7 @@ from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
 from results_menu.coreplot import *
 
-
 qgis_prefix = "C:\qgis"
-
-class QTreeWidgetCMenu(QTreeWidget):
-    def __init__(self, parent = None):
-        super(QTreeWidgetCMenu, self).__init__(parent)
-
-        
-       
-    def contextMenuEvent(self, event):
-        menu = QMenu(self)
-        importDataAction = menu.addAction("&Import Data")
-        self.connect(importDataAction, SIGNAL("triggered()"), self.importData)
-        if self.item.parent() is None:
-            menu.exec_(event.globalPos())
-
-    def click(self, item, column):
-        self.item = item
-        
-        
-    def editItem(self, item, column):
-        self.item = item
-        if self.item.parent() is not None:
-            self.openPersistentEditor(self.item, 1)
-
-    def importData(self):
-        QMessageBox.information(None, "Check", "Import Data", QMessageBox.Ok)
-        
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -54,7 +31,7 @@ class MainWindow(QMainWindow):
         self.projectName = None
 
         
-        self.setWindowTitle("HIPGen Version-0.50")
+        self.setWindowTitle("PopSim Version-0.50")
         self.setWindowIcon(QIcon("./images/popsyn.png"))
         self.workingWindow = QLabel()
         self.showMaximized()
@@ -73,15 +50,15 @@ class MainWindow(QMainWindow):
 # FILE MENU 
 # Defining menu/toolbar actions        
         projectNewAction = self.createAction("&New Project", self.projectNew, QKeySequence.New, 
-                                             "projectnew", "Create a new HIPGen project.")
+                                             "projectnew", "Create a new PopSim project.")
         projectOpenAction = self.createAction("&Open Project", self.projectOpen, QKeySequence.Open, 
-                                              "projectopen", "Open an existing HIPGen project.")
+                                              "projectopen", "Open an existing PopSim project.")
         projectSaveAction = self.createAction("&Save Project", self.projectSave, QKeySequence.Save, 
-                                              "projectsave", "Save the current HIPGen project.")
+                                              "projectsave", "Save the current PopSim project.")
         projectSaveAsAction = self.createAction("Save Project &As...", self.projectSaveAs, 
-                                                icon="projectsaveas", tip="Save the current HIPGen project with a new name.")
+                                                icon="projectsaveas", tip="Save the current PopSim project with a new name.")
         projectCloseAction = self.createAction("&Close Project", self.projectClose, "Ctrl+W",
-                                                tip="Close the current HIPGen project.")
+                                                tip="Close the current PopSim project.")
         applicationQuitAction = self.createAction("&Quit", self.close, "Ctrl+Q",
                                                 icon="quit", tip="Close the application.")
 # Adding actions to menu
@@ -98,31 +75,36 @@ class MainWindow(QMainWindow):
 # Defining menu/toolbar actions        
         dataSourceAction = self.createAction("Data Source &Connection", self.dataSource, 
                                              icon="datasource", tip="Enter credentials for the MySQL data source.")
+        dataImportAction = self.createAction("&Import", self.dataImport, icon="fileimport", 
+                                             tip="Import data into MySQL database.")
         dataStatisticsAction = self.createAction("&Statistics", self.dataStatistics,  
-                                              icon="statistics", tip="Conduct descriptive analysis.")
+                                                 icon="statistics", tip="Conduct descriptive analysis.")
         dataModifyAction = self.createAction("&Modify", self.dataModify,  
-                                              icon="modifydata", tip="Modify the input data.")
+                                             icon="modifydata", tip="Modify the input data.")
 # Adding actions to menu
         self.dataMenu = self.menuBar().addMenu("&Data")
-        self.addActions(self.dataMenu, (dataSourceAction, None, dataStatisticsAction, dataModifyAction))
+        self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataStatisticsAction, dataModifyAction))
+
 # Adding actions to toolbar
         self.dataToolBar = self.addToolBar("Data")
         self.dataToolBar.setObjectName("DataToolBar")
-        self.addActions(self.dataToolBar, (dataSourceAction,  dataStatisticsAction, dataModifyAction))
+        self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataStatisticsAction, dataModifyAction))
+
+        #self.dataMenu.setDisabled(True)
+        #self.dataToolBar.setDisabled(True)
 
 # SYNTHESIZER MENU
 # Defining menu/toolbar actions
         synthesizerControlVariablesAction = self.createAction("Control &Variables", self.synthesizerControlVariables,
-                                                   icon="controlvariables",
-                                                   tip="Select variables to control.")
+                                                              icon="controlvariables",
+                                                              tip="Select variables to control.")
         synthesizerParameterAction = self.createAction("&Parameters/Settings", self.synthesizerParameter,
                                                        icon="parameters",
                                                        tip="Define the different parameter values.")
         synthesizerRunAction = self.createAction("Run", self.synthesizerRun, 
-                                               icon="run", tip="Run the populaiton synthesis.")
-        synthesizerRunAction.setEnabled(False)
+                                                 icon="run", tip="Run the populaiton synthesis.")
         synthesizerStopAction = self.createAction("Stop", self.synthesizerStop, 
-                                                   icon="stop", tip="Stop the current population synthesis run.")
+                                                  icon="stop", tip="Stop the current population synthesis run.")
 # Adding actions to menu
         self.synthesizerMenu = self.menuBar().addMenu("&Synthesizer")
         self.addActions(self.synthesizerMenu, (synthesizerControlVariablesAction, synthesizerParameterAction, None, 
@@ -132,6 +114,9 @@ class MainWindow(QMainWindow):
         self.addActions(self.synthesizerToolBar, (synthesizerControlVariablesAction, synthesizerParameterAction, 
                                                   synthesizerRunAction))
 
+        self.synthesizerMenu.setDisabled(True)
+        self.synthesizerToolBar.setDisabled(True)
+
 
 # RESULTS MENU
 # Defining menu/toolbar actions
@@ -140,15 +125,15 @@ class MainWindow(QMainWindow):
                                                       tip="""Display the distribution of AARD"""
                                                       """across all individual geographies.""")
         resultsRegionalPValueAction = self.createAction("P-Value", 
-                                                      self.resultsRegionalPValue, 
-                                                      tip="""Display the distribution of P-value"""
-                                                      """for the synthetic population across all individual geographies.""")
+                                                        self.resultsRegionalPValue, 
+                                                        tip="""Display the distribution of P-value"""
+                                                        """for the synthetic population across all individual geographies.""")
         resultsRegionalHousDistAction = self.createAction("Housing Attribute Distribution", 
-                                                      self.resultsRegionalHousDist, 
-                                                      tip="Comparison of Housing Attributes.")
+                                                          self.resultsRegionalHousDist, 
+                                                          tip="Comparison of Housing Attributes.")
         resultsRegionalPersDistAction = self.createAction("Person Attribute Distribution", 
-                                                      self.resultsRegionalPersDist, 
-                                                      tip="Comparison of Person Attributes.")
+                                                          self.resultsRegionalPersDist, 
+                                                          tip="Comparison of Person Attributes.")
 
 
         resultsRegionalAction = self.createAction("Regional Geography Statistics",
@@ -181,8 +166,27 @@ class MainWindow(QMainWindow):
         self.resultsToolBar = self.addToolBar("Results")
         self.addActions(self.resultsToolBar, (resultsRegionalAction, resultsIndividualAction))
 
+        #self.resultsMenu.setDisabled(True)
+        #self.resultsToolBar.setDisabled(True)
+
+
 # HELP MENU
+# Defining menu/toolbar actions
+        helpDocumentationAction = self.createAction("Documentation",
+                                                    self.showDocumentation, 
+                                                    tip="Display the documentation of PopSim.", 
+                                                    icon = "documentation")
+        helpHelpAction = self.createAction("Help",
+                                           self.showHelp, 
+                                           tip="Quick reference for important parameters",
+                                           icon="help")
+
+        helpAboutAction = self.createAction("About PopSim",
+                                            self.showAbout, 
+                                            tip="Display software information")
+
         self.helpMenu = self.menuBar().addMenu("&Help")
+        self.addActions(self.helpMenu, (helpDocumentationAction, helpHelpAction, None, helpAboutAction))
 
 
 
@@ -208,7 +212,7 @@ class MainWindow(QMainWindow):
         self.fileManager.expandItem(ancestor)
         self.fileManager.setEnabled(False)
         
-        self.connect(self.fileManager, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.fileManager.editItem)
+        #self.connect(self.fileManager, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.fileManager.editItem)
         self.connect(self.fileManager, SIGNAL("itemClicked(QTreeWidgetItem *,int)"), self.fileManager.click)
 
 
@@ -216,27 +220,63 @@ class MainWindow(QMainWindow):
 # Defining all the slots and supporting methods
 
     def projectNew(self):
-        #QMessageBox.information(self, "Information", "Create new project", QMessageBox.Ok)
-        wizard = Wizard()
-        wizard.setWindowIcon(QIcon("./images/projectnew.png"))
-
-        if wizard.exec_():
-            print "complete"
-            PopulateFileManager(wizard.project, self.fileManager)
-            if wizard.project.sampleUserProv.userProv:
-                autoProcessPUMSData(wizard.project)
-            #PrepareData(wizard.project)
+        if not self.fileManager.isEnabled():
+            self.runWizard()
         else:
-            print "working"
+            reply = QMessageBox.question(None, "PopSim: New Project Wizard",
+                                         QString("""A PopSim project already open. Do you wish to continue?"""),
+                                         QMessageBox.Yes| QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                save = QMessageBox.question(None, "PopSim: New Project Wizard",
+                                            QString("""Do you wish to save the project?"""),
+                                            QMessageBox.Yes| QMessageBox.No)
+                if save == QMessageBox.Yes:
+                    self.project.save()
+                else:
+                    self.runWizard()
 
 
+    def runWizard(self):
+        self.wizard = Wizard()
+        self.wizard.setWindowIcon(QIcon("./images/projectnew.png"))
+        
+        if self.wizard.exec_():
+            print "complete"
+            self.project = self.wizard.project
+            self.fileManager.project = self.project
+            self.fileManager.populate()
 
     def projectOpen(self):
-        QMessageBox.information(self, "Information", "Open project", QMessageBox.Ok)
+        project = OpenProject()
+        
+        if not project.file.isEmpty():
+            if self.fileManager.isEnabled():
+                reply = QMessageBox.warning(None, "PopSim: Open Existing Project",
+                                            QString("""A PopSim project already open. Do you wish to continue?"""),
+                                            QMessageBox.Yes| QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    save = QMessageBox.warning(None, "PopSim: Save Existing Project",
+                                               QString("""Do you wish to save the project?"""),
+                                               QMessageBox.Yes| QMessageBox.No)
+                    if save == QMessageBox.Yes:
+                        SaveProject(self.project)
+                    with open(project.file, 'rb') as f:
+                        self.project = pickle.load(f)
+                        self.fileManager.project = self.project
+                        self.fileManager.populate()
+                        #PopulateFileManager(self.project, self.fileManager)
 
+            else:
+                with open(project.file, 'rb') as f:
+                    self.project = pickle.load(f)
+                    self.fileManager.project = self.project
+                    self.fileManager.populate()
+                    #PopulateFileManager(self.project, self.fileManager)
+                    
 
     def projectSave(self):
         QMessageBox.information(self, "Information", "Save project", QMessageBox.Ok)
+        #use = UserImportSFData()
 
 
     def projectSaveAs(self):
@@ -251,12 +291,35 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Information", "Define MySQL datasource", QMessageBox.Ok)
 
 
+    def dataImport(self):
+        dataprocesscheck = DataDialog(self.project)
+        dataprocesscheck.exec_()
+
     def dataStatistics(self):
         QMessageBox.information(self, "Information", "Run some descriptive analysis", QMessageBox.Ok)
 
     
     def dataModify(self):
-        QMessageBox.information(self, "Information", "Modify data categories", QMessageBox.Ok)
+        from database.createDBConnection import createDBC
+        from gui.file_menu.newproject import DBInfo
+        db = DBInfo("localhost", "root", "1234")
+        a = createDBC(db, "fifth")
+        a.dbc.open()
+        
+        from data_menu.display_data import DisplayTable
+        b = DisplayTable("person_marginals_az")
+        
+        c = QDialog()
+        layout = QVBoxLayout()
+
+        layout.addWidget(b.view)
+        
+        c.setLayout(layout)
+        c.exec_()
+        
+        
+
+        a.dbc.close()
 
 
     def synthesizerControlVariables(self):
@@ -297,11 +360,17 @@ class MainWindow(QMainWindow):
         res.exec_()
         
 
+    def showDocumentation(self):
+        QMessageBox.information(self, "Help", "Documentation", QMessageBox.Ok)
 
+    def showHelp(self):
+        QMessageBox.information(self, "Help", "Help", QMessageBox.Ok)
 
+    def showAbout(self):
+        QMessageBox.information(self, "Help", "About", QMessageBox.Ok)
 
     def createAction(self, text, slot=None, shortcut=None, icon=None, 
-                     tip=None, checkable=False, signal="triggered()"):
+                     tip=None, checkable=False, disabled = None, signal="triggered()"):
         action = QAction(text, self)
         if icon is not None:
             action.setIcon(QIcon("./images/%s.png" % icon))
@@ -314,6 +383,9 @@ class MainWindow(QMainWindow):
             self.connect(action, SIGNAL(signal), slot)
         if checkable:
             action.setCheckable(True)
+        if disabled:
+            action.setDisabled(True)
+
         return action
         
 
@@ -328,7 +400,7 @@ def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)
     QgsApplication.initQgis()
-    app.setApplicationName("Heurisitc Iterative Population Generator (HIPGen)")
+    app.setApplicationName("Synthetic Population Simulator (HIPGen)")
     form = MainWindow()
     form.show()
     app.exec_()
