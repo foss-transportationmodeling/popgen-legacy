@@ -3,6 +3,7 @@ from PyQt4.QtGui import *
 from misc.widgets import *
 from qgis.core import *
 from qgis.gui import *
+from misc.map_toolbar import *
 import countydata
 
 
@@ -51,31 +52,44 @@ class IntroPage(QWizardPage):
         county = QTreeWidgetItem(state, [QString("County1")])
 
         # Displaying counties and selecting counties using the map
-        canvas = QgsMapCanvas()
-        canvas.setCanvasColor(QColor(0,0,0))
-        canvas.enableAntiAliasing(True)
-        canvas.useQImageToRender(False)
+        self.canvas = QgsMapCanvas()
+        self.canvas.setCanvasColor(QColor(255,255,255))
+        self.canvas.enableAntiAliasing(True)
+        self.canvas.useQImageToRender(False)
         layerPath = "./data/county.shp"
-        layerName = "NCSelectedCounties"
+        layerName = "USCounties"
         layerProvider = "ogr"
-        layer = QgsVectorLayer(layerPath, layerName, layerProvider)
-        if not layer.isValid():
+        self.layer = QgsVectorLayer(layerPath, layerName, layerProvider)
+
+        renderer = self.layer.renderer()
+        renderer.setSelectionColor(QColor(255,255,0))
+        
+        symbol = renderer.symbols()[0]
+        symbol.setFillColor(QColor(153,204,0))
+
+ 
+        if not self.layer.isValid():
             return
-        QgsMapLayerRegistry.instance().addMapLayer(layer)
-        canvas.setExtent(layer.extent())
-        cl = QgsMapCanvasLayer(layer)
+        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        self.canvas.setExtent(self.layer.extent())
+        cl = QgsMapCanvasLayer(self.layer)
         layers = [cl]
-        canvas.setLayerSet(layers)
+        self.canvas.setLayerSet(layers)
 
-        # Vertical layout of all elements
-        vLayout = QVBoxLayout()
-        vLayout.addLayout(projectVLayout)
-        vLayout.addWidget(self.countySelectTree)
 
+        # Vertical layout of project description elements
+        vLayout1 = QVBoxLayout()
+        vLayout1.addLayout(projectVLayout)
+        vLayout1.addWidget(self.countySelectTree)
+        # Vertical layout of map elements
+        vLayout2 = QVBoxLayout()
+        self.toolbar = Toolbar(self.canvas, self.layer)
+        vLayout2.addWidget(self.toolbar)
+        vLayout2.addWidget(self.canvas)        
         # Horizontal layout of all elements
         hLayout = QHBoxLayout()
-        hLayout.addLayout(vLayout)
-        hLayout.addWidget(canvas)
+        hLayout.addLayout(vLayout1)
+        hLayout.addLayout(vLayout2)
         self.setLayout(hLayout)
 
         self.counties = countydata.CountyContainer(QString("./data/counties.csv"))
@@ -99,6 +113,7 @@ class IntroPage(QWizardPage):
         self.emit(SIGNAL("completeChanged()"))
         
     def regionCheck(self):
+        self.selectedCounties = {}
         items = self.countySelectTree.selectedItems()
         if items is not None:
 
@@ -117,8 +132,38 @@ class IntroPage(QWizardPage):
         else:
             self.regionDummy = False
         self.emit(SIGNAL("completeChanged()"))
+        
+        for i in self.countySelectTree.selectedItems():
+            self.selectedCounties[i.text(0)] = i.parent().text(0)
+
+        self.highlightSelectedCounties()
+        
+    def highlightSelectedCounties(self):
+        self.layer.removeSelection()
+        selectedFeatureIds = []
+        provider = self.layer.getDataProvider()
+        allAttrs = provider.allAttributesList()
+        stidx = provider.indexFromFieldName("statename")
+        ctyidx = provider.indexFromFieldName("countyname")
+        provider.select(allAttrs,QgsRect())
+        feat = QgsFeature()
+        while provider.getNextFeature(feat):
+            attrMap = feat.attributeMap()
+            featstate = attrMap[stidx].toString().trimmed()
+            featcounty = attrMap[ctyidx].toString().trimmed()
+            for county in self.selectedCounties.keys():
+                state = self.selectedCounties[county]
+
+                if (featstate.compare(state) == 0 and featcounty.compare(county) == 0):
+                    selid = feat.featureId()
+                    selectedFeatureIds.append(selid)
                     
-        self.selectedCounties = self.countySelectTree.selectedItems()
+        if len(selectedFeatureIds) > 0:
+            self.layer.setSelectedFeatures(selectedFeatureIds)
+        boundingBox = self.layer.boundingBoxOfSelected()
+        boundingBox.scale(4)
+        self.canvas.setExtent(boundingBox)
+        self.canvas.refresh()
 
     def populateCountySelectTree(self):
         self.initialLoad()
@@ -126,7 +171,7 @@ class IntroPage(QWizardPage):
         self.countySelectTree.setColumnCount(1)
         self.countySelectTree.setHeaderLabels(["State/County"])
         self.countySelectTree.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        #self.countySelectTree.setItemExpandable(True)
+
 
         parentFromState = {}
         parentFromStateCounty = {}
@@ -142,9 +187,10 @@ class IntroPage(QWizardPage):
                 parent = QTreeWidgetItem(ancestor, [QString(county.countyName)])
                 parentFromStateCounty[stateCounty] = parent
 
-
         self.countySelectTree.sortItems(0, Qt.AscendingOrder)
 
+
+    
 
     def initialLoad(self):
         try:
@@ -152,16 +198,6 @@ class IntroPage(QWizardPage):
         except IOError, e:
             QMessageBox.warning(self, "Counties - Error", "Failed to load: %s" %e)
 
-    def showCountySelection(self):
-        if self.countySelectTree.selectedItems() is not None:
-            for selection in self.countySelectTree.selectedItems():
-                if selection.parent() is None:
-                    selection.setSelected(False)
-
-            self.selectedCounties = self.countySelectTree.selectedItems()
-        else:
-            self.selectedCounties = []
-            
     def isComplete(self):
         validate = self.nameDummy and self.locationDummy and self.regionDummy
         if validate:
