@@ -1,52 +1,40 @@
+from __future__ import with_statement
+
+import pickle
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 
 
 
 class Geocorr(object):
-    def __init__(self, userprov=None, geocorrLocation=None):
+    def __init__(self, userprov=None, geocorrLocation=""):
         self.userProv = userprov
-        if userprov:
-            self.location = geocorrLocation
-        else:
-            self.location = QString("./data/geocorr.csv")
-
+        self.location = geocorrLocation
+        
 class Sample(object):
-    def __init__(self, userprov=None, sampleHHLocation=None, sampleGQLocation=None, samplePopLocation=None):
+    def __init__(self, userprov=None, sampleHHLocation="", sampleGQLocation="", samplePersonLocation=""):
         self.userProv = userprov
-        if userprov:
-            self.hhLocation = sampleHHLocation
-            self.gqLocation = sampleGQLocation
-            self.popLocation = samplePopLocation
-        else:
-            self.hhLocation = QString("./data/sampleHH.csv")
-            self.gqLocation = QString("./data/sampleGQ.csv")
-            self.popLocation = QString("./data/samplePop.csv")
+        self.hhLocation = sampleHHLocation
+        self.gqLocation = sampleGQLocation
+        self.personLocation = samplePersonLocation
 
 class Control(object):
-    def __init__(self, userprov=None, controlHHLocation=None, controlGQLocation=None, controlPopLocation=None):
+    def __init__(self, userprov=None, controlHHLocation="", controlGQLocation="", controlPersonLocation=""):
         self.userProv = userprov
-        if userprov:
-            self.hhLocation = controlHHLocation
-            self.gqLocation = controlGQLocation
-            self.popLocation = controlPopLocation
-        else:
-            self.hhLocation = QString("./data/controlHH.csv")
-            self.gqLocation = QString("./data/controlGQ.csv")
-            self.popLocation = QString("./data/controlPop.csv")
-
-
+        self.hhLocation = controlHHLocation
+        self.gqLocation = controlGQLocation
+        self.personLocation = controlPersonLocation
+        
 class DBInfo(object):
-    def __init__(self, hostname=None, username=None, password=None, driver="QMYSQL"):
+    def __init__(self, hostname="", username="", password="", driver="QMYSQL"):
         self.driver = driver
         self.hostname = hostname
         self.username = username
         self.password = password
 
-
-
 class NewProject(object):
-    def __init__(self, name=None, location=None, description=None, region=None, resolution=None, geocorrUserProv=Geocorr(), 
+    def __init__(self, name="", location="", description="", region="", resolution="", geocorrUserProv=Geocorr(), 
                  sampleUserProv=Sample(), controlUserProv=Control(), db = DBInfo()):
         self.name = name
         self.location = location
@@ -59,37 +47,14 @@ class NewProject(object):
         self.db = db
 
 
-class Geocorr(object):
-    def __init__(self, userprov=None, geocorrLocation=None):
-        self.userProv = userprov
-        if userprov:
-            self.location = geocorrLocation
-        else:
-            self.location = QString("./data/geocorr.csv")
+    def save(self):
+        with open('%s/%s/%s.pop' %(self.location, self.name, self.name), 
+                  'wb') as f:
+            pickle.dump(self, f, True)
+        pass
 
-class Sample(object):
-    def __init__(self, userprov=None, sampleHHLocation=None, sampleGQLocation=None, samplePopLocation=None):
-        self.userProv = userprov
-        if userprov:
-            self.hhLocation = sampleHHLocation
-            self.gqLocation = sampleGQLocation
-            self.popLocation = samplePopLocation
-        else:
-            self.hhLocation = QString("./data/sampleHH.csv")
-            self.gqLocation = QString("./data/sampleGQ.csv")
-            self.popLocation = QString("./data/samplePop.csv")
-
-class Control(object):
-    def __init__(self, userprov=None, controlHHLocation=None, controlGQLocation=None, controlPopLocation=None):
-        self.userProv = userprov
-        if userprov:
-            self.hhLocation = controlHHLocation
-            self.gqLocation = controlGQLocation
-            self.popLocation = controlPopLocation
-        else:
-            self.hhLocation = QString("./data/controlHH.csv")
-            self.gqLocation = QString("./data/controlGQ.csv")
-            self.popLocation = QString("./data/controlPop.csv")
+    def update(self):
+        pass
 
 
 
