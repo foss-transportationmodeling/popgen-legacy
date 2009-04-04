@@ -8,7 +8,7 @@ from numpy.random import randint
 
 from dbf import *
 
-from gui.file_menu.intro_toolbar import *
+from gui.misc.map_toolbar import *
 from doRandPoints import *
 
 
@@ -148,7 +148,7 @@ class Hhmap(QDialog):
         self.canvas.setLayerSet(self.layers)
     
     def getHHFreq(self):
-        return randint(100,300)
+        return randint(500,700)
     
     def out(self):
         layerpath = inlayer_loc
