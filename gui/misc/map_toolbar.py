@@ -103,6 +103,10 @@ class Toolbar(QToolBar):
                 else:
                     dummy += ',"%s"' % attr.toString().trimmed()
             print "Field Values: " + dummy, feat.featureId()
+    
+    def hideDragTool(self):
+        self.mpActionSelect.setVisible(False)
+        
 
 def main():
     app = QApplication(sys.argv)
