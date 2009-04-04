@@ -84,6 +84,7 @@ class IntroPage(QWizardPage):
         # Vertical layout of map elements
         vLayout2 = QVBoxLayout()
         self.toolbar = Toolbar(self.canvas, self.layer)
+        self.toolbar.hideDragTool()
         vLayout2.addWidget(self.toolbar)
         vLayout2.addWidget(self.canvas)        
         # Horizontal layout of all elements
@@ -160,10 +161,12 @@ class IntroPage(QWizardPage):
                     
         if len(selectedFeatureIds) > 0:
             self.layer.setSelectedFeatures(selectedFeatureIds)
-        boundingBox = self.layer.boundingBoxOfSelected()
-        boundingBox.scale(4)
-        self.canvas.setExtent(boundingBox)
-        self.canvas.refresh()
+            boundingBox = self.layer.boundingBoxOfSelected()
+            boundingBox.scale(4)
+            self.canvas.setExtent(boundingBox)
+            self.canvas.refresh()
+        else:
+            self.canvas.zoomFullExtent()
 
     def populateCountySelectTree(self):
         self.initialLoad()
