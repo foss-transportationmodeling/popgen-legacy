@@ -16,6 +16,7 @@ class Ppdist(Matplot):
         self.makeComboBox()
         self.vbox.addWidget(self.hhcombobox)
         self.vbox.addWidget(self.canvas)
+        self.setLayout(self.vbox)
         self.on_draw()
         self.connect(self.hhcombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
 

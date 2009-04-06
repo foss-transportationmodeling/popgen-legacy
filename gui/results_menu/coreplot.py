@@ -53,7 +53,7 @@ class Matplot(QDialog):
         self.axes = self.fig.add_subplot(111)  
         
         self.vbox = QVBoxLayout()
-        self.setLayout(self.vbox)
+        #self.setLayout(self.vbox)
         #vbox.addWidget(self.mpl_toolbar)
         #vbox.addLayout(hbox)
 

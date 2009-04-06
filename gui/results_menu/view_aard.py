@@ -13,6 +13,7 @@ class Absreldiff(Matplot):
         Matplot.__init__(self)
         self.setWindowTitle("Average Absolute Relative Difference Distribution")
         self.vbox.addWidget(self.canvas)
+        self.setLayout(self.vbox)
         self.on_draw()
 
     def on_draw(self):

@@ -13,6 +13,7 @@ class Pval(Matplot):
         Matplot.__init__(self)
         self.setWindowTitle("P Value Distribution")
         self.vbox.addWidget(self.canvas)
+        self.setLayout(self.vbox)
         self.on_draw()
 
 
