@@ -15,8 +15,8 @@ class Indgeo(Matplot):
     def __init__(self, parent=None):
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
-        oldlayout = self.layout()
-        del oldlayout
+        self.setFixedSize(QSize(1000,500))
+        
         self.makeComboBox()
         self.makeMapWidget()
         self.vbox.addWidget(self.geocombobox)
