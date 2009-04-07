@@ -7,6 +7,7 @@ from PyQt4.QtSql import *
 from database.createDBConnection import createDBC
 from misc.errors import FileError
 from misc.utils import UnzipFile
+from misc.widgets import VariableSelectionDialog
 from import_data import ImportUserProvData, FileProperties
 
 class UserImportSampleData():
@@ -291,137 +292,6 @@ class AutoImportPUMSData():
                         progress = progress + 1
                         progressDialog.setValue(progress)
 
-class ListWidget(QListWidget):
-    def __init__(self, variables, parent = None):
-        super(ListWidget, self).__init__(parent)
-        self.variables = variables
-
-    def populate(self):
-        self.clear()
-        if len(self.variables) > 0:
-            self.addItems(self.variables)
-
-        self.sortItems()
-
-class VariableSelectionDialog(QDialog):
-    def __init__(self, variableDict, defaultVariables, title="", icon="", parent=None):
-        super(VariableSelectionDialog, self).__init__(parent)
-
-        self.defaultVariables = defaultVariables
-        self.variableDict = variableDict
-        self.variables = self.variableDict.keys()
-
-        self.checkDefaultVariables()
-
-        self.setStatusTip("Dummy String")
-        self.setFixedSize(QSize(500,300))
-
-        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.RestoreDefaults| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
-        layout = QVBoxLayout()
-
-        selectButton = QPushButton('Select>>')
-        unselectButton = QPushButton('<<Unselect')
-        buttonLayout = QVBoxLayout()
-        buttonLayout.addWidget(selectButton)
-        buttonLayout.addWidget(unselectButton)
-
-        self.setWindowTitle(title)
-        self.setWindowIcon(QIcon("../images/%s.png"%(icon)))
-
-        self.oriVariables = self.variables
-
-        self.variableListWidget = ListWidget(self.variables)
-        self.variableListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-        self.selectedVariableListWidget = ListWidget([])
-        self.selectedVariableListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
-
-        self.variableDescLabel = QLabel("Description of the variables")
-
-
-        hLayout = QHBoxLayout()
-        hLayout.addWidget(self.variableListWidget)
-        hLayout.addLayout(buttonLayout)
-        hLayout.addWidget(self.selectedVariableListWidget)
-
-        layout.addLayout(hLayout)
-        layout.addWidget(self.variableDescLabel)
-        layout.addWidget(dialogButtonBox)
-
-        self.setLayout(layout)
-
-        self.variableListWidget.populate()
-
-
-        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
-        self.connect(dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.resetandrestore)
-        self.connect(selectButton, SIGNAL("clicked()"), self.moveSelected)
-        self.connect(unselectButton, SIGNAL("clicked()"), self.moveUnselected)
-        self.connect(self.variableListWidget, SIGNAL("currentRowChanged(int)"), self.displayVariableDescription)
-        self.connect(self.selectedVariableListWidget, SIGNAL("currentRowChanged(int)"), self.displaySelectedVariableDescription)
-
-    def displayVariableDescription(self, row):
-        if row is not -1:
-            self.variableDescLabel.setText('%s'%self.variableDict['%s'%self.variableListWidget.item(row).text()])
-
-    def displaySelectedVariableDescription(self, row):
-        if row is not -1:
-            self.variableDescLabel.setText('%s'%self.variableDict['%s'%self.selectedVariableListWidget.item(row).text()])
-
-
-
-    def checkDefaultVariables(self):
-        diff = [var for var in self.defaultVariables if var not in self.variables]
-        if len(diff) >0 :
-            raise FileError, "The default variable list contains variable names that are not in the variable list. "
-
-
-    def resetandrestore(self, button):
-        if button.text() == 'Restore Defaults':
-            # Moving the selected variable list to the unselected list
-            for i in self.selectedVariableListWidget.variables:
-                self.variableListWidget.variables.append(i)
-            self.variableListWidget.populate()
-            # Emptying the selected variable list
-            self.selectedVariableListWidget.variables = []
-            self.selectedVariableListWidget.populate()
-
-            # Removing default variables from the unselected list
-            for i in self.defaultVariables:
-                self.variableListWidget.variables.remove(i)
-            self.variableListWidget.populate()
-
-            # Populating the selected variable list with the default variables
-            import copy
-            self.selectedVariableListWidget.variables = copy.deepcopy(self.defaultVariables)
-            self.selectedVariableListWidget.populate()
-
-        if button.text() == 'Reset':
-            for i in self.selectedVariableListWidget.variables:
-                self.variableListWidget.variables.append(i)
-
-            self.selectedVariableListWidget.variables = []
-            self.selectedVariableListWidget.populate()
-            self.variableListWidget.populate()
-
-    def moveSelected(self):
-        selectedItems = self.variableListWidget.selectedItems()
-        for i in selectedItems:
-            self.variableListWidget.variables.remove(i.text())
-            self.selectedVariableListWidget.variables.append(i.text())
-
-        self.variableListWidget.populate()
-        self.selectedVariableListWidget.populate()
-        print 'moveselec', self.defaultVariables
-
-    def moveUnselected(self):
-        unselectedItems = self.selectedVariableListWidget.selectedItems()
-        for i in unselectedItems:
-            self.selectedVariableListWidget.variables.remove(i.text())
-            self.variableListWidget.variables.append(i.text())
-
-        self.variableListWidget.populate()
-        self.selectedVariableListWidget.populate()
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
