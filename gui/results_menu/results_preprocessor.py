@@ -4,6 +4,8 @@ from qgis.core import *
 from qgis.gui import *
 import os, sys
 
+from gui.global_vars import *
+
 from gui.misc.dbf import *
 
 qgis_prefix = "C:/qgis"
@@ -16,18 +18,49 @@ qgis_prefix = "C:/qgis"
 
 hhcount_fieldname = "HHFREQ"
 
-RES_BG = True
-RES_TR = False
-RES_CO = False
-
 class ResultsGen():
-    def __init__(self):
-        self.resultsloc = "C:/populationsynthesis/gui/results"
-        self.mapsloc = "C:/populationsynthesis/gui/data"
-        self.state = "04"
-        self.counties = ["015", "005", "017", "025"]
-        #Re
-        self.resolution = "BLKGRP"
+    def __init__(self, project):
+        self.project = project
+
+        self.name = self.project.name
+        self.resultsloc = self.project.location + os.path.sep + self.name + os.path.sep + "results"
+        self.resultsloc = os.path.realpath(self.resultsloc)
+        self.mapsloc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.project.state + os.path.sep + 'shapefile'
+        self.mapsloc = os.path.realpath(self.mapsloc)
+        self.stateCode = self.project.stateCode[self.project.state]
+        self.countyCodes=[]
+        
+        for i in self.project.region.keys():
+            county = i + ',' + self.project.state
+            self.countyCodes.append(self.project.countyCode['%s' %county])
+
+        if self.project.resolution == "County":
+            self.res_prefix = "co"
+
+        if self.project.resolution == "Tract":
+            self.res_prefix = "tr"
+
+        if self.project.resolution == "Blockgroup":
+            self.res_prefix = "bg"
+
+        print self.name
+        print self.resultsloc        
+        print self.mapsloc
+        print self.stateCode
+        print self.countyCodes
+        print self.res_prefix
+
+        #self.resultsloc = "C:/populationsynthesis/gui/results"
+        #self.mapsloc = "C:/populationsynthesis/gui/data"
+        #self.state = "04"
+        #self.counties = ["015", "005", "017", "025"]
+
+    
+    def downloadShapeFiles(self):
+        pass
+
+    def extractShapeFiles(self):
+        pass
 
     def generate(self):
         self.create_hhmap()
@@ -40,22 +73,16 @@ class ResultsGen():
         # Decide whether to show points or not
     
     def makesublayer(self):
-        if RES_BG:
-            res_prefix = "bg"
-        elif RES_TR:
-            res_prefix = "tr"
-        elif RES_CO:
-            res_prefix = "co"
-        folder = res_prefix+self.state+"_d00_shp"
-        filename = res_prefix+self.state+"_d00.shp"
-        filedbf = res_prefix+self.state+"_d00.dbf"
-        fileshx = res_prefix+self.state+"_d00.shx"
+        folder = res_prefix+self.stateCode+"_d00_shp"
+        filename = res_prefix+self.stateCode+"_d00.shp"
+        filedbf = res_prefix+self.stateCode+"_d00.dbf"
+        fileshx = res_prefix+self.stateCode+"_d00.shx"
               
         basefile = self.mapsloc+os.path.sep+folder+os.path.sep+filename
         basedbf = self.mapsloc+os.path.sep+folder+os.path.sep+filedbf
         baseshx = self.mapsloc+os.path.sep+folder+os.path.sep+fileshx
         
-        newfilename = res_prefix+self.state+"_selected"  
+        newfilename = res_prefix+self.stateCode+"_selected"  
         newfile = self.resultsloc+os.path.sep+newfilename + ".shp"
         newdbf = self.resultsloc+os.path.sep+newfilename + ".dbf"
         newshx = self.resultsloc+os.path.sep+newfilename + ".shx"   
@@ -97,7 +124,7 @@ class ResultsGen():
         while baseprovider.getNextFeature(feat):
            attrMap = feat.attributeMap()
            featcounty = attrMap[countyindex].toString().trimmed()
-           if featcounty in self.counties:
+           if featcounty in self.countyCodes:
                featid = feat.featureId()
                selfeat = QgsFeature()
                baselayer.getFeatureAtId(featid, selfeat)
@@ -119,7 +146,7 @@ class ResultsGen():
         #ctyidx = fieldnames.index("COUNTY")
         #records2 = []
         #for rec in records:
-        #    if rec[ctyidx] in self.counties:
+        #    if rec[ctyidx] in self.countyCodes:
         #        records2.append(rec)
                 
         
