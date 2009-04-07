@@ -4,10 +4,10 @@ from PyQt4.QtCore import *
 import sys
 from gui.file_menu.newproject import DBInfo
 
-class createDBC(QSqlDatabase):
+class createDBC(object):
     def __init__(self, db, name=None):
         super(createDBC, self).__init__()
-        self.dbc = self.addDatabase(db.driver)
+        self.dbc = QSqlDatabase.addDatabase(db.driver)
         self.dbc.setHostName(db.hostname)
         self.dbc.setUserName(db.username)
         self.dbc.setPassword(db.password)
@@ -18,8 +18,8 @@ class createDBC(QSqlDatabase):
 def main():
     app = QApplication(sys.argv)
 
-    db = DBInfo("localhost", "root", "1234")
-    a = createDBC("first", db)
+    db = DBInfo("ewrwrwe", "root", "1234")
+    a = createDBC(db, "nth")
 
     
     try:
