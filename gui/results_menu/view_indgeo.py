@@ -12,11 +12,13 @@ resultsloc = "C:/populationsynthesis/gui/results"
 resultmap = "bg04_selected.shp"
 
 class Indgeo(Matplot):
-    def __init__(self, parent=None):
+    def __init__(self, project, parent=None):
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
         self.setFixedSize(QSize(1000,500))
-        
+        self.project = project
+        self.retrieveResults()
+
         self.makeComboBox()
         self.makeMapWidget()
         self.vbox.addWidget(self.geocombobox)
@@ -29,16 +31,17 @@ class Indgeo(Matplot):
         vbox2.addWidget(QLabel("AARD:" + "some aard value"))
         vbox2.addWidget(QLabel("P Value:" + "some p-values"))
         vbox2.addWidget(self.canvas)
-        
+
         self.hbox = QHBoxLayout()
         self.hbox.addWidget(self.vboxwidget)
         self.hbox.addWidget(self.vboxwidget2)
-        
+
         self.setLayout(self.hbox)
         self.on_draw()
         self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
 
     def on_draw(self):
+
         """ Redraws the figure
         """
         self.current = self.geocombobox.currentText()
@@ -50,29 +53,29 @@ class Indgeo(Matplot):
             vals = (line.split('\n'))[0].split(',')
             act.append(float(vals[1]))
             syn.append(float(vals[2]))
-            
+
         # clear the axes and redraw the plot anew
-        self.axes.clear()        
+        self.axes.clear()
         self.axes.grid(True)
-        
+
         self.axes.scatter(act, syn)
         self.axes.set_xlabel("Joint Frequency Distribution from IPF")
         self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
         self.canvas.draw()
-        
+
     def makeComboBox(self):
         self.geocombobox = QComboBox(self)
         self.geocombobox.addItems(["tract: 4002, bg: 1", "tract: 4002, bg: 2"])
         self.geocombobox.setFixedWidth(400)
         self.current = self.geocombobox.currentText()
-    
+
     def makeMapWidget(self):
         self.mapcanvas = QgsMapCanvas()
         self.mapcanvas.setCanvasColor(QColor(255,255,255))
         self.mapcanvas.enableAntiAliasing(True)
         self.mapcanvas.useQImageToRender(False)
         layerPath = resultsloc+os.path.sep+resultmap
-        self.layer = QgsVectorLayer(layerPath, "Selgeogs", "ogr")        
+        self.layer = QgsVectorLayer(layerPath, "Selgeogs", "ogr")
         renderer = self.layer.renderer()
         renderer.setSelectionColor(QColor(255,255,0))
         symbol = renderer.symbols()[0]
@@ -85,13 +88,35 @@ class Indgeo(Matplot):
         layers = [cl]
         self.mapcanvas.setLayerSet(layers)
         self.toolbar = Toolbar(self.mapcanvas, self.layer)
-        self.toolbar.hideDragTool() 
+        self.toolbar.hideDragTool()
         maplayout = QVBoxLayout()
         maplayout.addWidget(self.toolbar)
         maplayout.addWidget(self.mapcanvas)
         self.mapwidget = QWidget()
         self.mapwidget.setLayout(maplayout)
-        
+
+    def retrieveResults(self, geoid):
+        projectDBC = createDBC(self.project.db, self.project.name)
+        projectDBC.dbc.open()
+
+        query = QSqlQuery()
+
+        self.buildResultsQuery()
+
+        query.exec_(""" """)
+
+        projectDBC.dbc.close()
+
+    def buildResultsQuery(self, varnames, tablename, geoid):
+        query = "SELECT"
+
+
+        pass
+
+    def executeParseResultsQuery():
+
+        pass
+
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)
