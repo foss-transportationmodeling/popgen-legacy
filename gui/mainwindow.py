@@ -307,17 +307,9 @@ class MainWindow(QMainWindow):
         a.dbc.open()
         
         from data_menu.display_data import DisplayTable
-        b = DisplayTable("person_marginals_az")
+        b = DisplayTable("person_pums_az")
         
-        c = QDialog()
-        layout = QVBoxLayout()
-
-        layout.addWidget(b.view)
-        
-        c.setLayout(layout)
-        c.exec_()
-        
-        
+        b.exec_()
 
         a.dbc.close()
 
