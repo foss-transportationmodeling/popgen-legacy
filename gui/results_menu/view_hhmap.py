@@ -6,7 +6,7 @@ import sys, os
 import shutil
 from numpy.random import randint
 
-from dbf import *
+from gui.misc.dbf import *
 
 from gui.misc.map_toolbar import *
 from doRandPoints import *
