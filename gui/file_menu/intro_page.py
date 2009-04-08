@@ -137,6 +137,7 @@ class IntroPage(QWizardPage):
         for i in self.countySelectTree.selectedItems():
             self.selectedCounties[i.text(0)] = i.parent().text(0)
 
+
         self.highlightSelectedCounties()
         
     def highlightSelectedCounties(self):
