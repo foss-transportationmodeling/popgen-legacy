@@ -71,7 +71,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
         conv_criterion = 0
     conv_criterion = conv_criterion / ( tot_colno - hh_colno)
     print '%d, %.4f, %.4f, %d, %.4f, %d'%(iteration, sum(weights), wts_personadj[-1], tot_colno, conv_criterion_array[-1], convergence)
-    return weights, conv_criterion_array, wts_personadj
+    return iteration, weights, conv_criterion_array, wts_personadj
         
 # How to deal with the fact that zero marginals will multiply the weights out to zeros
 
