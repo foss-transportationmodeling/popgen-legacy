@@ -21,6 +21,7 @@ class Wizard(QWizard):
     def __init__(self, parent=None):
         super(Wizard, self).__init__(parent)
         self.project = newproject.NewProject()
+        self.project.countyCode, self.project.stateCode, self.project.stateAbb = self.countyDicts()
         self.setFixedSize(QSize(800,500))
         self.setWizardStyle(QWizard.ClassicStyle)
 
@@ -43,6 +44,31 @@ class Wizard(QWizard):
         self.connect(self.button(QWizard.CancelButton), SIGNAL("pressed()"), self.reject)
         self.connect(self, SIGNAL("currentIdChanged(int)"), self.update)
         
+    def countyDicts(self):
+        file = QFile("./data/counties.csv")
+
+        if not file.open(QIODevice.ReadOnly):
+            raise IOError, unicode(file.errorString())
+
+        stateAbb = {}
+        stateCode = {}
+        countyCode = {}
+        while not file.atEnd():
+            a = file.readLine()
+            a = a.split(",")
+            stateAbb[a[1]] = a[4][:-2]
+            stcode = '%s'%a[0]
+            stcode = stcode.rjust(2, '0')
+            stateCode[a[1]] = stcode
+
+            uniquecounty = '%s' %a[3] +","+ '%s' %a[1]
+            countycode = '%s'%a[2]
+            countycode = countycode.rjust(3, '0')
+            countyCode[uniquecounty] = countycode
+            
+        file.close()
+
+        return countyCode, stateCode, stateAbb
 
     def reject(self):
         reply = QMessageBox.question(None, "PopSim: New Project Wizard",
@@ -80,16 +106,25 @@ class Wizard(QWizard):
                                    self.page5.passwordLineEdit.text(),
                                    "QMYSQL")
 
-
-            self.project = newproject.NewProject(self.page1.nameLineEdit.text(),
-                                                 self.page1.locationComboBox.currentText(),
-                                                 self.page1.descTextEdit.toPlainText(),
-                                                 self.page1.selectedCounties,
-                                                 self.page2.resolutionComboBox.currentText(),
-                                                 geocorrUserProv,
-                                                 sampleUserProv,
-                                                 controlUserProv,
-                                                 db)
+            self.project.name = self.page1.nameLineEdit.text()
+            self.project.location = self.page1.locationComboBox.currentText()
+            self.project.description = self.page1.descTextEdit.toPlainText()
+            self.project.region = self.page1.selectedCounties
+            self.project.state = self.page1.selectedCounties.values()[0]
+            self.project.resolution = self.page2.resolutionComboBox.currentText()
+            self.project.geocorrUserProv = geocorrUserProv
+            self.project.sampleUserProv = sampleUserProv
+            self.project.controlUserProv = controlUserProv
+            self.project.db = db
+            #self.project = newproject.NewProject(self.page1.nameLineEdit.text(),
+            #                                     self.page1.locationComboBox.currentText(),
+            #                                     self.page1.descTextEdit.toPlainText(),
+            #                                     self.page1.selectedCounties,
+            #                                     self.page2.resolutionComboBox.currentText(),
+            #                                     geocorrUserProv,
+            #                                     sampleUserProv,
+            #                                     controlUserProv,
+            #                                     db)
 
             self.page6.fillPage(self.project)
 
