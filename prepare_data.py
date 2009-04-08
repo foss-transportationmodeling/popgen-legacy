@@ -56,6 +56,9 @@ def prepare_data(db):
 #______________________________________________________________________
 # creating synthetic_population tables in MySQL
     drawing_households.create_synthetic_attribute_tables(db)
+    
+# creating performance_statistics table in MySQL
+    drawing_households.create_performance_table(db)
 
 # Total PUMS Sample x composite_type adjustment for hhld    
     adjusting_pums_joint_distribution.create_joint_dist(db, 'hhld', hhld_control_variables, hhld_dimensions, 0, 0, 0)
