@@ -34,12 +34,19 @@ class DBInfo(object):
         self.password = password
 
 class NewProject(object):
-    def __init__(self, name="", location="", description="", region="", resolution="", geocorrUserProv=Geocorr(), 
-                 sampleUserProv=Sample(), controlUserProv=Control(), db = DBInfo()):
+    def __init__(self, name="", location="", description="", 
+                 region="", state="", countyCode="", stateCode="", stateAbb="", 
+                 resolution="", geocorrUserProv=Geocorr(), 
+                 sampleUserProv=Sample(), controlUserProv=Control(), 
+                 db = DBInfo()):
         self.name = name
         self.location = location
         self.description = description
         self.region = region
+        self.state = state
+        self.countyCode = countyCode
+        self.stateCode = stateCode
+        self.stateAbb = stateAbb
         self.resolution = resolution
         self.geocorrUserProv = geocorrUserProv
         self.sampleUserProv = sampleUserProv
