@@ -176,8 +176,29 @@ def storing_synthetic_attributes(db, synthesis_type, attributes, pumano = 0, tra
     for i in range(attributes.shape[0]):
         row_data[3:] = attributes[i, :]
         dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(tuple(row_data))))
-    db.commit()
     dbc.close()
+    db.commit()
+
+
+def create_performance_table(db):
+    dbc = db.cursor()
+    try:
+         dbc.execute("""create table performance_statistics (pumano int, tract int, bg int, """
+                     """chivalue float, pvalue float, synpopiter int, heuriter int, aardvalue float)""")
+    except:
+         dbc.execute('delete from performance_statistics')
+    dbc.close()
+    db.commit()
+
+def store_performance_statistics(db, pumano, tract, bg, values):
+    dbc = db.cursor()
+    dbc.execute("""delete from performance_statistics where pumano = %s"""
+                """ and tract = %s and bg = %s""" %(pumano, tract, bg))
+    dbc.execute("""insert into performance_statistics values(%s)""" %str(values)[1:-1])
+        
+    dbc.close()
+    db.commit()
+
 
 def create_synthetic_attribute_tables(db):
     dbc = db.cursor()
@@ -195,9 +216,9 @@ def create_synthetic_attribute_tables(db):
     except:
          dbc.execute('delete from housing_synthetic_data')
          dbc.execute('delete from person_synthetic_data')
-
     dbc.close()
     db.commit()
+
 
 if __name__ == '__main__':
     pass
