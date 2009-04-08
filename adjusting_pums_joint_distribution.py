@@ -78,7 +78,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
 
     if pumano ==0:
         dbc.execute('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
-        print ('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+        #print ('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         result = arr(dbc.fetchall())
         dummy_table[:,:3] = [pumano, tract, bg]
         dummy_table[:,3:-1] = index_array
