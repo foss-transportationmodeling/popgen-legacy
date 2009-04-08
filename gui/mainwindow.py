@@ -12,6 +12,7 @@ from file_menu.filemanager import QTreeWidgetCMenu
 from file_menu.open_project import OpenProject
 from data_menu.data_process_status import DataDialog
 from file_menu.summary_page import SummaryPage
+from results_menu.results_preprocessor import *
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -20,6 +21,7 @@ from results_menu.view_ppdist import *
 from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
 from results_menu.coreplot import *
+
 
 qgis_prefix = "C:\qgis"
 
@@ -114,8 +116,8 @@ class MainWindow(QMainWindow):
         self.addActions(self.synthesizerToolBar, (synthesizerControlVariablesAction, synthesizerParameterAction, 
                                                   synthesizerRunAction))
 
-        self.synthesizerMenu.setDisabled(True)
-        self.synthesizerToolBar.setDisabled(True)
+        #self.synthesizerMenu.setDisabled(True)
+        #self.synthesizerToolBar.setDisabled(True)
 
 
 # RESULTS MENU
@@ -321,7 +323,8 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Synthesizer", "Define synthesizer parameters", QMessageBox.Ok)
 
     def synthesizerRun(self):
-        QMessageBox.information(self, "Synthesizer", "Run the population synthesizer", QMessageBox.Ok)
+        res = ResultsGen(self.project)
+        #QMessageBox.information(self, "Synthesizer", "Run the population synthesizer", QMessageBox.Ok)
 
 
     def synthesizerStop(self):
