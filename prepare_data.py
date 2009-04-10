@@ -28,11 +28,11 @@ def prepare_data(db):
     ti = time.clock()
     
     update_string = adjusting_pums_joint_distribution.create_update_string(db, hhld_control_variables, hhld_dimensions)
-    adjusting_pums_joint_distribution.add_unique_id(db, 'hhld', update_string)
+    adjusting_pums_joint_distribution.add_unique_id(db, 'hhld_pums', 'hhld', update_string)
     update_string = adjusting_pums_joint_distribution.create_update_string(db, gq_control_variables, gq_dimensions)
-    adjusting_pums_joint_distribution.add_unique_id(db, 'gq', update_string)
+    adjusting_pums_joint_distribution.add_unique_id(db, 'gq_pums', 'gq', update_string)
     update_string = adjusting_pums_joint_distribution.create_update_string(db, person_control_variables, person_dimensions)
-    adjusting_pums_joint_distribution.add_unique_id(db, 'person', update_string)
+    adjusting_pums_joint_distribution.add_unique_id(db, 'person_pums', 'person', update_string)
     
     print 'Uniqueid\'s in %.4f' %(time.clock()-ti)
     ti = time.clock()
@@ -73,7 +73,7 @@ def prepare_data(db):
 if __name__ == '__main__':
 
 
-    db = MySQLdb.connect(user = 'root', passwd = '1234', db = 'ncpopsyn')
+    db = MySQLdb.connect(user = 'root', passwd = '1234', db = 'magnew')
     prepare_data(db)
     db.commit()
     db.close()
