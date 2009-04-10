@@ -11,10 +11,11 @@ def create_tables(db, project_name, path):
 	dbc = db.cursor()
 	
 	dbc.execute('''Create Table housing_pums ( pumano int, hhpumsid int,
-								   hhid int, hhtype int, 
-								   childpresence int, hhldtype int, 
-								   hhldsize int, hhldinc int,
-								   groupquarter int )''')
+                                                   hhid int, hhtype int, 
+        					   childpresence int, hhldtype int, 
+						   hhldsize int, hhldinc int,
+                                                   hhldtenure int,
+                                      		   groupquarter int )''')
 	dbc.execute('''load data local infile '%s/housing_pums.dat' into table housing_pums'''%(path))
 	
 	dbc.execute('''Create Table person_pums ( pumano int, hhpumsid int,
@@ -36,7 +37,8 @@ def create_tables(db, project_name, path):
 								         hhldinc2 int, hhldinc3 int,
 								         hhldinc4 int, hhldinc5 int,
 								         hhldinc6 int, hhldinc7 int,
-								         hhldinc8 int, groupquarter1 int, 
+								         hhldinc8 int, hhldtenure1 int,
+                                                                         hhldtenure2 int, groupquarter1 int, 
 								         groupquarter2 int )''')
 	dbc.execute('''load data local infile '%s/housing_marginals.dat' into table housing_marginals'''%(path))
 
@@ -57,7 +59,7 @@ def create_tables(db, project_name, path):
 	dbc.execute('''load data local infile '%s/person_marginals.dat' into table person_marginals'''%(path))
 # Figure out a way to automate this process based on the number of hhtypes and the independent tables must only contain variables corresponding 
 # to the particular housing type
-	hhld_variables = 'childpresence, hhldtype, hhldsize, hhldinc'
+	hhld_variables = 'childpresence, hhldtype, hhldsize, hhldinc, hhldtenure'
 	gq_variables = 'groupquarter'
 	dbc.execute('''create table hhld_pums select pumano, hhpumsid, hhid, %s from housing_pums where hhtype = 1'''%(hhld_variables))
 	dbc.execute('''create table gq_pums select pumano, hhpumsid, hhid, %s from housing_pums where hhtype = 2'''%(gq_variables))
@@ -68,6 +70,6 @@ def create_tables(db, project_name, path):
 if __name__ == '__main__':
 	db = MySQLdb.connect(user = 'root', passwd = '1234')
 # How to pickup the location of the flat-files, this can probably come from the GUI?
-	path = 'c:/populationsynthesis/northcarolinanew/data'
-	create_tables (db, 'ncpopsyn', path)
+	path = 'c:/populationsynthesis/magnew/data'
+	create_tables (db, 'magnew', path)
 	db.close()
