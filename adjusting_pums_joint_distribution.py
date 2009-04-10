@@ -43,14 +43,14 @@ def create_update_string(db, control_variables, dimensions):
             update_string = update_string + ' + ' + '(%s - 1) * %s' %(control_variables[i], dimensions[i+1:].prod())
     return(update_string)
 
-def add_unique_id(db, synthesis_type, update_string):
+def add_unique_id(db, tablename, synthesis_type, update_string):
     dbc = db.cursor()
     if len(update_string) >0:
         try:
-            dbc.execute('alter table %s_pums ADD %suniqueid int'%(synthesis_type, synthesis_type))
+            dbc.execute('alter table %s ADD %suniqueid int'%(tablename, synthesis_type))
         except:
             pass
-        dbc.execute('update %s_pums set %suniqueid = %s' %(synthesis_type, synthesis_type, update_string))
+        dbc.execute('update %s set %suniqueid = %s' %(tablename, synthesis_type, update_string))
     dbc.close()
 
 def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano = 0, tract = 0, bg = 0):
@@ -93,8 +93,18 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
 
     dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
     dummy_table = str([tuple(i) for i in dummy_table])
+
+    try:
+        dbc.execute('alter table %s_%s_joint_dist drop column %suniqueid' %(synthesis_type, pumano, synthesis_type))
+    except:
+        pass
+    
     dbc.execute('insert into %s_%s_joint_dist values %s' %(synthesis_type, pumano, dummy_table[1:-1]))
     dbc.close()
+
+    update_string = create_update_string(db, control_variables, dimensions)
+    add_unique_id(db, '%s_%s_joint_dist' %(synthesis_type, pumano), synthesis_type, update_string)
+
     db.commit()
 
 def num_breakdown(dimensions):
@@ -250,18 +260,18 @@ def create_adjusted_frequencies(db, synthesis_type, control_variables, pumano, t
 
     dbc.execute('select * from %s where tract = %s and bg = %s order by %s' %(puma_table, tract, bg, dummy_order_string))
     puma_joint = arr(dbc.fetchall())
-    puma_prob = puma_joint[:,-1] / sum(puma_joint[:,-1])
-    upper_prob_bound = 0.5 / sum(puma_joint[:,-1])
+    puma_prob = puma_joint[:,-2] / sum(puma_joint[:,-2])
+    upper_prob_bound = 0.5 / sum(puma_joint[:,-2])
 
     dbc.execute('select * from %s order by %s' %(pums_table, dummy_order_string))
     pums_joint = arr(dbc.fetchall())
-    pums_prob = pums_joint[:,-1] / sum(pums_joint[:,-1])
+    pums_prob = pums_joint[:,-2] / sum(pums_joint[:,-2])
 
     puma_adjustment = (pums_prob <= upper_prob_bound) * pums_prob + (pums_prob > upper_prob_bound) * upper_prob_bound
     correction = 1 - sum((puma_prob == 0) * puma_adjustment)
     puma_prob = ((puma_prob <> 0) * correction * puma_prob +
                  (puma_prob == 0) * puma_adjustment)
-    puma_joint[:,-1] = sum(puma_joint[:,-1]) * puma_prob
+    puma_joint[:,-2] = sum(puma_joint[:,-2]) * puma_prob
 
     dbc.execute('delete from %s where tract = %s and bg = %s'%(puma_table, tract, bg))
     puma_joint_dummy = str([tuple(i) for i in puma_joint])
