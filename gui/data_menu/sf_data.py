@@ -1,5 +1,6 @@
 import urllib
 import os
+import time
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -79,17 +80,8 @@ class AutoImportSFData():
 
         self.query = QSqlQuery(self.projectDBC.dbc)
 
-
-        #self.rawSF = ['geo_uf3.zip',
-        #              '00001_uf3.zip',
-        #              '00004_uf3.zip',
-        #              '00006_uf3.zip']
         self.rawSF = RAW_SUMMARY_FILES
         
-        #self.rawSFNamesNoExt = ['geo',
-        #                        '00001',
-        #                        '00004',
-        #                        '00006']
         self.rawSFNamesNoExt = RAW_SUMMARY_FILES_NOEXT
 
         self.downloadSFData()
@@ -113,7 +105,7 @@ class AutoImportSFData():
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
                     self.retrieveAndStoreSF(self.state)
-            #self.extractSF(self.state)
+        self.extractSF(self.state)
 
 
     def retrieveAndStoreSF(self, state):
@@ -130,63 +122,95 @@ class AutoImportSFData():
             file = UnzipFile(self.loc, "%s%s" %(self.stateAbb[state],i))
             file.unzip()
 
+    def checkIfTableExists(self, tablename):
+        # 0 - some other error, 1 - overwrite error (table deleted)
+        if not self.query.exec_("""create table %s (dummy text)""" %tablename):
+            if self.query.lastError().number() == 1050:
+                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QMessageBox.Yes| QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    if not self.query.exec_("""drop table %s""" %tablename):
+                        raise FileError, self.query.lastError().text()
+                    return 1
+                else:
+                    return 0
+            else:
+                raise FileError, self.query.lastError().text()
+        else:
+            if not self.query.exec_("""drop table %s""" %tablename):
+                raise FileError, self.query.lastError().text()
+            return 1
+
 
     def createRawSFTable(self):
         # Create raw SF tables which can then be used to create the required summary file tables for use
         # population synthesis
 
         # First create the state geo table
-        if not self.query.exec_("""create table %sgeo (raw text, sumlev int, sfgeoid int, """
-                                """state text, county text, tract text, bg text, logrecno text)""" 
-                                %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        geo_loc = self.loc + os.path.sep + '%sgeo.uf3' %(self.stateAbb[self.state])
-        geo_loc = geo_loc.replace("\\", "/")
-        if not self.query.exec_("""load data local infile '%s'"""
-                                """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set sfgeoid = mid(raw, 19, 7)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set state = mid(raw, 30, 2)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set county = mid(raw, 32, 3)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set tract = mid(raw, 56, 6)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set bg = mid(raw, 62, 1)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update %sgeo set logrecno = mid(raw, 19, 7)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""alter table %sgeo modify logrecno int""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""alter table %sgeo add primary key (logrecno)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
+
+
+        if self.checkIfTableExists('sf3filestablescorr'):
+            sf3FilesTablesCorrTable = ImportUserProvData("sf3filestablescorr",
+                                                         "./data/sf3filestablescorr.csv",
+                                                         [], [], True, True)
+            if not self.query.exec_(sf3FilesTablesCorrTable.query1):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_(sf3FilesTablesCorrTable.query2):
+                raise FileError, self.query.lastError().text()
+
+        tablename = '%sgeo' %(self.stateAbb[self.state])
+
+        if self.checkIfTableExists(tablename):
+            if not self.query.exec_("""create table %s (raw text, sumlev int, sfgeoid int, """
+                                    """state text, county text, tract text, bg text, logrecno text)""" 
+                                    %tablename):
+                raise FileError, self.query.lastError().text()
+
+            geo_loc = os.path.join(self.loc, '%s.uf3'%tablename)
+            geo_loc = geo_loc.replace("\\", "/")
+
+
+            if not self.query.exec_("""load data local infile '%s'"""
+                                    """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set sfgeoid = mid(raw, 19, 7)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set state = mid(raw, 30, 2)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set county = mid(raw, 32, 3)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set tract = mid(raw, 56, 6)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set bg = mid(raw, 62, 1)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set logrecno = mid(raw, 19, 7)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""alter table %sgeo modify logrecno int""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""alter table %sgeo add primary key (logrecno)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
 
         # Load the other necessary tables
-        sf3FilesTablesCorrTable = ImportUserProvData("sf3filestablescorr",
-                                                     "./data/sf3filestablescorr.csv",
-                                                     [], [], True, True)
-        if not self.query.exec_(sf3FilesTablesCorrTable.query1):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_(sf3FilesTablesCorrTable.query2):
-            raise FileError, self.query.lastError().text()
-
-
+        
         for j in self.rawSFNamesNoExt[1:]:
             variables, variabletypes = self.variableNames(j)
             filename = "%s%s" %(self.stateAbb[self.state], j)
-            sf_loc = self.loc + os.path.sep + '%s.uf3' %(filename)
+            sf_loc = os.path.join(self.loc, '%s.uf3' %(filename))
             sffile = ImportUserProvData(filename,
                                         sf_loc,
                                         variables, variabletypes, False, False)
-            if not self.query.exec_(sffile.query1):
-                raise FileError, self.query.lastError().text()
-            if not self.query.exec_(sffile.query2):
-                raise FileError, self.query.lastError().text()
-            if not self.query.exec_("alter table %s add primary key (logrecno)" %filename):
-                raise FileError, self.query.lastError().text()
+            if self.checkIfTableExists(filename):
+
+                if not self.query.exec_(sffile.query1):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_(sffile.query2):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_("alter table %s add primary key (logrecno)" %filename):
+                    raise FileError, self.query.lastError().text()
+
 
 
     def variableNames(self, filenumber = None, tablenumber = None):
@@ -228,27 +252,30 @@ class AutoImportSFData():
         var1.remove('logrecno')
         var1.append('temp1.logrecno')
         
-        if not self.query.exec_("""create table temp1 select %s from %sgeo""" 
-                                %(var1string, self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
-        for j in self.rawSFNamesNoExt[1:]:
-            var2, var2types = self.variableNames('%s' %j)
-            var1 = var1 + var2[5:]
-            var1string = self.createVariableString(var1)
-            
-            tablename = '%s%s' %(self.stateAbb[self.state], j)
+        if self.checkIfTableExists('mastersftable_%s' %self.stateAbb[self.state]):
+            self.checkIfTableExists('temp1')
+            self.checkIfTableExists('temp2')
+            if not self.query.exec_("""create table temp1 select %s from %sgeo""" 
+                                    %(var1string, self.stateAbb[self.state])):
+                raise FileError, self.query.lastError().text()
 
-
-            if not self.query.exec_("""create table temp2 select %s from temp1, %s"""
-                                    """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename)):
-                raise FileError, self.query.lastError().text()
-            if not self.query.exec_("""drop table temp1"""):
-                raise FileError, self.query.lastError().text()
-            if not self.query.exec_("""alter table temp2 rename to temp1"""):
-                raise FileError, self.query.lastError().text()
+            for j in self.rawSFNamesNoExt[1:]:
+                var2, var2types = self.variableNames('%s' %j)
+                var1 = var1 + var2[5:]
+                var1string = self.createVariableString(var1)
+                
+                tablename = '%s%s' %(self.stateAbb[self.state], j)
+                
+                if not self.query.exec_("""create table temp2 select %s from temp1, %s"""
+                                        """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename)):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_("""drop table temp1"""):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_("""alter table temp2 rename to temp1"""):
+                    raise FileError, self.query.lastError().text()
             
-        if not self.query.exec_("""alter table temp1 rename to mastersftable_%s""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""alter table temp1 rename to mastersftable_%s""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
 
     def createVariableString(self, variableList):
         variableString = ""
