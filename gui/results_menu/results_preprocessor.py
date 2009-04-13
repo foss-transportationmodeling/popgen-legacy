@@ -52,8 +52,8 @@ class ResultsGen():
 
         #self.resultsloc = "C:/populationsynthesis/gui/results"
         #self.mapsloc = "C:/populationsynthesis/gui/data"
-        #self.state = "04"
-        #self.counties = ["015", "005", "017", "025"]
+        #self.stateCode = "04"
+        #self.countyCodes = ["013", "025"]
 
     
     def downloadShapeFiles(self):
@@ -73,16 +73,16 @@ class ResultsGen():
         # Decide whether to show points or not
     
     def makesublayer(self):
-        folder = res_prefix+self.stateCode+"_d00_shp"
-        filename = res_prefix+self.stateCode+"_d00.shp"
-        filedbf = res_prefix+self.stateCode+"_d00.dbf"
-        fileshx = res_prefix+self.stateCode+"_d00.shx"
+        folder = self.res_prefix+self.stateCode+"_d00_shp"
+        filename = self.res_prefix+self.stateCode+"_d00.shp"
+        filedbf = self.res_prefix+self.stateCode+"_d00.dbf"
+        fileshx = self.res_prefix+self.stateCode+"_d00.shx"
               
         basefile = self.mapsloc+os.path.sep+folder+os.path.sep+filename
         basedbf = self.mapsloc+os.path.sep+folder+os.path.sep+filedbf
         baseshx = self.mapsloc+os.path.sep+folder+os.path.sep+fileshx
         
-        newfilename = res_prefix+self.stateCode+"_selected"  
+        newfilename = self.res_prefix+self.stateCode+"_selected"  
         newfile = self.resultsloc+os.path.sep+newfilename + ".shp"
         newdbf = self.resultsloc+os.path.sep+newfilename + ".dbf"
         newshx = self.resultsloc+os.path.sep+newfilename + ".shx"   
