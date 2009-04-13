@@ -25,18 +25,23 @@ class DataDialog(QDialog):
 
         ok.setEnabled(False)
 
-
         self.SampleHousingLayout = CheckLabel("1. Processing Housing PUMS Data", "incomplete")
         self.SamplePersonLayout = CheckLabel("2. Processing Person PUMS Data", "incomplete")
         self.ControlHousingLayout = CheckLabel("3. Processing Housing Summary Data", "incomplete")
         self.ControlPersonLayout = CheckLabel("4. Processing Person Summary Data", "incomplete")
+
+        #self.detailsTextEdit = QTextEdit()
+        #self.detailsTextEdit.setMinimumHeight(250)
 
         layout = QVBoxLayout()
         layout.addLayout(self.SampleHousingLayout)
         layout.addLayout(self.SamplePersonLayout)
         layout.addLayout(self.ControlHousingLayout)
         layout.addLayout(self.ControlPersonLayout)
+        #layout.addWidget(self.detailsTextEdit)
         layout.addWidget(self.dialogButtonBox)
+
+
         self.setLayout(layout)
 
         self.connect(self.dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.start)
@@ -52,8 +57,18 @@ class DataDialog(QDialog):
 
         if button.text() == 'Start':
             #self.geocorr()
+            import time
+            
+            ti = time.time()
             self.sample()
+            print 'Time elapsed- %.4f' %(time.time()-ti)            
+
+            ti = time.time()
             self.control()
+            print 'Time elapsed- %.4f' %(time.time()-ti)
+
+
+
 
 
 
@@ -103,14 +118,12 @@ class DataDialog(QDialog):
             self.importPUMSInstance = AutoImportPUMSData(self.project)
             # Housing PUMS
             try:
-                self.importPUMSInstance.createHousingPUMSTable()
                 self.SampleHousingLayout.changeStatus(True)
             except FileError, e:
                 print e
                 self.SampleHousingLayout.changeStatus(False)
                 # Person PUMS
             try:
-                self.importPUMSInstance.createPersonPUMSTable()
                 self.SamplePersonLayout.changeStatus(True)
             except FileError, e:
                 print e
@@ -145,7 +158,7 @@ class DataDialog(QDialog):
             self.importSFInstance = AutoImportSFData(self.project)
             # Housing Controls/Marginals
             try:
-                self.importSFInstance.createHousingSFTable()
+                #self.importSFInstance.createHousingSFTable()
                 self.ControlHousingLayout.changeStatus(True)
             except FileError, e:
                 print e
@@ -153,7 +166,7 @@ class DataDialog(QDialog):
 
             # Person Controls/Marginals
             try:
-                self.importSFInstance.createPersonSFTable()
+                #self.importSFInstance.createPersonSFTable()
                 self.ControlPersonLayout.changeStatus(True)
             except FileError, e:
                 print e
