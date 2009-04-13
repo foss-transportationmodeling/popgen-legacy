@@ -67,6 +67,22 @@ class Matplot(QDialog):
             action.setCheckable(True)
         return action
 
+    def executeSelectQuery(self, vars, tablename, filter="", group =""):
+        query = QSqlQuery()
+        if filter != "" and group != "":
+           if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
+                raise FileError, query.lastError().text()
+        elif filter != "" and group == "":
+           if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
+                raise FileError, query.lastError().text()
+        elif filter == "" and group != "":
+           if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
+               raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
+                raise FileError, query.lastError().text()
+        return query
+
 
 def main():
     app = QApplication(sys.argv)
