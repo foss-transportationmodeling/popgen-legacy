@@ -106,12 +106,7 @@ class Toolbar(QToolBar):
         feat = QgsFeature()
         provider.getNextFeature(feat)
         attrMap = feat.attributeMap()
-        for (i, attr) in attrMap.iteritems():
-            if i == 0:
-                dummy = '"%s"' % attr.toString().trimmed()
-            else:
-                dummy += ',"%s"' % attr.toString().trimmed()
-        print "Field Values: " + dummy, feat.featureId()
+        self.emit(SIGNAL("currentGeoChanged"), provider, feat)
 
     def doneRectangle(self):
         provider = self.layer.getDataProvider()
@@ -125,7 +120,7 @@ class Toolbar(QToolBar):
             if feat.geometry().wkbType() == QGis.WKBPoint:
                 transform = self.canvas.getCoordinateTransform()
                 devicepoint = transform.transform(feat.geometry().asPoint())
-                print devicepoint.x(), devicepoint.y()
+                #print devicepoint.x(), devicepoint.y()
                 dummy = ""
             for (i, attr) in attrMap.iteritems():
                 if i == 0:
