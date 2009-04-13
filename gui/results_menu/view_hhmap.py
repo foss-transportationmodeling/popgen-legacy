@@ -18,7 +18,7 @@ qgis_prefix = "C:/qgis"
 
 project_location = "C:/populationsynthesis/gui/results"
 inlayer_loc = "./data/county.shp"
-selectlist = [["04", "015"],["04", "005"],["04", "017"], ["04", "025"]]
+selectlist = [["04", "013"]]
 
 hhcount_fieldname = "hhfreq"
 
