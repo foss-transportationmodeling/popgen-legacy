@@ -7,27 +7,63 @@ import shutil, urllib, os
 from database.createDBConnection import createDBC
 from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
+from data_menu.display_data import DisplayTable
+from misc.errors import *
 
 
 
 class QTreeWidgetCMenu(QTreeWidget):
     def __init__(self, project=None, parent = None):
-        self.parent = parent
         super(QTreeWidgetCMenu, self).__init__(parent)
+        self.setMinimumSize(350, 400)
+        self.setColumnCount(2)
+        self.setHeaderLabels(["Name", "Value"])
+        self.setColumnWidth(0, 150)
+        self.setItemsExpandable(True)
+        self.setEnabled(False)
         self.project = project
 
     def contextMenuEvent(self, event):
-        menu = QMenu(self)
+        menu = QMenu()
         importDataAction = menu.addAction("&Import Data")
-        editProjectAction = menu.addAction("Edit Project")
+        editProjectAction = menu.addAction("&Edit Project")
+
+        menuTableEdit = QMenu()
+        displayTableAction = menuTableEdit.addAction("Display Table")
+
         self.connect(importDataAction, SIGNAL("triggered()"), self.importData)
         self.connect(editProjectAction, SIGNAL("triggered()"), self.editProject)
+        self.connect(displayTableAction, SIGNAL("triggered()"), self.displayTable)
+
+
+
+        
+
         if self.item.parent() is None:
             menu.exec_(event.globalPos())
+        #print self.item.parent().text(0)
+        if self.item.parent() == self.tableParent:
+            menuTableEdit.exec_(event.globalPos())
+
 
     def click(self, item, column):
         self.item = item
         
+
+        
+    def displayTable(self):
+        projectDBC = createDBC(self.project.db, self.project.name)
+        projectDBC.dbc.open()
+
+        b = DisplayTable("%s" %self.item.text(1))
+        b.exec_()
+
+        projectDBC.dbc.close()
+
+
+
+
+
 
     def editProject(self):
         #print 'editing project'
@@ -107,14 +143,42 @@ class QTreeWidgetCMenu(QTreeWidget):
         for i,j in dbItems.items():
             child = QTreeWidgetItem(dbParent, [QString(i), QString(j)])
 
-        tableParent = QTreeWidgetItem(projectAncestor, [QString("Data Tables")])
+        self.tableParent = QTreeWidgetItem(projectAncestor, [QString("Data Tables")])
         
+        projectDBC = createDBC(self.project.db, self.project.name)
+        projectDBC.dbc.open()
+        
+        self.query = QSqlQuery()
+        
+        if not self.query.exec_("""show tables"""):
+            raise FileError, self.query.lastError().text()
+        
+        tableItems = {}
+        i = 1
+        while self.query.next():
+            tableItems["Table %s" %i] = '%s' %self.query.value(0).toString()
+            i = i + 1
+            #tableItems.append('%s' %self.query.value(0).toString())
             
+        projectDBC.dbc.close()
+
+
+        for i,j in tableItems.items():
+            #child = QTreeWidgetItem(self.tableParent, [i,])
+            child = QTreeWidgetItem(self.tableParent, [QString(i), QString(j)])
+
 
         self.expandItem(projectAncestor)
-        self.expandItem(informationParent)
-        self.expandItem(geocorrParent)
-        self.expandItem(sampleParent)
-        self.expandItem(controlParent)
-        self.expandItem(dbParent)
+        self.expandSort(informationParent)
+        self.expandSort(geocorrParent)
+        self.expandSort(sampleParent)
+        self.expandSort(controlParent)
+        self.expandSort(dbParent)
+        self.expandSort(self.tableParent)
+
+
+            
+    def expandSort(self, item):
+        self.expandItem(item)
+        item.sortChildren(0, Qt.AscendingOrder)
 
