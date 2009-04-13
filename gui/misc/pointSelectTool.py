@@ -17,8 +17,6 @@ class ClickTool(QgsMapTool):
 
 
     def canvasPressEvent(self,event):
-        print "got a click event"
-        print event.pos().x(),event.pos().y()
         transform = self.canvas.getCoordinateTransform()
         coord = transform.toMapCoordinates(event.pos().x(),event.pos().y())
         self.bb = QgsRect(
