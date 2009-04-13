@@ -120,7 +120,7 @@ class DisplayTable(QDialog):
                                %(i, self.tablename, i)):
                     raise FileError, query.lastError().text()
                 while query.next():
-                    category = query.value(CATEGORY).toInt()[0]
+                    category = query.value(CATEGORY).toString()
                     frequency = query.value(FREQUENCY).toInt()[0]
                     self.output.append("%s, %s" %(category, frequency))
                 self.output.append("The %s variable has a total of %s categories" %(i, query.size()))
