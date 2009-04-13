@@ -15,9 +15,8 @@ class Indgeo(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
-        self.setFixedSize(QSize(1000,500))
         self.project = project
-        self.retrieveResults()
+        #self.retrieveResults()
 
         self.makeComboBox()
         self.makeMapWidget()
@@ -28,8 +27,23 @@ class Indgeo(Matplot):
         vbox2 = QVBoxLayout()
         self.vboxwidget2 = QWidget()
         self.vboxwidget2.setLayout(vbox2)
-        vbox2.addWidget(QLabel("AARD:" + "some aard value"))
-        vbox2.addWidget(QLabel("P Value:" + "some p-values"))
+        self.labelwidget = QWidget()
+        labellayout = QGridLayout(None)
+        self.labelwidget.setLayout(labellayout)
+        labellayout.addWidget(QLabel("Selected Geography: " ),1,1)
+        labellayout.addWidget(QLabel("AARD: " ),2,1)
+        labellayout.addWidget(QLabel("P Value: "),3,1)
+        self.aardval = QLabel("")
+        self.pval = QLabel("")
+        self.selgeog = QLabel("")
+        self.aardval.setAlignment(Qt.AlignLeft)
+        self.pval.setAlignment(Qt.AlignLeft)
+        self.selgeog.setAlignment(Qt.AlignLeft)
+        labellayout.addWidget(self.selgeog ,1,2)
+        labellayout.addWidget(self.aardval,2,2)
+        labellayout.addWidget(self.pval,3,2)
+
+        vbox2.addWidget(self.labelwidget)
         vbox2.addWidget(self.canvas)
 
         self.hbox = QHBoxLayout()
@@ -38,30 +52,47 @@ class Indgeo(Matplot):
 
         self.setLayout(self.hbox)
         self.on_draw()
-        self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+        #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+        self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)
+        
+        self.selcounty = ""
+        self.seltract = ""
+        self.selblkgroup = ""
+        self.pumano = -1
 
-    def on_draw(self):
+    def on_draw(self, provider=None, selfeat=None ):
+        if provider != None:
+            blkgroupidx = provider.indexFromFieldName("BLKGROUP")
+            tractidx = provider.indexFromFieldName("TRACT")
+            countyidx = provider.indexFromFieldName("COUNTY")
+            attrMap = selfeat.attributeMap()
+            self.selcounty = attrMap[countyidx].toString().trimmed()
+            if blkgroupidx == -1 & tractidx == -1:
+                self.selgeog.setText("County - " + self.selcounty)
+            if tractidx != -1:
+                self.seltract = attrMap[tractidx].toString().trimmed()
+                if blkgroupidx == -1:
+                    self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract)
+                else:
+                    self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
+                    self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
+            
+            self.ids = []
+            self.act = []
+            self.syn = []
 
-        """ Redraws the figure
-        """
-        self.current = self.geocombobox.currentText()
-        print "drawing again " + self.current
-        f = open(indgeo_location)
-        act = []
-        syn = []
-        for line in f:
-            vals = (line.split('\n'))[0].split(',')
-            act.append(float(vals[1]))
-            syn.append(float(vals[2]))
+            self.retrieveResults()
+            
+            provider.fields()
 
-        # clear the axes and redraw the plot anew
-        self.axes.clear()
-        self.axes.grid(True)
-
-        self.axes.scatter(act, syn)
-        self.axes.set_xlabel("Joint Frequency Distribution from IPF")
-        self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
-        self.canvas.draw()
+            # clear the axes and redraw the plot anew
+            self.axes.clear()
+            self.axes.grid(True)
+            if len(self.act) > 0:
+                self.axes.scatter(self.act, self.syn)
+            self.axes.set_xlabel("Joint Frequency Distribution from IPF")
+            self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
+            self.canvas.draw()
 
     def makeComboBox(self):
         self.geocombobox = QComboBox(self)
@@ -95,27 +126,75 @@ class Indgeo(Matplot):
         self.mapwidget = QWidget()
         self.mapwidget.setLayout(maplayout)
 
-    def retrieveResults(self, geoid):
+    def retrieveResults(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
+        
+        # Get p-values and aard-values from performance statistics
+        performancetable = "performance_statistics"
+        aardvalvar = "aardvalue"
+        pvaluevar = "pvalue"
+        pumanovar = "pumano"
+        vars = aardvalvar + "," + pvaluevar + "," + pumanovar
+        filter = ""
+        order = ""
+        if self.selblkgroup != "":
+            filter = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+        elif self.seltract != "":
+            filter = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
 
-        query = QSqlQuery()
-
-        self.buildResultsQuery()
-
-        query.exec_(""" """)
+        query = self.executeSelectQuery(vars, performancetable, filter, order)
+        aardval = 0.0
+        pval = 0.0
+        while query.next():
+            aardval = query.value(0).toDouble()[0]
+            pval = query.value(1).toDouble()[0]
+            self.pumano = query.value(2).toInt()[0]
+        self.aardval.setText("%.4f" %aardval)
+        self.pval.setText("%.4f" %pval)
+        
+        # Get and populate the actual and synthetics unique person type frequencies for the scatter plot
+        if self.pumano > 0:
+            actualtable = "person_" + str(self.pumano) + "_joint_dist"
+            vars = "personuniqueid" + "," + "frequency"
+            group = "personuniqueid"
+            query = self.executeSelectQuery(vars, actualtable, filter, group)
+            while query.next():
+                id= query.value(0).toInt()[0]
+                freq = query.value(1).toDouble()[0]
+                self.ids.append(id)
+                self.act.append(freq)
+            
+            syntable = "person_synthetic_data"
+            vars = "personuniqueid" + "," + "sum(frequency)"
+            group = "personuniqueid"
+            query = self.executeSelectQuery(vars, syntable, filter, group)
+            self.syn = [0.0] * len(self.act)
+            while query.next():
+                id= query.value(0).toInt()[0]
+                freq = query.value(1).toDouble()[0]
+                if id in self.ids:
+                    idx = self.ids.index(id)
+                    self.syn[idx] = freq
 
         projectDBC.dbc.close()
+        
 
-    def buildResultsQuery(self, varnames, tablename, geoid):
-        query = "SELECT"
-
-
-        pass
-
-    def executeParseResultsQuery():
-
-        pass
+    def executeSelectQuery(self, vars, tablename, filter="", group =""):
+        query = QSqlQuery()
+        if filter != "" and group != "":
+           if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
+                raise FileError, query.lastError().text()
+        elif filter != "" and group == "":
+           if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
+                raise FileError, query.lastError().text()
+        elif filter == "" and group != "":
+           if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
+               raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
+                raise FileError, query.lastError().text()
+        return query
 
 def main():
     app = QApplication(sys.argv)
