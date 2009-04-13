@@ -11,7 +11,7 @@ class Geocorr(object):
     def __init__(self, userprov=None, geocorrLocation=""):
         self.userProv = userprov
         self.location = geocorrLocation
-        
+
 class Sample(object):
     def __init__(self, userprov=None, sampleHHLocation="", sampleGQLocation="", samplePersonLocation=""):
         self.userProv = userprov
@@ -25,7 +25,7 @@ class Control(object):
         self.hhLocation = controlHHLocation
         self.gqLocation = controlGQLocation
         self.personLocation = controlPersonLocation
-        
+
 class DBInfo(object):
     def __init__(self, hostname="", username="", password="", driver="QMYSQL"):
         self.driver = driver
@@ -33,11 +33,15 @@ class DBInfo(object):
         self.username = username
         self.password = password
 
+class ControlVariable(object):
+    def __init__(self, categories):
+        self.categories = categories
+
 class NewProject(object):
-    def __init__(self, name="", location="", description="", 
-                 region="", state="", countyCode="", stateCode="", stateAbb="", 
-                 resolution="", geocorrUserProv=Geocorr(), 
-                 sampleUserProv=Sample(), controlUserProv=Control(), 
+    def __init__(self, name="", location="", description="",
+                 region="", state="", countyCode="", stateCode="", stateAbb="",
+                 resolution="", geocorrUserProv=Geocorr(),
+                 sampleUserProv=Sample(), controlUserProv=Control(),
                  db = DBInfo()):
         self.name = name
         self.location = location
@@ -55,7 +59,7 @@ class NewProject(object):
 
 
     def save(self):
-        with open('%s/%s/%s.pop' %(self.location, self.name, self.name), 
+        with open('%s/%s/%s.pop' %(self.location, self.name, self.name),
                   'wb') as f:
             pickle.dump(self, f, True)
         pass
@@ -66,7 +70,7 @@ class NewProject(object):
 
 
 
-            
-            
-    
-        
+
+
+
+
