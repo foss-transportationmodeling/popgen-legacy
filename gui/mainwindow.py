@@ -349,10 +349,10 @@ class MainWindow(QMainWindow):
 
     
     def resultsRegionalAARD(self):
-        aard = Absreldiff()
+        aard = Absreldiff(self.project)
         aard.exec_()
     def resultsRegionalPValue(self):
-        pval = Pval()
+        pval = Pval(self.project)
         pval.exec_()  
     def resultsRegionalHousDist(self):
         hhdist = Hhdist()
@@ -365,7 +365,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Results", "Regional Performance Statistics", QMessageBox.Ok)
     
     def resultsIndividual(self):
-        indgeo = Indgeo()
+        indgeo = Indgeo(self.project)
         indgeo.exec_()         
     def resultsViewHH(self):
         res = Hhmap()
