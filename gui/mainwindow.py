@@ -13,6 +13,8 @@ from file_menu.open_project import OpenProject
 from data_menu.data_process_status import DataDialog
 from file_menu.summary_page import SummaryPage
 from results_menu.results_preprocessor import *
+from synthesizer_menu.sample_control_corr import SetCorrDialog
+from synthesizer_menu.parameters import ParametersDialog
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -79,27 +81,36 @@ class MainWindow(QMainWindow):
                                              icon="datasource", tip="Enter credentials for the MySQL data source.")
         dataImportAction = self.createAction("&Import", self.dataImport, icon="fileimport", 
                                              tip="Import data into MySQL database.")
-        dataStatisticsAction = self.createAction("&Statistics", self.dataStatistics,  
-                                                 icon="statistics", tip="Conduct descriptive analysis.")
-        dataModifyAction = self.createAction("&Modify", self.dataModify,  
-                                             icon="modifydata", tip="Modify the input data.")
+        #dataStatisticsAction = self.createAction("&Statistics", self.dataStatistics,  
+        #                                         icon="statistics", tip="Conduct descriptive analysis.")
+
+        dataModifyAction = self.createAction("&View and Modify", self.dataModify,  
+                                             icon="modifydata", tip="View, analyze and modify the input data.")
 # Adding actions to menu
         self.dataMenu = self.menuBar().addMenu("&Data")
-        self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataStatisticsAction, dataModifyAction))
+
+        #self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataStatisticsAction, dataModifyAction))
+        self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataModifyAction))
 
 # Adding actions to toolbar
         self.dataToolBar = self.addToolBar("Data")
         self.dataToolBar.setObjectName("DataToolBar")
-        self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataStatisticsAction, dataModifyAction))
+        #self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataStatisticsAction, dataModifyAction))
+        self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataModifyAction))
 
         #self.dataMenu.setDisabled(True)
         #self.dataToolBar.setDisabled(True)
 
 # SYNTHESIZER MENU
 # Defining menu/toolbar actions
-        synthesizerControlVariablesAction = self.createAction("Control &Variables", self.synthesizerControlVariables,
-                                                              icon="controlvariables",
-                                                              tip="Select variables to control.")
+        #synthesizerControlVariablesAction = self.createAction("Control &Variables", self.synthesizerControlVariables,
+        #                                                      icon="controlvariables",
+        #                                                      tip="Select variables to control.")
+        setCorrespondenceAction = self.createAction("Set Correspondence", self.synthesizerSetCorrBetVariables, 
+                                                    icon="varcorr",
+                                                    tip="""Select the variables and """
+                                                    """set the correspondence map between the variables """
+                                                    """in the sample file and variables in the control file.""")
         synthesizerParameterAction = self.createAction("&Parameters/Settings", self.synthesizerParameter,
                                                        icon="parameters",
                                                        tip="Define the different parameter values.")
@@ -109,12 +120,20 @@ class MainWindow(QMainWindow):
                                                   icon="stop", tip="Stop the current population synthesis run.")
 # Adding actions to menu
         self.synthesizerMenu = self.menuBar().addMenu("&Synthesizer")
-        self.addActions(self.synthesizerMenu, (synthesizerControlVariablesAction, synthesizerParameterAction, None, 
+        #self.addActions(self.synthesizerMenu, (synthesizerControlVariablesAction, setCorrespondenceAction, 
+        #                                       synthesizerParameterAction, None, 
+        #                                       synthesizerRunAction, synthesizerStopAction))
+        self.addActions(self.synthesizerMenu, (setCorrespondenceAction, 
+                                               synthesizerParameterAction, None, 
                                                synthesizerRunAction, synthesizerStopAction))
 # Adding actions to toolbar
         self.synthesizerToolBar = self.addToolBar("Synthesizer")
-        self.addActions(self.synthesizerToolBar, (synthesizerControlVariablesAction, synthesizerParameterAction, 
+        #self.addActions(self.synthesizerToolBar, (synthesizerControlVariablesAction, synthesizerParameterAction, 
+        #                                          synthesizerRunAction))
+        self.addActions(self.synthesizerToolBar, (setCorrespondenceAction, synthesizerParameterAction, 
                                                   synthesizerRunAction))
+
+        
 
         #self.synthesizerMenu.setDisabled(True)
         #self.synthesizerToolBar.setDisabled(True)
@@ -200,19 +219,8 @@ class MainWindow(QMainWindow):
         fileManagerDockWidget.setAllowedAreas(Qt.LeftDockWidgetArea)
 
         self.fileManager = QTreeWidgetCMenu()
-        self.fileManager.setMinimumSize(250, 400)
-        self.fileManager.setColumnCount(2)
-        self.fileManager.setHeaderLabels(["Name", "Value"])
-        self.fileManager.setItemsExpandable(True)
         fileManagerDockWidget.setWidget(self.fileManager)
         self.addDockWidget(Qt.LeftDockWidgetArea, fileManagerDockWidget)
-        
-        ancestor = QTreeWidgetItem(self.fileManager, [QString("<Database>"), QString("<location>")])
-        parent = QTreeWidgetItem(ancestor, [QString("<Tables>")])
-        QTreeWidgetItem(parent, [QString("<Variables>")])
-        self.fileManager.expandItem(parent)
-        self.fileManager.expandItem(ancestor)
-        self.fileManager.setEnabled(False)
         
         #self.connect(self.fileManager, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.fileManager.editItem)
         self.connect(self.fileManager, SIGNAL("itemClicked(QTreeWidgetItem *,int)"), self.fileManager.click)
@@ -319,8 +327,17 @@ class MainWindow(QMainWindow):
     def synthesizerControlVariables(self):
         QMessageBox.information(self, "Synthesizer", "Select control variables", QMessageBox.Ok)
 
+
+    def synthesizerSetCorrBetVariables(self):
+        #Set the correspondence between variables
+        vars = SetCorrDialog(self.project)
+        vars.exec_()
+
+        pass
+
     def synthesizerParameter(self):
-        QMessageBox.information(self, "Synthesizer", "Define synthesizer parameters", QMessageBox.Ok)
+        parameters = ParametersDialog(self.project)
+        parameters.exec_()
 
     def synthesizerRun(self):
         res = ResultsGen(self.project)
