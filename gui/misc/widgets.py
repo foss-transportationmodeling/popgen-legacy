@@ -1,7 +1,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import re
-from misc.errors import *
+#from misc.errors import *
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -167,6 +167,7 @@ class VariableSelectionDialog(QDialog):
         self.connect(dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.resetandrestore)
         self.connect(selectButton, SIGNAL("clicked()"), self.moveSelected)
         self.connect(unselectButton, SIGNAL("clicked()"), self.moveUnselected)
+        self.connect(self.variableListWidget, SIGNAL("itemDoubleClicked(QListWidgetItem *)"), self.moveSelected)
         self.connect(self.variableListWidget, SIGNAL("currentRowChanged(int)"), self.displayVariableDescription)
         self.connect(self.selectedVariableListWidget, SIGNAL("currentRowChanged(int)"), self.displaySelectedVariableDescription)
 
@@ -233,7 +234,7 @@ class VariableSelectionDialog(QDialog):
         self.selectedVariableListWidget.populate()
 
 class ListWidget(QListWidget):
-    def __init__(self, variables, parent = None):
+    def __init__(self, variables=None, parent = None):
         super(ListWidget, self).__init__(parent)
         self.variables = variables
 
@@ -244,6 +245,15 @@ class ListWidget(QListWidget):
 
         self.sortItems()
 
+    def remove(self):
+        self.takeItem(self.currentRow())
+
+
+    def rowOf(self, text):
+        for i in range(self.count()):
+            if self.item(i).text() == text:
+                return i
+        return -1
 
 class RecodeDialog(QDialog):
     def __init__(self, tablename, variableDict, title="", icon="", parent = None):
