@@ -36,10 +36,8 @@ class ResultsGen():
 
         if self.project.resolution == "County":
             self.res_prefix = "co"
-
         if self.project.resolution == "Tract":
             self.res_prefix = "tr"
-
         if self.project.resolution == "Blockgroup":
             self.res_prefix = "bg"
 
@@ -78,14 +76,14 @@ class ResultsGen():
         filedbf = self.res_prefix+self.stateCode+"_d00.dbf"
         fileshx = self.res_prefix+self.stateCode+"_d00.shx"
               
-        basefile = self.mapsloc+os.path.sep+folder+os.path.sep+filename
-        basedbf = self.mapsloc+os.path.sep+folder+os.path.sep+filedbf
-        baseshx = self.mapsloc+os.path.sep+folder+os.path.sep+fileshx
+        basefile = os.path.realpath(self.mapsloc+os.path.sep+filename)
+        basedbf = os.path.realpath(self.mapsloc+os.path.sep+filedbf)
+        baseshx = os.path.realpath(self.mapsloc+os.path.sep+fileshx)
         
         newfilename = self.res_prefix+self.stateCode+"_selected"  
-        newfile = self.resultsloc+os.path.sep+newfilename + ".shp"
-        newdbf = self.resultsloc+os.path.sep+newfilename + ".dbf"
-        newshx = self.resultsloc+os.path.sep+newfilename + ".shx"   
+        newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
+        newdbf = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".dbf")
+        newshx = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shx")   
         
         baselayer = QgsVectorLayer(basefile, "all", "ogr")
         baseprovider = baselayer.getDataProvider()
@@ -119,7 +117,6 @@ class ResultsGen():
         newlayer = QgsVectorLayer(newfile, "selected", "ogr")
         newlayer.startEditing()
         newprovider = newlayer.getDataProvider()
-        
         
         while baseprovider.getNextFeature(feat):
            attrMap = feat.attributeMap()
