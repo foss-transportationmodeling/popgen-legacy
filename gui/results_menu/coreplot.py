@@ -18,6 +18,9 @@ Last modified: 19.01.2009
 import sys, os, random
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtSql import *
+from misc.errors import FileError
+from database.createDBConnection import createDBC
 
 import matplotlib
 from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
@@ -28,23 +31,13 @@ from matplotlib.figure import Figure
 class Matplot(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.setFixedSize(QSize(800,500))
-        self.create_main_frame()
-    
-    def on_draw(self):
-        pass
-    
-    def create_main_frame(self):
-        self.main_frame = QWidget()
-        
+        self.setBaseSize(QSize(1000,500))
         # Create the mpl Figure and FigCanvas objects. 
         # 5x4 inches, 100 dots-per-inch
         #
         self.dpi = 100
         self.fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.canvas = FigureCanvas(self.fig)
-        self.canvas.setParent(self.main_frame)
-        
         # Since we have only one plot, we can use add_axes 
         # instead of add_subplot, but then the subplot
         # configuration tool in the navigation toolbar wouldn't
@@ -52,10 +45,10 @@ class Matplot(QDialog):
         #
         self.axes = self.fig.add_subplot(111)  
         
-        self.vbox = QVBoxLayout()
-        #self.setLayout(self.vbox)
-        #vbox.addWidget(self.mpl_toolbar)
-        #vbox.addLayout(hbox)
+        self.vbox = QVBoxLayout()  
+        
+    def on_draw(self):
+        pass
 
     def create_action(  self, text, slot=None, shortcut=None, 
                         icon=None, tip=None, checkable=False, 
