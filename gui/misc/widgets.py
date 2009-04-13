@@ -101,8 +101,6 @@ class LineEdit(QLineEdit):
             self.setFocus()
         return True
             
-
-
 class Separator(QFrame):
     def __init__(self, parent=None):
         super(Separator, self).__init__(parent)
@@ -248,6 +246,14 @@ class ListWidget(QListWidget):
     def remove(self):
         self.takeItem(self.currentRow())
 
+    def removeList(self, items):
+        for i in items:
+            self.setItemSelected(i, True)
+            self.remove()
+
+    def addList(self, items):
+        for i in items:
+            self.addItem(i.text())
 
     def rowOf(self, text):
         for i in range(self.count()):
@@ -314,17 +320,19 @@ class RecodeDialog(QDialog):
                 self.oldNewButton.setEnabled(False)
             else:
                 self.oldNewButton.setEnabled(True)
-            if len(name)>1:
-                for i in name[1:]:
-                    if not re.match("[A-Za-z_0-9]", i):
-                        self.oldNewButton.setEnabled(False)
-                    else:
-                        self.oldNewButton.setEnabled(True)
+                if len(name)>1:
+                    for i in name[1:]:
+                        if not re.match("[A-Za-z_0-9]", i):
+                            self.oldNewButton.setEnabled(False)
+                        else:
+                            self.oldNewButton.setEnabled(True)
         else:
             self.oldNewButton.setEnabled(False)
 
     def relationOldNew(self):
-        dia = OldNewRelation(self.tablename, self.variableOldEdit.text())
+        variablename = self.variableOldEdit.text()
+        varcats = self.variableDict['%s' %variablename]
+        dia = OldNewRelation(variablename, varcats)
         dia.exec_()
 
     def populate(self):
@@ -343,37 +351,183 @@ class RecodeDialog(QDialog):
         pass
 
 class OldNewRelation(QDialog):
-    def __init__(self, tablename, variablename, parent=None):
+    def __init__(self, variablename, varcats, parent=None):
         super(OldNewRelation, self).__init__(parent)
 
-        self.tablename = tablename
         self.variablename = variablename
+        self.varcats = varcats
+        self.recCritDict = {}
         
-        varCatLabel = QLabel("Categories in the original variable")
-        self.variableCatList = QListWidget()
+        varCatsLabel = QLabel("Categories in the variable:")
+        self.varCatsList = ListWidget()
+        self.varCatsList.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
-        self.value = QRadioButton("Value")
-        self.range = QRadioButton("Range")
-        self.LowestThru = QRadioButton("Lowest through value")
-        self.valueThru = QRadioButton("Value through highest")
-        self.allValues = QRadioButton("All other values")
+        newCatLabel = QLabel("Value of the new category:")
+        self.newCatEdit = QLineEdit()
 
-        self.relationGroupBox = QGroupBox("Relation:")
-        vlayout1 = QVBoxLayout()
-        vlayout1.addWidget(self.value)
-        vlayout1.addWidget(self.range)
-        vlayout1.addWidget(self.LowestThru)
-        vlayout1.addWidget(self.valueThru)
-        vlayout1.addWidget(self.allValues)
-        self.relationGroupBox.setLayout(vlayout1)
+        recodeCritLabel = QLabel("Recode critera")
+        self.recodeCritList = ListWidget()
 
+        self.addRecCrit = QPushButton("Add")
+        self.addRecCrit.setEnabled(False)
 
-        self.recodeRelationList = QListWidget()
+        self.removeRecCrit = QPushButton("Remove")
+        self.removeRecCrit.setEnabled(False)
 
-        layout = QHBoxLayout()
-        layout.addWidget(self.relationGroupBox)
-        layout.addWidget(self.recodeRelationList)
+        self.copyOldCrit = QPushButton("Copy Old Values")
+        self.copyOldCrit.setEnabled(False)
+
+        vLayout2 = self.vLayout([varCatsLabel, self.varCatsList, newCatLabel, self.newCatEdit])
+
+        vLayout3 = self.vLayout([self.addRecCrit, self.removeRecCrit, self.copyOldCrit])
+        vLayout3.addItem(QSpacerItem(10,100))
+
+        vLayout4 = self.vLayout([recodeCritLabel, self.recodeCritList])
         
+        
+        hLayout = self.hLayout([vLayout2, vLayout3, vLayout4])
+
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+        
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addWidget(dialogButtonBox)
+
         self.setLayout(layout)
+        
+        self.populate()
+
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+        self.connect(dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.reset)
+        self.connect(self.varCatsList, SIGNAL("itemSelectionChanged()"), self.enableAddCrit)
+        self.connect(self.varCatsList, SIGNAL("itemSelectionChanged()"), self.enableCopyOldCrit)
+        self.connect(self.newCatEdit, SIGNAL("textChanged(const QString&)"), self.enableAddCrit)
+        self.connect(self.recodeCritList, SIGNAL("itemSelectionChanged()"), self.enableRemoveCrit)
+        
+        self.connect(self.addRecCrit, SIGNAL("clicked()"), self.addRecCritList)
+        self.connect(self.removeRecCrit, SIGNAL("clicked()"), self.removeRecCritList)
+        self.connect(self.copyOldCrit, SIGNAL("clicked()"), self.addCopyOldCritList)
+
+
+    def accept(self):
+        self.recodeCrit = []
+
+        for i in range(self.recodeCritList.count()):
+            itemText = self.recodeCritList.item(i).text()
+            old, new = self.parse(itemText)
+            
+            self.recodeCrit.append([old,new])
+            
+        print self.recodeCrit
+        QDialog.accept(self)
 
         
+    def parse(self, text):
+        parsed = text.split(',')
+        #print parsed[0], parsed[1]
+        
+        return int(parsed[0]), int(parsed[1])
+
+
+    def reset(self):
+        pass
+        
+    def enableAddCrit(self):
+        try:
+            int(self.newCatEdit.text())
+            if len(self.varCatsList.selectedItems())>0:
+                self.addRecCrit.setEnabled(True)
+            else:
+                self.addRecCrit.setEnabled(False)
+        except Exception, e:
+            self.addRecCrit.setEnabled(False)
+
+    def enableCopyOldCrit(self):
+        if len(self.varCatsList.selectedItems())>0:
+            self.copyOldCrit.setEnabled(True)
+        else:
+            self.copyOldCrit.setEnabled(False)
+
+        
+            
+    def enableRemoveCrit(self):
+        if len(self.recodeCritList.selectedItems())>0:
+            self.removeRecCrit.setEnabled(True)
+        else:
+            self.removeRecCrit.setEnabled(False)
+
+
+    def addCopyOldCritList(self):
+        items = self.varCatsList.selectedItems()
+        recCrit = []
+
+        for i in items:
+            crit = '%s' %i.text() + ',' + '%s' %i.text()
+            recCrit.append(crit)
+            self.recCritDict[crit] = i.text()
+
+        self.recodeCritList.addItems(recCrit)
+        self.recodeCritList.sortItems()
+        self.varCatsList.removeList(items)
+        self.newCatEdit.clear()
+
+
+    def addRecCritList(self):
+        items = self.varCatsList.selectedItems()
+        recCrit = []
+
+        newCat = int(self.newCatEdit.text())
+        
+        for i in items:
+            crit = '%s' %i.text() + ',' + '%s' %newCat
+            recCrit.append(crit)
+            self.recCritDict[crit] = i.text()
+
+        self.recodeCritList.addItems(recCrit)
+        self.recodeCritList.sortItems()
+        self.varCatsList.removeList(items)
+        self.newCatEdit.clear()
+        
+
+    def removeRecCritList(self):
+        items = self.recodeCritList.selectedItems()
+        
+        for i in items:
+            self.varCatsList.addItem(self.recCritDict['%s' %i.text()])
+        self.varCatsList.sortItems()
+
+        self.recodeCritList.removeList(items)
+
+
+    def populate(self):
+        
+        catString = ['%s' %i for i in self.varcats]
+        self.varCatsList.addItems(catString)
+        self.varCatsList.sortItems()
+
+    def hLayout(self, widgetList):
+        layout = QHBoxLayout()
+        for i in widgetList:
+            layout.addLayout(i)
+        return layout
+
+    def vLayout(self, widgetList):
+        layout = QVBoxLayout()
+        for i in widgetList:
+            layout.addWidget(i)
+        return layout
+            
+
+if __name__ == "__main__":
+    import sys
+    app = QApplication(sys.argv)
+    var = {}
+    var['first'] = [1,2,3,4,-99]
+    var['second'] = [3,4,1,-1]
+    
+    dia = RecodeDialog("tablename", var)
+    dia.show()
+    app.exec_()
+    
+    
