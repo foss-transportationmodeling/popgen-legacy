@@ -7,7 +7,6 @@ from coreplot import *
 from misc.map_toolbar import *
 
 # Inputs for this module
-indgeo_location = "C:/populationsynthesis/gui/results/indgeo_test.txt"
 resultsloc = "C:/populationsynthesis/gui/results"
 resultmap = "bg04_selected.shp"
 
@@ -16,8 +15,19 @@ class Indgeo(Matplot):
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
         self.project = project
-        #self.retrieveResults()
+        if self.project.resolution == "County":
+            self.res_prefix = "co"
+        if self.project.resolution == "Tract":
+            self.res_prefix = "tr"
+        if self.project.resolution == "Blockgroup":
+            self.res_prefix = "bg"
+        self.stateCode = self.project.stateCode[self.project.state]
+        resultfilename = self.res_prefix+self.stateCode+"_selected"
+        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+        
+        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
 
+        
         self.makeComboBox()
         self.makeMapWidget()
         self.vbox.addWidget(self.geocombobox)
@@ -105,8 +115,7 @@ class Indgeo(Matplot):
         self.mapcanvas.setCanvasColor(QColor(255,255,255))
         self.mapcanvas.enableAntiAliasing(True)
         self.mapcanvas.useQImageToRender(False)
-        layerPath = resultsloc+os.path.sep+resultmap
-        self.layer = QgsVectorLayer(layerPath, "Selgeogs", "ogr")
+        self.layer = QgsVectorLayer(self.resultfileloc, "Selgeogs", "ogr")
         renderer = self.layer.renderer()
         renderer.setSelectionColor(QColor(255,255,0))
         symbol = renderer.symbols()[0]
@@ -137,13 +146,13 @@ class Indgeo(Matplot):
         pumanovar = "pumano"
         vars = aardvalvar + "," + pvaluevar + "," + pumanovar
         filter = ""
-        order = ""
+        group = ""
         if self.selblkgroup != "":
             filter = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
         elif self.seltract != "":
             filter = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
 
-        query = self.executeSelectQuery(vars, performancetable, filter, order)
+        query = self.executeSelectQuery(vars, performancetable, filter, group)
         aardval = 0.0
         pval = 0.0
         while query.next():
@@ -179,23 +188,6 @@ class Indgeo(Matplot):
 
         projectDBC.dbc.close()
         
-
-    def executeSelectQuery(self, vars, tablename, filter="", group =""):
-        query = QSqlQuery()
-        if filter != "" and group != "":
-           if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
-                raise FileError, query.lastError().text()
-        elif filter != "" and group == "":
-           if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
-                raise FileError, query.lastError().text()
-        elif filter == "" and group != "":
-           if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
-               raise FileError, query.lastError().text()
-        else:
-            if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
-                raise FileError, query.lastError().text()
-        return query
-
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)
