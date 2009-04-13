@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import urllib
 import os
 
@@ -77,16 +79,58 @@ class AutoImportPUMSData():
 
         self.query = QSqlQuery(self.projectDBC.dbc)
 
+        self.housingVariablesSelected = []
+        self.housingVariablesSelectedDummy = False
+        self.personVariablesSelected = []
+        self.personVariablesSelectedDummy = False
 
-        self.downloadPUMSData()
-        self.createPUMSTable()
+        self.pumsVariableTable()
+
+        self.checkHousingPUMSTable()
+        self.checkPersonPUMSTable()
+
+    def checkHousingPUMSTable(self):
+        if self.checkIfTableExists('housing_pums'):
+            self.downloadPUMSData()
+            self.housingVarDicts()
+            self.housingDefVar()
+            self.housingSelVars()
+            self.createHousingPUMSTable()
+
+    def checkPersonPUMSTable(self):
+        if self.checkIfTableExists('person_pums'):
+            self.downloadPUMSData()
+            self.personVarDicts()
+            self.personDefVar()
+            self.personSelVars()
+            self.createPersonPUMSTable()
+        
+    def checkIfTableExists(self, tablename):
+        # 0 - some other error, 1 - overwrite error (table deleted)
+        if not self.query.exec_("""create table %s (dummy text)""" %tablename):
+            if self.query.lastError().number() == 1050:
+                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QMessageBox.Yes| QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    if not self.query.exec_("""drop table %s""" %tablename):
+                        raise FileError, self.query.lastError().text()
+                    return 1
+                else:
+                    return 0
+            else:
+                raise FileError, self.query.lastError().text()
+        else:
+            if not self.query.exec_("""drop table %s""" %tablename):
+                raise FileError, self.query.lastError().text()
+            return 1
 
 
     def downloadPUMSData(self):
 
         try:
             os.makedirs(self.loc)
-            self.retrieveAndStorePUMS(self.state)
+            self.retrieveAndStorePUMS()
         except WindowsError, e:
             reply = QMessageBox.question(None, "PopSim: Processing Data",
                                          QString("""Windows Error: %s.\n\n"""
@@ -98,179 +142,270 @@ class AutoImportPUMSData():
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
-                    self.retrieveAndStorePUMS(self.state)
+                    self.retrieveAndStorePUMS()
 
-            #self.extractPUMS(self.state)
+        self.extractPUMS()
 
 
-    def retrieveAndStorePUMS(self, state):
-        web_state = '%s' %state
+    def retrieveAndStorePUMS(self):
+        web_state = '%s' %self.state
         web_state = web_state.replace(' ', '_')
         download_location = self.loc + os.path.sep + 'all_%s.zip' %(web_state)
         urllib.urlretrieve("""http://ftp2.census.gov/census_2000/datasets/"""
                            """PUMS/FivePercent/%s/all_%s.zip""" %(web_state, web_state),
                            download_location)
 
-    def extractPUMS(self, state):
-        web_state = '%s' %state
-        web_state = web_state.replace(' ', '_')
+    def extractPUMS(self):
 
+        web_state = '%s' %self.state
+        web_state = web_state.replace(' ', '_')
         file = UnzipFile(self.loc, "all_%s.zip" %(web_state))
         file.unzip()
 
-    def createPUMSTable(self):
+        
+    def createSampleTable(self):
+        self.pumsVariableTable()
+        self.housingSelVars()
+        self.personSelVars()
+        self.createHousingPUMSTable()
+        self.createPersonPUMSTable()
 
+
+    def pumsVariableTable(self):
         # Creats a table that contains the location of the different PUMS variables in the raw data files
-        PUMSVariableDefTable = ImportUserProvData("PUMS2000VariableList",
-                                                  "./data/PUMS2000_Variables.csv",
-                                                  [], [],True, True)
+        check = self.checkIfTableExists('PUMS2000VariableList')
+        if check:
+            PUMSVariableDefTable = ImportUserProvData("PUMS2000VariableList",
+                                                      "./data/PUMS2000_Variables.csv",
+                                                      [], [],True, True)
+            if not self.query.exec_(PUMSVariableDefTable.query1):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_(PUMSVariableDefTable.query2):
+                raise FileError, self.query.lastError().text()
 
-        if not self.query.exec_(PUMSVariableDefTable.query1):
-            raise FileError, self.query.lastError().text()
 
-        if not self.query.exec_(PUMSVariableDefTable.query2):
-            raise FileError, self.query.lastError().text()
-
-        if not self.query.exec_("""create table pumsraw%s (raw TEXT)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        pums_loc = self.loc + os.path.sep + 'PUMS5_%s.TXT' %(self.stateCode[self.state])
-        pums_loc = pums_loc.replace("\\", "/")
-        if not self.query.exec_("""load data local infile '%s' """
-                                """into table pumsraw%s""" %(pums_loc, self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""alter table pumsraw%s add column recordtype char(1)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-        if not self.query.exec_("""update pumsraw%s set recordtype = left(raw, 1)""" %self.stateAbb[self.state]):
-            raise FileError, self.query.lastError().text()
-
-    def createHousingPUMSTable(self):
-        if not self.query.exec_("""create table pumsrawhousing%s select raw from pumsraw%s where recordtype = 'H'""" 
-                                %(self.stateAbb[self.state],self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
-
+    def housingVarDicts(self):
         # Reading the list of PUMS housing variable names
         if not self.query.exec_("""select variablename, description, beginning, length from pums2000variablelist where type = 'H'"""):
             raise FileError, self.query.lastError().text()
         else:
-            housingVariableDict = {}
-            housingVarBegDict = {}
-            housingVarLenDict = {}
+            self.housingVariableDict = {}
+            self.housingVarBegDict = {}
+            self.housingVarLenDict = {}
             while (self.query.next()):
-                housingVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
-                housingVarBegDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(2).toString()
-                housingVarLenDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(3).toString()
+                self.housingVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
+                self.housingVarBegDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(2).toString()
+                self.housingVarLenDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(3).toString()
 
-
-
+    def housingDefVar(self):
         # Reading the list of PUMS default housing variable names
         if not self.query.exec_("""select variablename from pums2000variablelist where type = 'H' and defaultvar = 1"""):
             raise FileError, self.query.lastError().text()
         else:
-            housingDefaultVariables = []
+            self.housingDefaultVariables = []
             while (self.query.next()):
-                housingDefaultVariables.append(self.query.value(0).toString())
-
-                housingVariablesDialog = VariableSelectionDialog(housingVariableDict, housingDefaultVariables,
-                                                                 "PUMS Housing Variable Selection",
-                                                                 "controlvariables")
-
-            # Launch a dialogbox to select the housing variables of interest
-            if housingVariablesDialog.exec_():
-                self.housingVariablesSelectedDummy = True
-                self.housingVariablesSelected = housingVariablesDialog.selectedVariableListWidget.variables
-            else:
-                self.housingVariablesSelectedDummy = False
-                QMessageBox.information(None, "PopSim: Processing Data", QString("""No PUMS person variables are selected."""
-                                                                 """Please start the data import process again to proceed. """),
-                                        QMessageBox.Ok)
-
-            if self.housingVariablesSelectedDummy:
-                progressDialog = QProgressDialog("Creating Housing PUMS Tables in MySQL...", "Abort", 1,
-                                                 len(self.housingVariablesSelected))
-                progressDialog.setMinimumSize(275,125)
-                progress = 0
-                # Make a copy of the raw housing pums file
-                if not self.query.exec_("""create table housing_pums_%s select * from pumsrawhousing%s"""
-                                        %(self.stateAbb[self.state], self.stateAbb[self.state])):
-                    raise FileError, self.query.lastError().text()
-                # Extract the selected variables from the copy of the housing pums file
-                
-                for j in self.housingVariablesSelected:
-                    if not self.query.exec_("""alter table housing_pums_%s add column %s text""" 
-                                            %(self.stateAbb[self.state], j)):
-                        raise FileError, self.query.lastError().text()
-                    
-                    if not self.query.exec_("""update housing_pums_%s set %s = mid(raw, %s, %s)"""
-                                            %(self.stateAbb[self.state], j, 
-                                              housingVarBegDict['%s'%j], housingVarLenDict['%s'%j])):
-                        raise FileError, self.query.lastError().text()
-                    progress = progress + 1
-                    progressDialog.setValue(progress)
+                self.housingDefaultVariables.append(self.query.value(0).toString())
 
 
-
-    def createPersonPUMSTable(self):
-        if not self.query.exec_("""create table pumsrawperson%s select raw from pumsraw%s where recordtype = 'P'"""
-                                %(self.stateAbb[self.state],self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
-
+    def personVarDicts(self):
         # Reading the list of PUMS person variable names
         if not self.query.exec_("""select variablename, description, beginning, length from pums2000variablelist where type = 'P'"""):
             raise FileError, self.query.lastError().text()
         else:
-            personVariableDict = {}
-            personVarBegDict = {}
-            personVarLenDict = {}
+            self.personVariableDict = {}
+            self.personVarBegDict = {}
+            self.personVarLenDict = {}
             while (self.query.next()):
-                personVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
-                personVarBegDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(2).toString()
-                personVarLenDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(3).toString()
+                self.personVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
+                self.personVarBegDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(2).toString()
+                self.personVarLenDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(3).toString()
 
+
+    def personDefVar(self):
         # Reading the list of PUMS default person variable names
         if not self.query.exec_("""select variablename from pums2000variablelist where type = 'P' and defaultvar = 1"""):
             raise FileError, self.query.lastError().text()
         else:
-            personDefaultVariables = []
+            self.personDefaultVariables = []
             while (self.query.next()):
-                personDefaultVariables.append(self.query.value(0).toString())
+                self.personDefaultVariables.append(self.query.value(0).toString())
+        
 
-                personVariablesDialog = VariableSelectionDialog(personVariableDict, personDefaultVariables,
-                                                                 "PUMS Person Variable Selection",
-                                                                 "controlvariables")
+    def housingSelVars(self):
+        housingVariablesDialog = VariableSelectionDialog(self.housingVariableDict, self.housingDefaultVariables,
+                                                         "PUMS Housing Variable Selection",
+                                                         "controlvariables")
 
-            # Launch a dialogbox to select the person variables of interest
-            if personVariablesDialog.exec_():
-                self.personVariablesSelectedDummy = True
-                self.personVariablesSelected = personVariablesDialog.selectedVariableListWidget.variables
+        # Launch a dialogbox to select the housing variables of interest
+        if housingVariablesDialog.exec_():
+            self.housingVariablesSelectedDummy = True
+            self.housingVariablesSelected = housingVariablesDialog.selectedVariableListWidget.variables
+        else:
+            self.housingVariablesSelectedDummy = False
 
+
+    def personSelVars(self):
+        personVariablesDialog = VariableSelectionDialog(self.personVariableDict, self.personDefaultVariables,
+                                                        "PUMS Person Variable Selection",
+                                                        "controlvariables")
+
+        # Launch a dialogbox to select the person variables of interest
+        if personVariablesDialog.exec_():
+            self.personVariablesSelectedDummy = True
+            self.personVariablesSelected = personVariablesDialog.selectedVariableListWidget.variables
+            
+        else:
+            self.personVariablesSelectedDummy = False
+
+    def checkIfFileExists(self, file):
+        try:
+            fileInfo = os.stat(file)
+
+            reply = QMessageBox.question(None, "PopSim: Processing Data", 
+                                         QString("""File %s exists. Do you wish to overwrite?""" %(file)),
+                                         QMessageBox.Yes| QMessageBox.No)
+
+            if reply == QMessageBox.Yes:
+                return 0
             else:
-                self.personVariablesSelectedDummy = False
-                QMessageBox.information(None, "PopSim: Processing Data", QString("""No PUMS person variables are selected."""
-                                                                 """Please start the data import process again to proceed. """),
-                                        QMessageBox.Ok)
+                return 1
+        except WindowsError, e:
+            print 'Warning: File - %s not present' %(file)
+            return 0
+            
+    def createHousingPUMSTable(self):
+        # Creating a Housing PUMS Table
+        self.housingFileName = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
+        self.housingPUMSloc = os.path.join(self.loc, self.housingFileName)
+        
+        if not self.checkIfFileExists(self.housingPUMSloc):
+            self.createHousingPUMSFile()
 
-            if self.personVariablesSelectedDummy:
-                progressDialog = QProgressDialog("Creating Person PUMS Tables in MySQL...", "Abort", 1,
-                                                 len(self.personVariablesSelected))
-                progressDialog.setMinimumSize(275,125)
-                progress = 0
-                # Make a copy of the raw person pums file
-                if not self.query.exec_("""create table person_pums_%s select * from pumsrawperson%s"""
-                                        %(self.stateAbb[self.state], self.stateAbb[self.state])):
-                    raise FileError, self.query.lastError().text()
-                    # Extract the selected variables from the copy of the person pums file
-                for j in self.personVariablesSelected:
-                    if not self.query.exec_("""alter table person_pums_%s add column %s text""" 
-                                            %(self.stateAbb[self.state], j)):
-                        raise FileError, self.query.lastError().text()
-                    
-                    if not self.query.exec_("""update person_pums_%s set %s = mid(raw, %s, %s)"""
-                                            %(self.stateAbb[self.state], j, 
-                                              personVarBegDict['%s'%j], personVarLenDict['%s'%j])):
-                        raise FileError, self.query.lastError().text()
-                    progress = progress + 1
-                    progressDialog.setValue(progress)
+        housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
+                                                   self.housingVariablesSelected, [], False, False)
 
+        if not self.query.exec_(housingPUMSTableQuery.query1):
+            raise FileError, self.query.lastError().text()
+        
+        if not self.query.exec_(housingPUMSTableQuery.query2):
+            raise FileError, self.query.lastError().text()
+
+
+
+    def createPersonPUMSTable(self):
+        # Creating a Person PUMS Table
+        self.personFileName = 'PUMS5_per_%s.TXT' %(self.stateCode[self.state])
+        self.personPUMSloc = os.path.join(self.loc, self.personFileName)
+
+        if not self.checkIfFileExists(self.personPUMSloc):
+            self.createPersonPUMSFile()
+
+        personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
+                                                   self.personVariablesSelected, [], False, False)
+
+        if not self.query.exec_(personPUMSTableQuery.query1):
+            raise FileError, self.query.lastError().text()
+
+        if not self.query.exec_(personPUMSTableQuery.query2):
+            raise FileError, self.query.lastError().text()
+
+
+#    def createPUMSFile(self):
+#        pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
+#        pumspersonFilename = 'PUMS5_per_%s.TXT' %(self.stateCode[self.state])
+#        pumshousingFilename = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
+
+#        with open(os.path.join(self.loc, pumsFilename), 'r') as f:
+#            with open(os.path.join(self.loc, pumspersonFilename), 'w') as fperson:
+#                with open(os.path.join(self.loc, pumshousingFilename), 'w') as fhousing:
+#                    nperson = 0
+#                    nhousing = 0
+#                    if self.personVariablesSelectedDummy:
+#                        for i in f:
+#                            rectype = i[0:1]
+#                            if rectype == 'P':
+#                                personRec = self.parsePerson(i)
+#                                fperson.write(personRec)
+#                                nperson = nperson + 1
+#                    if self.housingVariablesSelectedDummy:
+#                        for i in f:
+#                            rectype = i[0:1]
+#                            if rectype == 'P':
+#                                housingRec = self.parseHousing(i)
+#                                fhousing.write(housingRec)
+#                                nhousing = nhousing + 1                    
+
+ #       print 'Housing Records Parsed - %s' %nhousing        
+ #       print 'Person Records Parsed - %s' %nperson
+
+
+    def createPersonPUMSFile(self):
+        pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
+        pumspersonFilename = 'PUMS5_per_%s.TXT' %(self.stateCode[self.state])
+
+        with open(os.path.join(self.loc, pumsFilename), 'r') as f:
+            with open(os.path.join(self.loc, pumspersonFilename), 'w') as fperson:
+                nperson = 0
+                if self.personVariablesSelectedDummy:
+                    for i in f:
+                        rectype = i[0:1]
+                        if rectype == 'P':
+                            personRec = self.parsePerson(i)
+                            fperson.write(personRec)
+                            nperson = nperson + 1
+                else:
+                    QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty person PUMS File and empty person PUMS"""
+                                                                                 """ table will be created since no"""
+                                                                                 """ variables were selected for extraction."""))
+        #print 'Person Records Parsed - %s' %nperson
+        
+
+    def createHousingPUMSFile(self):
+        pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
+        pumshousingFilename = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
+
+        with open(os.path.join(self.loc, pumsFilename), 'r') as f:
+            with open(os.path.join(self.loc, pumshousingFilename), 'w') as fhousing:
+                nhousing = 0
+                if self.housingVariablesSelectedDummy:
+                    for i in f:
+                        rectype = i[0:1]
+                        if rectype == 'H':
+                            housingRec = self.parseHousing(i)
+                            fhousing.write(housingRec)
+                            nhousing = nhousing + 1
+                else:
+                    QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty housing PUMS File and empty housing PUMS"""
+                                                                                 """ table will be created since no"""
+                                                                                 """ variables were selected for extraction."""))
+        #print 'Housing Records Parsed - %s' %nhousing        
+
+
+    def parseHousing(self, record):
+        string = ""
+        for i in self.housingVariablesSelected:
+            start = int(self.housingVarBegDict['%s'%i])-1
+            end = start + int(self.housingVarLenDict['%s'%i])
+            value = record[start:end]
+            string = string + value + ','
+            
+        string = string[:-1] + '\n'
+        return string
+
+
+
+    def parsePerson(self, record):
+        string = ""
+        for i in self.personVariablesSelected:
+            start = int(self.personVarBegDict['%s'%i])-1
+            end = start + int(self.personVarLenDict['%s'%i])
+            value = record[start:end]
+            string = string + value + ','
+            
+        string = string[:-1] + '\n'
+        return string
+
+    
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
