@@ -54,10 +54,10 @@ class SummaryPage(QWizardPage):
         vlayoutCol2.addWidget(Separator())
 
         #self.projectResolutionLineEdit = DisplayLineEdit()
-        self.projectResolutionLineEdit = ComboBoxFile()
-        self.projectResolutionLineEdit.setEnabled(False)
-        self.projectResolutionLineEdit.addItems(['County', 'Tract', 'Blockgroup'])
-        vlayoutCol2.addWidget(self.projectResolutionLineEdit)
+        self.projectResolutionComboBox = ComboBoxFile()
+        self.projectResolutionComboBox.setEnabled(False)
+        self.projectResolutionComboBox.addItems(['County', 'Tract', 'Blockgroup'])
+        vlayoutCol2.addWidget(self.projectResolutionComboBox)
 
         self.geocorrUserProvLineEdit = DisplayLineEdit()
         vlayoutCol2.addWidget(self.geocorrUserProvLineEdit)
@@ -112,7 +112,7 @@ class SummaryPage(QWizardPage):
                 dummy = dummy + i + ", "+ self.project.region[i]+ "; "
         self.projectRegionLineEdit.setText("%s"%dummy[:-2])
         #self.projectResolutionLineEdit.setText(self.project.resolution)
-        self.projectResolutionLineEdit.findAndSet(self.project.resolution)
+        self.projectResolutionComboBox.findAndSet(self.project.resolution)
 
         self.geocorrUserProvLineEdit.setText("%s" %self.project.geocorrUserProv.userProv)
         self.geocorrUserProvLocationLineEdit.setText(self.project.geocorrUserProv.location)
@@ -128,7 +128,7 @@ class SummaryPage(QWizardPage):
 
     def enableEditableWidgets(self):
         self.projectDescLineEdit.setEnabled(True)
-        self.projectResolutionLineEdit.setEnabled(True)
+        self.projectResolutionComboBox.setEnabled(True)
         #self.geocorrUserProvLineEdit.setEnabled(True)
         #self.geocorrUserProvLocationLineEdit.setEnabled(True)
         #self.sampleUserProvLineEdit.setEnabled(True)
@@ -144,7 +144,7 @@ class SummaryPage(QWizardPage):
 
     def updateProject(self):
         self.project.description = self.projectDescLineEdit.text()
-        self.project.resolution = self.projectResolutionLineEdit.currentText()
+        self.project.resolution = self.projectResolutionComboBox.currentText()
 
 
     def isComplete(self):
