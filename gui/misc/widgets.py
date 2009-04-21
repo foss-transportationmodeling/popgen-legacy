@@ -1,7 +1,8 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+from PyQt4.QtSql import *
 import re
-#from misc.errors import *
+from gui.misc.errors import *
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -232,7 +233,7 @@ class VariableSelectionDialog(QDialog):
         self.selectedVariableListWidget.populate()
 
 class ListWidget(QListWidget):
-    def __init__(self, variables=None, parent = None):
+    def __init__(self, variables=None, parent=None):
         super(ListWidget, self).__init__(parent)
         self.variables = variables
 
@@ -262,14 +263,21 @@ class ListWidget(QListWidget):
         return -1
 
 class RecodeDialog(QDialog):
-    def __init__(self, tablename, variableDict, title="", icon="", parent = None):
+    def __init__(self, project, tablename, title="", icon="", parent=None):
         super(RecodeDialog, self).__init__(parent)
 
+        self.setWindowTitle(title)
+
         self.tablename = tablename
-        self.variableDict = variableDict
+        self.variableDict = {}
+        self.project = project
         
+        self.setWindowTitle(title)
+
         self.setFixedSize(QSize(500, 300))
         self.setWindowTitle(title)
+
+        self.variables = self.variablesInTable()
 
         self.variableList = QListWidget()
 
@@ -315,40 +323,123 @@ class RecodeDialog(QDialog):
         self.connect(self.oldNewButton, SIGNAL("clicked()"), self.relationOldNew)
         
     def checkNewVarName(self, name):
-        if len(name)>0:
-            if not re.match("[A-Za-z]",name[0]):
-                self.oldNewButton.setEnabled(False)
-            else:
-                self.oldNewButton.setEnabled(True)
-                if len(name)>1:
-                    for i in name[1:]:
-                        if not re.match("[A-Za-z_0-9]", i):
-                            self.oldNewButton.setEnabled(False)
-                        else:
-                            self.oldNewButton.setEnabled(True)
-        else:
+        
+        import copy
+        variables = copy.deepcopy(self.variables)
+
+        variables = [('%s'%i).lower() for i in variables]
+
+        name = ('%s'%name).lower()
+
+        try:
+            variables.index(name)
             self.oldNewButton.setEnabled(False)
+        except:
+            if len(name)>0:
+                if not re.match("[A-Za-z]",name[0]):
+                    self.oldNewButton.setEnabled(False)
+                else:
+                    self.oldNewButton.setEnabled(True)
+                    if len(name)>1:
+                        for i in name[1:]:
+                            if not re.match("[A-Za-z_0-9]", i):
+                                self.oldNewButton.setEnabled(False)
+                            else:
+                                self.oldNewButton.setEnabled(True)
+            else:
+                self.oldNewButton.setEnabled(False)
 
     def relationOldNew(self):
         variablename = self.variableOldEdit.text()
         varcats = self.variableDict['%s' %variablename]
+        newvariablename = self.variableNewEdit.text()
+        self.variables.append(newvariablename)
+
         dia = OldNewRelation(variablename, varcats)
-        dia.exec_()
+        if dia.exec_():
+            self.runRecodeCrit(variablename, newvariablename, dia.recodeCrit)
+            self.resetDialog()
+
+
+
+    def runRecodeCrit(self, variablename, newvariablename, recodeCrit):
+        query = QSqlQuery()
+        
+        self.addColumn(newvariablename)
+        
+        for crit in recodeCrit:
+            if not query.exec_("""update %s set %s = %s where %s = %s""" 
+                               %(self.tablename, 
+                                 newvariablename, 
+                                 crit[1], 
+                                 variablename,
+                                 crit[0])):
+                raise FileError, query.lastError().text()
+        
+
+    def addColumn(self, variablename):
+        query = QSqlQuery()
+        
+
+        if not query.exec_("""alter table %s add column %s text""" %(self.tablename, variablename)):
+            raise FileError, query.lastError().text()
+
+    def resetDialog(self):
+        self.variableNewEdit.clear()
+        self.variableOldEdit.clear()
+        self.variableList.clear()
+        self.populate()
+        
+        
+
 
     def populate(self):
         self.variableList.clear()
-        self.variableList.addItems(self.variableDict.keys())
+        self.variableList.addItems(self.variables)
 
 
     def moveSelectedVar(self, listItem):
         self.variableOldEdit.clear()
-        self.variableOldEdit.setText(listItem.text())
+        varname = listItem.text()
+        self.variableOldEdit.setText(varname)
+        varCats = self.categories(varname)
+        self.variableDict['%s' %varname] = varCats
         self.variableNewEdit.setEnabled(True)
 
+    def variablesInTable(self):
+        variables = []
+        query = QSqlQuery()
+        if not query.exec_("""desc %s""" %self.tablename):
+            raise FileError, query.lastError().text()
+
+        FIELD = 0
+
+        while query.next():
+            field = query.value(FIELD).toString()
+            variables.append(field)
+
+        return variables
+            
 
 
-    def moveSelected(self):
-        pass
+    def categories(self, varname):
+        cats = []
+
+        query = QSqlQuery()
+        if not query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname)):
+            raise FileError, query.lastError().text()
+
+        CATEGORY = 0
+
+        while query.next():
+            cat = unicode(query.value(CATEGORY).toString())
+            #try:
+            #    cat = query.value(CATEGORY).toInt()[0]
+            #except:
+            #    cat = query.value(CATEGORY).toString()[0]
+            cats.append(cat)
+                    
+        return cats
 
 class OldNewRelation(QDialog):
     def __init__(self, variablename, varcats, parent=None):
@@ -412,21 +503,25 @@ class OldNewRelation(QDialog):
 
     def accept(self):
         self.recodeCrit = []
+        
+        if not self.recodeCritList.count() < 1:
+            for i in range(self.recodeCritList.count()):
+                itemText = self.recodeCritList.item(i).text()
+                old, new = self.parse(itemText)
+            
+                self.recodeCrit.append([old,new])
+                QDialog.accept(self)
+        else:
+            reply = QMessageBox.question(self, "PopSim: Display and Modify Data",
+                                         QString("No recode criterion set. Do you wish to continue?"),
+                                         QMessageBox.Yes| QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                QDialog.accept(self)
 
-        for i in range(self.recodeCritList.count()):
-            itemText = self.recodeCritList.item(i).text()
-            old, new = self.parse(itemText)
-            
-            self.recodeCrit.append([old,new])
-            
-        print self.recodeCrit
-        QDialog.accept(self)
 
         
     def parse(self, text):
         parsed = text.split(',')
-        #print parsed[0], parsed[1]
-        
         return int(parsed[0]), int(parsed[1])
 
 
@@ -519,6 +614,142 @@ class OldNewRelation(QDialog):
         return layout
             
 
+class CreateVariable(QDialog):
+    def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
+        super(CreateVariable, self).__init__(parent)
+
+        self.setWindowTitle(title)
+        self.tablename = tablename
+
+        self.variableDict = {}
+        self.variables = variableTypeDict.keys()
+
+        newVarLabel = QLabel("New Variable Name")
+        self.newVarNameEdit = QLineEdit()
+        variableListLabel = QLabel("Variables in Table")
+        self.variableListWidget = ListWidget()
+        variableCatsListLabel = QLabel("Categories")
+        self.variableCatsListWidget = ListWidget()
+
+        formulaLabel = QLabel("Expression")
+        self.formulaEdit = QPlainTextEdit()
+        self.formulaEdit.setEnabled(False)
+        whereLabel = QLabel("Filter Expression")
+        self.whereEdit = QPlainTextEdit()
+        self.whereEdit.setEnabled(False)
+        
+        
+
+        vLayout2 = QVBoxLayout()
+        vLayout2.addWidget(newVarLabel)
+        vLayout2.addWidget(self.newVarNameEdit)
+        
+        hLayout1 = QHBoxLayout()
+        vLayout3 = QVBoxLayout()
+        vLayout3.addWidget(variableListLabel)
+        vLayout3.addWidget(self.variableListWidget)
+        vLayout4 = QVBoxLayout()
+        vLayout4.addWidget(variableCatsListLabel)
+        vLayout4.addWidget(self.variableCatsListWidget)
+        hLayout1.addLayout(vLayout3)
+        hLayout1.addLayout(vLayout4)
+        vLayout2.addLayout(hLayout1)
+
+        vLayout1 = QVBoxLayout()
+        vLayout1.addWidget(formulaLabel)
+        vLayout1.addWidget(self.formulaEdit)
+        vLayout1.addWidget(whereLabel)
+        vLayout1.addWidget(self.whereEdit)
+
+        hLayout = QHBoxLayout()
+        hLayout.addLayout(vLayout2)
+        hLayout.addLayout(vLayout1)
+
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addWidget(dialogButtonBox)
+
+        self.setLayout(layout)
+        self.populate()
+
+        self.connect(self.newVarNameEdit, SIGNAL("textChanged(const QString&)"), self.checkNewVarName)
+        self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+
+
+    def displayCats(self):
+        varname = self.variableListWidget.currentItem().text()
+        varCats = self.categories(varname)
+        self.variableDict['%s' %varname] = varCats
+
+        cats = ['%s' %i for i in self.variableDict['%s' %varname]]
+
+        self.variableCatsListWidget.clear()
+        self.variableCatsListWidget.addItems(cats)
+        
+
+    def checkNewVarName(self, name):
+        
+        import copy
+        variables = copy.deepcopy(self.variables)
+
+        variables = [('%s'%i).lower() for i in variables]
+
+        name = ('%s'%name).lower()
+
+        try:
+            variables.index(name)
+            self.enable(False)
+        except:
+            if len(name)>0:
+                if not re.match("[A-Za-z]",name[0]):
+                    self.enable(False)
+                else:
+                    self.enable(True)
+                    if len(name)>1:
+                        for i in name[1:]:
+                            if not re.match("[A-Za-z_0-9]", i):
+                                self.enable(False)
+                            else:
+                                self.enable(True)
+            else:
+                self.enable(False)
+        
+        
+    def enable(self, value):
+        self.formulaEdit.setEnabled(value)
+        self.whereEdit.setEnabled(value)
+
+    def populate(self):
+        self.variableListWidget.addItems(self.variables)
+
+
+    def categories(self, varname):
+        cats = []
+
+        query = QSqlQuery()
+        query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname))
+
+        CATEGORY = 0
+
+        while query.next():
+            cat = unicode(query.value(CATEGORY).toString())
+            #try:
+            #    cat = query.value(CATEGORY).toInt()[0]
+            #except:
+            #    cat = query.value(CATEGORY).toString()
+            #    print cat
+            cats.append(cat)
+                   
+
+        return cats
+
+
+
+
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
@@ -526,7 +757,7 @@ if __name__ == "__main__":
     var['first'] = [1,2,3,4,-99]
     var['second'] = [3,4,1,-1]
     
-    dia = RecodeDialog("tablename", var)
+    dia = CreateVariable(var)
     dia.show()
     app.exec_()
     
