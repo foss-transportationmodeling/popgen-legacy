@@ -10,8 +10,9 @@ from coreplot import *
 hhdist_location = "C:/populationsynthesis/gui/results/hhdist_test.txt"
 
 class Hhdist(Matplot):
-    def __init__(self, parent=None):
+    def __init__(self, project, parent=None):
         Matplot.__init__(self)
+        self.project = project
         self.setWindowTitle("Housing Attributes Distribution")
         self.makeComboBox()
         self.vbox.addWidget(self.hhcombobox)
