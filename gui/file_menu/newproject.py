@@ -1,9 +1,12 @@
 from __future__ import with_statement
+from collections import defaultdict
 
 import pickle
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
+from gui.global_vars  import *
 
 
 
@@ -33,17 +36,40 @@ class DBInfo(object):
         self.username = username
         self.password = password
 
-class ControlVariable(object):
-    def __init__(self, categories):
-        self.categories = categories
+
+class ProjectControlVariables(object):
+    def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict)):
+        self.hhldVariables = hhldVariables
+        self.gqVariables = gqVariables
+        self.personVariables = personVariables
+
+
+class Parameters(object):
+    def __init__(self, 
+                 ipfTol=IPF_TOLERANCE, 
+                 ipfIter=IPF_MAX_ITERATIONS, 
+                 ipuTol=IPU_TOLERANCE, 
+                 ipuIter=IPU_MAX_ITERATIONS, 
+                 synPopDraws=SYNTHETIC_POP_MAX_DRAWS, 
+                 synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE):
+
+        self.ipfTol = ipfTol
+        self.ipfIter = ipfIter
+        self.ipuTol = ipuTol
+        self.ipuIter = ipuIter
+        self.synPopDraws = synPopDraws
+        self.synPopPTol = synPopPTol
+
+
 
 class NewProject(object):
-    def __init__(self, name="", location="", description="",
+    def __init__(self, name="", filename="", location="", description="",
                  region="", state="", countyCode="", stateCode="", stateAbb="",
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
-                 db = DBInfo()):
+                 db=DBInfo(), parameters=Parameters()):
         self.name = name
+        self.filename = name
         self.location = location
         self.description = description
         self.region = region
@@ -56,10 +82,15 @@ class NewProject(object):
         self.sampleUserProv = sampleUserProv
         self.controlUserProv = controlUserProv
         self.db = db
-
+        self.parameters = parameters
 
     def save(self):
-        with open('%s/%s/%s.pop' %(self.location, self.name, self.name),
+        if len(self.filename) < 1:
+            self.filename = self.name
+            print 'filename - %s' %self.filename
+            print 'name - %s' %self.name
+
+        with open('%s/%s/%s.pop' %(self.location, self.name, self.filename),
                   'wb') as f:
             pickle.dump(self, f, True)
         pass
