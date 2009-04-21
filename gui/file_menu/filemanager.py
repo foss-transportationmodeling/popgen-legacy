@@ -8,9 +8,12 @@ from database.createDBConnection import createDBC
 from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.display_data import DisplayTable
+from data_menu.sf_data import AutoImportSFData
+from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable
+
 from misc.errors import *
 
-
+from default_census_cat_transforms import *
 
 class QTreeWidgetCMenu(QTreeWidget):
     def __init__(self, project=None, parent = None):
@@ -22,6 +25,8 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.setItemsExpandable(True)
         self.setEnabled(False)
         self.project = project
+        self.tables = []
+
 
     def contextMenuEvent(self, event):
         menu = QMenu()
@@ -30,46 +35,170 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         menuTableEdit = QMenu()
         displayTableAction = menuTableEdit.addAction("Display Table")
+        createVarAction = menuTableEdit.addAction("Create New Variable")
+        recodeCatsAction = menuTableEdit.addAction("Recode Categories")
+        deleteColAction = menuTableEdit.addAction("Delete Column(s)")
+        defaultTransforAction = menuTableEdit.addAction("Default Transformation")
 
         self.connect(importDataAction, SIGNAL("triggered()"), self.importData)
         self.connect(editProjectAction, SIGNAL("triggered()"), self.editProject)
         self.connect(displayTableAction, SIGNAL("triggered()"), self.displayTable)
-
-
-
+        self.connect(recodeCatsAction, SIGNAL("triggered()"), self.modifyCategories)
+        self.connect(createVarAction, SIGNAL("triggered()"), self.createVariable)
+        self.connect(deleteColAction, SIGNAL("triggered()"), self.deleteColumns)
+        self.connect(defaultTransforAction, SIGNAL("triggered()"), self.defaultTransformations)
         
-
         if self.item.parent() is None:
             menu.exec_(event.globalPos())
-        #print self.item.parent().text(0)
-        if self.item.parent() == self.tableParent:
-            menuTableEdit.exec_(event.globalPos())
+        else:
+            if self.item.parent().text(0) == 'Data Tables':
+                menuTableEdit.exec_(event.globalPos())
 
 
     def click(self, item, column):
         self.item = item
         
-
-        
-    def displayTable(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+    def createVariable(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
 
-        b = DisplayTable("%s" %self.item.text(1))
-        b.exec_()
+        tablename = self.item.text(1)
+        self.populateVariableDictionary(tablename)
 
+        create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "%s" %tablename)
+        if create.exec_():
+            newVarName = create.newVarNameEdit.text()
+            numericExpression = create.formulaEdit.toPlainText()
+            whereExpression = create.whereEdit.toPlainText()
+            if len(whereExpression)<1:
+                whereExpression = '1'
+            if len(numericExpression) <1:
+                QMessageBox.warning(self, "PopSim: Data", QString("""Invalid numeric expression, enter again"""))
+            else:
+                query = QSqlQuery()
+                if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName, 
+                                                                          numericExpression, whereExpression)):
+                    raise FileError, query.lasterror().text()
+        
         projectDBC.dbc.close()
 
 
+        
+    def displayTable(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+
+        tablename = self.item.text(1)
+
+        disp = DisplayTable(self.project, "%s" %tablename)
+        disp.exec_()
+
+        projectDBC.dbc.close()
+
+    def modifyCategories(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+
+        tablename = self.item.text(1)
+        modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename)
+        modify.exec_()
+        
+        projectDBC.dbc.close()
 
 
+    def deleteColumns(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+        
+        tablename = self.item.text(1)
+        self.populateVariableDictionary(tablename)
+
+        deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = "Delete Dialog")
+
+        query = QSqlQuery()
+
+        if deleteVariablesdia.exec_():
+            deleteVariablesSelected = deleteVariablesdia.selectedVariableListWidget.variables
+
+            for i in deleteVariablesSelected:
+                if not query.exec_("""alter table %s drop column %s""" %(tablename, i)):
+                    raise FileError, query.lastError().text()
+
+        projectDBC.dbc.close()
+        
+        
+    def defaultTransformations(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+
+        query = QSqlQuery()
+
+        tablename = self.item.text(1)
+
+        checkPUMSTableTransforms = False
+        checkSFTableTransforms = False
+
+        if not self.project.sampleUserProv.userProv:
+            if tablename == 'housing_pums':
+                queries = DEFAULT_HOUSING_PUMS_QUERIES
+                checkPUMSTableTransforms = True
+                
+            if tablename == 'person_pums':
+                queries = DEFAULT_PERSON_PUMS_QUERIES
+                checkPUMSTableTransforms = True
+                                
+            if checkPUMSTableTransforms:
+                for i in queries:
+                    print "Executing Query: %s" %i
+                    if not query.exec_("""%s""" %i):
+                        if not query.lastError().number() == 1051:
+                            print "FileError: %s" %query.lastError().text()
+
+
+        if not self.project.controlUserProv.userProv:
+            print tablename[:13]
+            if tablename[:13] == 'mastersftable':
+                checkSFTableTransforms = True
+
+            if checkSFTableTransforms:
+                for i in DEFAULT_SF_QUERIES:
+                    print "Executing Query: %s" %i
+                    if not query.exec_(i %tablename):
+                        print "FileError: %s" %query.lastError().text()
+
+        if not (checkPUMSTableTransforms or checkSFTableTransforms):
+            print "FileError: The file does not have default transformations"
+        
+        projectDBC.dbc.close()
+        self.populate()
+
+
+    def populateVariableDictionary(self, tablename):
+        self.variableTypeDictionary = {}
+        query = QSqlQuery()
+        query.exec_("""desc %s""" %tablename)
+
+        FIELD, TYPE, NULL, KEY, DEFAULT, EXTRA = range(6)
+
+        while query.next():
+            field = query.value(FIELD).toString()
+            type = query.value(TYPE).toString()
+            null = query.value(NULL).toString()
+            key = query.value(KEY).toString()
+            default = query.value(DEFAULT).toString()
+            extra = query.value(EXTRA).toString()
+            
+            self.variableTypeDictionary['%s' %field] = type
 
 
     def editProject(self):
-        #print 'editing project'
+
         editWidget = QWizard()
         editWidget.setWizardStyle(QWizard.ClassicStyle)
         editWidget.setOption(QWizard.NoBackButtonOnStartPage)
+
         self.page = SummaryPage()
         self.page.projectLocationDummy = True
         self.page.projectDatabaseDummy = True
@@ -79,16 +208,33 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
         if editWidget.exec_():
-            self.page.updateProject()
-            self.project = self.page.project
-            self.project.save()
-            self.populate()
+            check1 = (self.page.projectDescLineEdit.text() == self.project.description)
+            check2 = (self.page.projectResolutionComboBox.currentText() == self.project.resolution)
+            
+            if check1 and check2:
+                pass
+            else:
+                self.page.updateProject()
+                self.project = self.page.project
+                self.project.save()
+                self.populate()
+
+            if not check2:
+                autoImportSFDataInstance = AutoImportSFData(self.project)
+                autoImportSFDataInstance.createMasterSubSFTable()
+                autoImportSFDataInstance.projectDBC.dbc.close()      
+                tablename = 'mastersftable%s' %(self.page.projectResolutionComboBox.currentText())
+
+                self.populate()
+                #self.addChild(tablename)
+
+            
 
     def importData(self):
         #QMessageBox.information(None, "Check", "Import Data", QMessageBox.Ok)
         dataprocesscheck = DataDialog(self.project)
         dataprocesscheck.exec_()
-
+        self.populate()
 
 
     def populate(self):
@@ -143,9 +289,23 @@ class QTreeWidgetCMenu(QTreeWidget):
         for i,j in dbItems.items():
             child = QTreeWidgetItem(dbParent, [QString(i), QString(j)])
 
+
         self.tableParent = QTreeWidgetItem(projectAncestor, [QString("Data Tables")])
-        
-        projectDBC = createDBC(self.project.db, self.project.name)
+        self.tableChildren()
+
+        self.expandItem(projectAncestor)
+        self.expandSort(informationParent, 0)
+        self.expandSort(geocorrParent, 0)
+        self.expandSort(sampleParent, 0)
+        self.expandSort(controlParent, 0)
+        self.expandSort(dbParent, 0)
+        self.expandSort(self.tableParent, 1)
+
+
+
+    def tableChildren(self):
+               
+        projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
         
         self.query = QSqlQuery()
@@ -158,27 +318,19 @@ class QTreeWidgetCMenu(QTreeWidget):
         while self.query.next():
             tableItems["Table %s" %i] = '%s' %self.query.value(0).toString()
             i = i + 1
-            #tableItems.append('%s' %self.query.value(0).toString())
             
         projectDBC.dbc.close()
 
-
         for i,j in tableItems.items():
-            #child = QTreeWidgetItem(self.tableParent, [i,])
-            child = QTreeWidgetItem(self.tableParent, [QString(i), QString(j)])
+            child = QTreeWidgetItem(self.tableParent, [QString(''), QString(j)])
 
+    #def addChild(self, tablename):
+    #    count = self.tableParent.childCount()+1
+    #    
+    #    child = QTreeWidgetItem(self.tableParent, [QString('Table %s' %count), QString(tablename)])
 
-        self.expandItem(projectAncestor)
-        self.expandSort(informationParent)
-        self.expandSort(geocorrParent)
-        self.expandSort(sampleParent)
-        self.expandSort(controlParent)
-        self.expandSort(dbParent)
-        self.expandSort(self.tableParent)
-
-
-            
-    def expandSort(self, item):
+    def expandSort(self, item, index):
         self.expandItem(item)
-        item.sortChildren(0, Qt.AscendingOrder)
+        item.sortChildren(index, Qt.AscendingOrder)
+
 
