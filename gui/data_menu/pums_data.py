@@ -2,6 +2,7 @@ from __future__ import with_statement
 
 import urllib
 import os
+import copy
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -17,41 +18,50 @@ from global_vars import *
 class UserImportSampleData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
     def createHhldTable(self):
-        hhldTableQuery = self.mysqlQueries('hhld_sample', self.project.sampleUserProv.hhLocation)
+        check = self.checkIfTableExists('hhld_sample')
+
+        if check:
+            hhldTableQuery = self.mysqlQueries('hhld_sample', self.project.sampleUserProv.hhLocation)
+            
+            if not self.query.exec_(hhldTableQuery.query1):
+                raise FileError, self.query.lastError().text()
         
-        if not self.query.exec_(hhldTableQuery.query1):
-            raise FileError, self.query.lastError().text()
-        
-        if not self.query.exec_(hhldTableQuery.query2):
-            raise FileError, self.query.lastError().text()
+            if not self.query.exec_(hhldTableQuery.query2):
+                raise FileError, self.query.lastError().text()
 
 
     def createGQTable(self):
-        gqLocLen = len(self.project.sampleUserProv.gqLocation)
-        
-        if gqLocLen > 1:
-            gqTableQuery = self.mysqlQueries('gq_sample', self.project.sampleUserProv.gqLocation)
+        check = self.checkIfTableExists('gq_sample')
 
-            if not self.query.exec_(gqTableQuery.query1):
-                raise FileError, self.query.lastError().text()
-            
-            if not self.query.exec_(gqTableQuery.query2):
-                raise FileError, self.query.lastError().text()
+        if check:
+            gqLocLen = len(self.project.sampleUserProv.gqLocation)
+        
+            if gqLocLen > 1:
+                gqTableQuery = self.mysqlQueries('gq_sample', self.project.sampleUserProv.gqLocation)
+                
+                if not self.query.exec_(gqTableQuery.query1):
+                    raise FileError, self.query.lastError().text()
+                
+                if not self.query.exec_(gqTableQuery.query2):
+                    raise FileError, self.query.lastError().text()
 
     
     def createPersonTable(self):
-        personTableQuery = self.mysqlQueries('person_sample', self.project.sampleUserProv.personLocation)
+        check = self.checkIfTableExists('person_sample')
 
-        if not self.query.exec_(personTableQuery.query1):
-            raise FileError, self.query.lastError().text()
+        if check:
+            personTableQuery = self.mysqlQueries('person_sample', self.project.sampleUserProv.personLocation)
+
+            if not self.query.exec_(personTableQuery.query1):
+                raise FileError, self.query.lastError().text()
         
-        if not self.query.exec_(personTableQuery.query2):
-            raise FileError, self.query.lastError().text()
+            if not self.query.exec_(personTableQuery.query2):
+                raise FileError, self.query.lastError().text()
 
     def mysqlQueries(self, name, filePath):
         fileProp = FileProperties(filePath)
@@ -62,6 +72,27 @@ class UserImportSampleData():
                                        fileProp.varNamesDummy,
                                        fileProp.varTypesDummy)
         return fileQuery
+
+
+    def checkIfTableExists(self, tablename):
+        # 0 - some other error, 1 - overwrite error (table deleted)
+        if not self.query.exec_("""create table %s (dummy text)""" %tablename):
+            if self.query.lastError().number() == 1050:
+                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QMessageBox.Yes| QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    if not self.query.exec_("""drop table %s""" %tablename):
+                        raise FileError, self.query.lastError().text()
+                    return 1
+                else:
+                    return 0
+            else:
+                raise FileError, self.query.lastError().text()
+        else:
+            if not self.query.exec_("""drop table %s""" %tablename):
+                raise FileError, self.query.lastError().text()
+            return 1
 
 class AutoImportPUMSData():
     def __init__(self, project):
@@ -74,7 +105,7 @@ class AutoImportPUMSData():
         self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS'
         self.loc = os.path.realpath(self.loc)
 
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
 
         self.query = QSqlQuery(self.projectDBC.dbc)
@@ -86,8 +117,8 @@ class AutoImportPUMSData():
 
         self.pumsVariableTable()
 
-        self.checkHousingPUMSTable()
-        self.checkPersonPUMSTable()
+        #self.checkHousingPUMSTable()
+        #self.checkPersonPUMSTable()
 
     def checkHousingPUMSTable(self):
         if self.checkIfTableExists('housing_pums'):
@@ -163,12 +194,7 @@ class AutoImportPUMSData():
         file.unzip()
 
         
-    def createSampleTable(self):
-        self.pumsVariableTable()
-        self.housingSelVars()
-        self.personSelVars()
-        self.createHousingPUMSTable()
-        self.createPersonPUMSTable()
+
 
 
     def pumsVariableTable(self):
@@ -280,9 +306,11 @@ class AutoImportPUMSData():
         
         if not self.checkIfFileExists(self.housingPUMSloc):
             self.createHousingPUMSFile()
-
+            
+        housingVariablesSelected = copy.deepcopy(self.housingVariablesSelected)
+        housingVariablesSelected.insert(0, 'hhid')
         housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
-                                                   self.housingVariablesSelected, [], False, False)
+                                                   housingVariablesSelected, [], False, False)
 
         if not self.query.exec_(housingPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
@@ -299,9 +327,16 @@ class AutoImportPUMSData():
 
         if not self.checkIfFileExists(self.personPUMSloc):
             self.createPersonPUMSFile()
+            
 
+        personVariablesSelected = copy.deepcopy(self.personVariablesSelected)
+
+
+        personVariablesSelected.insert(0, 'hhid')
+        personVariablesSelected.insert(0, 'puma5')
+        personVariablesSelected.insert(0, 'state')        
         personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
-                                                   self.personVariablesSelected, [], False, False)
+                                                   personVariablesSelected, [], False, False)
 
         if not self.query.exec_(personPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
@@ -346,13 +381,18 @@ class AutoImportPUMSData():
         with open(os.path.join(self.loc, pumsFilename), 'r') as f:
             with open(os.path.join(self.loc, pumspersonFilename), 'w') as fperson:
                 nperson = 0
+                nhousing = 0
                 if self.personVariablesSelectedDummy:
                     for i in f:
                         rectype = i[0:1]
                         if rectype == 'P':
-                            personRec = self.parsePerson(i)
+                            personRec = self.parsePerson(i, state, puma5, nhousing)
                             fperson.write(personRec)
                             nperson = nperson + 1
+                        else:
+                            puma5 = i[13:18]
+                            state = i[9:11]
+                            nhousing = nhousing + 1
                 else:
                     QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty person PUMS File and empty person PUMS"""
                                                                                  """ table will be created since no"""
@@ -371,9 +411,10 @@ class AutoImportPUMSData():
                     for i in f:
                         rectype = i[0:1]
                         if rectype == 'H':
-                            housingRec = self.parseHousing(i)
-                            fhousing.write(housingRec)
                             nhousing = nhousing + 1
+                            housingRec = self.parseHousing(i, nhousing)
+                            fhousing.write(housingRec)
+
                 else:
                     QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty housing PUMS File and empty housing PUMS"""
                                                                                  """ table will be created since no"""
@@ -381,8 +422,8 @@ class AutoImportPUMSData():
         #print 'Housing Records Parsed - %s' %nhousing        
 
 
-    def parseHousing(self, record):
-        string = ""
+    def parseHousing(self, record, nhousing):
+        string = "%s," %(nhousing)
         for i in self.housingVariablesSelected:
             start = int(self.housingVarBegDict['%s'%i])-1
             end = start + int(self.housingVarLenDict['%s'%i])
@@ -394,8 +435,8 @@ class AutoImportPUMSData():
 
 
 
-    def parsePerson(self, record):
-        string = ""
+    def parsePerson(self, record, state, puma5, nhousing):
+        string = "%s,%s,%s," %(state, puma5, nhousing)
         for i in self.personVariablesSelected:
             start = int(self.personVarBegDict['%s'%i])-1
             end = start + int(self.personVarLenDict['%s'%i])
