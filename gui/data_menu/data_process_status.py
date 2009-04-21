@@ -3,6 +3,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from pums_data import AutoImportPUMSData, UserImportSampleData
 from sf_data import AutoImportSFData, UserImportControlData
+from geocorr_data import AutoImportGeocorrData, UserImportGeocorrData
 from misc.errors import FileError
 
 
@@ -25,15 +26,17 @@ class DataDialog(QDialog):
 
         ok.setEnabled(False)
 
-        self.SampleHousingLayout = CheckLabel("1. Processing Housing PUMS Data", "incomplete")
-        self.SamplePersonLayout = CheckLabel("2. Processing Person PUMS Data", "incomplete")
-        self.ControlHousingLayout = CheckLabel("3. Processing Housing Summary Data", "incomplete")
-        self.ControlPersonLayout = CheckLabel("4. Processing Person Summary Data", "incomplete")
+        self.GeocorrHousingLayout = CheckLabel("1. Processing geographic Correspondence Data", "incomplete")
+        self.SampleHousingLayout = CheckLabel("2. Processing Housing PUMS Data", "incomplete")
+        self.SamplePersonLayout = CheckLabel("3. Processing Person PUMS Data", "incomplete")
+        self.ControlHousingLayout = CheckLabel("4. Processing Housing Summary Data", "incomplete")
+        self.ControlPersonLayout = CheckLabel("5. Processing Person Summary Data", "incomplete")
 
         #self.detailsTextEdit = QTextEdit()
         #self.detailsTextEdit.setMinimumHeight(250)
 
         layout = QVBoxLayout()
+        layout.addLayout(self.GeocorrHousingLayout)
         layout.addLayout(self.SampleHousingLayout)
         layout.addLayout(self.SamplePersonLayout)
         layout.addLayout(self.ControlHousingLayout)
@@ -56,20 +59,9 @@ class DataDialog(QDialog):
                 i.setEnabled(True)
 
         if button.text() == 'Start':
-            #self.geocorr()
-            import time
-            
-            ti = time.time()
+            self.geocorr()
             self.sample()
-            print 'Time elapsed- %.4f' %(time.time()-ti)            
-
-            ti = time.time()
             self.control()
-            print 'Time elapsed- %.4f' %(time.time()-ti)
-
-
-
-
 
 
         if button.text() == 'Ok':
@@ -79,17 +71,24 @@ class DataDialog(QDialog):
         # GEOCORR FILE
         if self.project.geocorrUserProv.userProv:
             # IMPORTING USER PROVIDED FILES
+            importGeocorrInstance = UserImportGeocorrData(self.project)
             try:
-                pass
+                importGeocorrInstance.createGeocorrTable()
+                self.GeocorrHousingLayout.changeStatus(True)
             except FileError, e:
-                pass
+                print e
+                self.GeocorrHousingLayout.changeStatus(False)
 
         else:
             # IMPORTING FILES AUTOMATICALLY
+            importGeocorrInstance = AutoImportGeocorrData(self.project)
             try:
-                pass
+                importGeocorrInstance.createGeocorrTable()
+                self.GeocorrHousingLayout.changeStatus(True)
             except FileError, e:
-                pass
+                print e
+                self.GeocorrHousingLayout.changeStatus(False)
+        importGeocorrInstance.projectDBC.dbc.close()
 
     def sample(self):
         # SAMPLE FILES
@@ -118,12 +117,14 @@ class DataDialog(QDialog):
             self.importPUMSInstance = AutoImportPUMSData(self.project)
             # Housing PUMS
             try:
+                self.importPUMSInstance.checkHousingPUMSTable()
                 self.SampleHousingLayout.changeStatus(True)
             except FileError, e:
                 print e
                 self.SampleHousingLayout.changeStatus(False)
                 # Person PUMS
             try:
+                self.importPUMSInstance.checkPersonPUMSTable()
                 self.SamplePersonLayout.changeStatus(True)
             except FileError, e:
                 print e
@@ -158,7 +159,10 @@ class DataDialog(QDialog):
             self.importSFInstance = AutoImportSFData(self.project)
             # Housing Controls/Marginals
             try:
-                #self.importSFInstance.createHousingSFTable()
+                self.importSFInstance.downloadSFData()
+                self.importSFInstance.createRawSFTable()
+                self.importSFInstance.createMasterSFTable()
+                self.importSFInstance.createMasterSubSFTable()
                 self.ControlHousingLayout.changeStatus(True)
             except FileError, e:
                 print e
@@ -166,7 +170,6 @@ class DataDialog(QDialog):
 
             # Person Controls/Marginals
             try:
-                #self.importSFInstance.createPersonSFTable()
                 self.ControlPersonLayout.changeStatus(True)
             except FileError, e:
                 print e
