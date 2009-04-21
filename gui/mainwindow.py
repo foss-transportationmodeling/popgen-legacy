@@ -1,7 +1,7 @@
 from __future__ import with_statement
 
 
-import os, sys, pickle
+import os, sys, pickle, re
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -10,8 +10,10 @@ import qrc_resources
 from file_menu.wizard_window_validate import Wizard
 from file_menu.filemanager import QTreeWidgetCMenu
 from file_menu.open_project import OpenProject
-from data_menu.data_process_status import DataDialog
 from file_menu.summary_page import SummaryPage
+from data_menu.data_process_status import DataDialog
+from data_menu.data_connection import DBConnectionDialog
+from data_menu.display_data import DisplayTable
 from results_menu.results_preprocessor import *
 from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
@@ -253,6 +255,7 @@ class MainWindow(QMainWindow):
         if self.wizard.exec_():
             print "complete"
             self.project = self.wizard.project
+            self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
 
@@ -272,6 +275,7 @@ class MainWindow(QMainWindow):
                         SaveProject(self.project)
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
+                        self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         #PopulateFileManager(self.project, self.fileManager)
@@ -279,18 +283,34 @@ class MainWindow(QMainWindow):
             else:
                 with open(project.file, 'rb') as f:
                     self.project = pickle.load(f)
+                    self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     #PopulateFileManager(self.project, self.fileManager)
                     
 
     def projectSave(self):
-        QMessageBox.information(self, "Information", "Save project", QMessageBox.Ok)
-        #use = UserImportSFData()
+        #QMessageBox.information(self, "Information", "Save project", QMessageBox.Ok)
+        if self.project:
+            self.project.save()
 
 
     def projectSaveAs(self):
-        QMessageBox.information(self, "Information", "Save project as", QMessageBox.Ok)
+        #QMessageBox.information(self, "Information", "Save project as", QMessageBox.Ok)
+        file = QFileDialog.getSaveFileName(self, QString("Save As..."), 
+                                                             "%s" %self.project.location, 
+                                                             "PopSim File (*.pop)")
+        
+        file = re.split("[/.]", file)
+        filename = file[-2]
+        if not filename.isEmpty():
+            reply = QMessageBox.warning(self, "PopSim: Save Existing Projec As...",
+                                        QString("""Do you wish to continue?"""), 
+                                        QMessageBox.Yes| QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.project.filename = filename
+                self.project.save()
+                self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
 
     
     def projectClose(self):
@@ -298,30 +318,37 @@ class MainWindow(QMainWindow):
 
 
     def dataSource(self):
-        QMessageBox.information(self, "Information", "Define MySQL datasource", QMessageBox.Ok)
+        #QMessageBox.information(self, "Information", "Define MySQL datasource", QMessageBox.Ok)
+        dataConnectionDia = DBConnectionDialog(self.project)
+        if dataConnectionDia.exec_():
+            if self.project <> dataprocesscheck.project:
+                self.project = dataprocesscheck.project
+                self.project.save()
+                self.fileManager.populate()
 
 
     def dataImport(self):
         dataprocesscheck = DataDialog(self.project)
         dataprocesscheck.exec_()
+        self.fileManager.populate()
 
     def dataStatistics(self):
         QMessageBox.information(self, "Information", "Run some descriptive analysis", QMessageBox.Ok)
 
     
     def dataModify(self):
-        from database.createDBConnection import createDBC
-        from gui.file_menu.newproject import DBInfo
-        db = DBInfo("localhost", "root", "1234")
-        a = createDBC(db, "fifth")
-        a.dbc.open()
-        
-        from data_menu.display_data import DisplayTable
-        b = DisplayTable("person_pums_az")
-        
-        b.exec_()
+        try:
+            check = self.fileManager.item.parent().text(0) == 'Data Tables'
+            tablename = self.fileManager.item.text(1)
+            if check:
+                b = DisplayTable(self.project, tablename)
+                
+                b.exec_()
+        except Exception, e:
+            print e
+            
 
-        a.dbc.close()
+
 
 
     def synthesizerControlVariables(self):
@@ -337,7 +364,10 @@ class MainWindow(QMainWindow):
 
     def synthesizerParameter(self):
         parameters = ParametersDialog(self.project)
-        parameters.exec_()
+        if parameters.exec_():
+            if not self.project == parameters.project:
+                self.project = parameters.project
+                self.project.save
 
     def synthesizerRun(self):
         res = ResultsGen(self.project)
