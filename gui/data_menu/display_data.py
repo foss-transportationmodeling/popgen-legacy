@@ -2,17 +2,26 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 
-from database.createDBConnection import createDBC
+from misc.widgets import RecodeDialog
 from file_menu.newproject import DBInfo
+from database.createDBConnection import createDBC
 from misc.widgets import *
 from misc.errors import *
 
 class DisplayTable(QDialog):
-    def __init__(self, tablename, parent=None):
+    def __init__(self, project, tablename, parent=None):
         super(DisplayTable, self).__init__(parent)
+
+        self.project = project
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
+
         self.tablename = tablename
 
         self.setWindowTitle("Data Table - %s" %self.tablename)
+
+
+        self.variableTypeDictionary = {}
 
         self.populateVariableDictionary()
 
@@ -32,20 +41,11 @@ class DisplayTable(QDialog):
 
         descButton = QPushButton("Decriptives")
         freqButton = QPushButton("Frequencies")
-        modifyDefButton = QPushButton("Modify Definition")
-        modifyButton = QPushButton("Modify Categories")
-        createButton = QPushButton("Create Variable")
-        defaultButton = QPushButton("Default Transformations")
 
         layoutButton = QVBoxLayout()
-        layoutButton.addItem(QSpacerItem(10, 175))
         layoutButton.addWidget(descButton)
         layoutButton.addWidget(freqButton)
-        layoutButton.addWidget(modifyDefButton)
-        layoutButton.addWidget(modifyButton)
-        layoutButton.addWidget(createButton)
-        layoutButton.addWidget(defaultButton)
-        layoutButton.addItem(QSpacerItem(10, 175))
+        layoutButton.addItem(QSpacerItem(10, 550))
 
         hLayout = QHBoxLayout()
         hLayout.addLayout(layoutView)
@@ -66,10 +66,7 @@ class DisplayTable(QDialog):
         
         self.connect(descButton, SIGNAL("clicked()"), self.descriptives)
         self.connect(freqButton, SIGNAL("clicked()"), self.frequencies)
-        self.connect(modifyDefButton, SIGNAL("clicked()"), self.modifyDefinition)
-        self.connect(modifyButton, SIGNAL("clicked()"), self.modifyCategories)
-        self.connect(createButton, SIGNAL("clicked()"), self.createVariable)
-        self.connect(defaultButton, SIGNAL("clicked()"), self.default)
+
         
     def descriptives(self):
         descriptivesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
@@ -96,13 +93,13 @@ class DisplayTable(QDialog):
                     minimum = query.value(MINIMUM).toInt()[0]
                     maximum = query.value(MAXIMUM).toInt()[0]
                     sum = query.value(SUM).toInt()[0]
-                self.output.append("%s, %s, %s, %s, %s, %s" %(i, count, average, minimum, maximum, sum))
+                self.output.append("%s, %s, %.4f, %s, %s, %s" %(i, count, average, minimum, maximum, sum))
             self.output.append("")
             
     
     def frequencies(self):
         frequenciesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
-                                                        title = "Descriptives")
+                                                        title = "Frequencies")
         if frequenciesVarDialog.exec_():
             self.frequenciesVariablesSelected = frequenciesVarDialog.selectedVariableListWidget.variables
 
@@ -127,33 +124,11 @@ class DisplayTable(QDialog):
                 self.output.append("")
             
     
-    def modifyDefinition(self):
-        print "Modify Variable Definition"
-        pass
-
-    def modifyCategories(self):
-        modify = RecodeDialog(self.tablename, self.variableTypeDictionary, title = "Recode Categories")
-
-        
-        if modify.exec_():
-            pass
-
-
-    def createVariable(self):
-        print "Create variable"
-        pass
-
-    def default(self):
-        print "Transformations to default categories"
-
-
     def populateVariableDictionary(self):
         query = QSqlQuery()
         query.exec_("""desc %s""" %self.tablename)
 
         FIELD, TYPE, NULL, KEY, DEFAULT, EXTRA = range(6)
-
-        self.variableTypeDictionary = {}
 
         while query.next():
             field = query.value(FIELD).toString()
@@ -164,18 +139,12 @@ class DisplayTable(QDialog):
             extra = query.value(EXTRA).toString()
             
             self.variableTypeDictionary['%s' %field] = type
-            
-
-class ModifyData(QDialog):
-    def __init__(self, parent=None):
-        super(ModifyData, self).__init__(parent)
-        
-        self.setFixedSize(900, 600)
-        self.setTitle("Modify table %s" %(tablename))
-
-        self.ediLabel = QLabel("Enter your SQL modifying commands here")
-        self.commandTextEdit = QTextEdit()
-
-        #self.dialogButtonBox = QDialogButtonBox( 
 
 
+    def accept(self):
+        self.projectDBC.dbc.close()
+        QDialog.accept(self)
+
+    def reject(self):
+        self.projectDBC.dbc.close()
+        QDialog.reject(self)
