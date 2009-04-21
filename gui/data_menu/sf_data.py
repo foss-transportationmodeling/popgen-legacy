@@ -16,40 +16,49 @@ from global_vars import *
 class UserImportControlData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
 
     def createHhldTable(self):
-        hhldTableQuery = self.mysqlQueries('hhld_marginals', self.project.controlUserProv.hhLocation)
+        check = self.checkIfTableExists('hhld_marginals')
 
-        if not self.query.exec_(hhldTableQuery.query1):
-            raise FileError, self.query.lastError().text()
+        if check:
+            hhldTableQuery = self.mysqlQueries('hhld_marginals', self.project.controlUserProv.hhLocation)
 
-        if not self.query.exec_(hhldTableQuery.query2):
-            raise FileError, self.query.lastError().text()
+            if not self.query.exec_(hhldTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(hhldTableQuery.query2):
+                raise FileError, self.query.lastError().text()
 
     def createGQTable(self):
-        gqLocLen = len(self.project.controlUserProv.gqLocation)
-        
-        if gqLocLen > 1:
-            gqTableQuery = self.mysqlQueries('gq_marginals', self.project.controlUserProv.gqLocation)
+        check = self.checkIfTableExists('gq_marginals')
 
-            if not self.query.exec_(gqTableQuery.query1):
-                raise FileError, self.query.lastError().text()
+        if check:
+            gqLocLen = len(self.project.controlUserProv.gqLocation)
+        
+            if gqLocLen > 1:
+                gqTableQuery = self.mysqlQueries('gq_marginals', self.project.controlUserProv.gqLocation)
+
+                if not self.query.exec_(gqTableQuery.query1):
+                    raise FileError, self.query.lastError().text()
             
-            if not self.query.exec_(gqTableQuery.query2):
-                raise FileError, self.query.lastError().text()
+                if not self.query.exec_(gqTableQuery.query2):
+                    raise FileError, self.query.lastError().text()
 
     def createPersonTable(self):
-        personTableQuery = self.mysqlQueries('person_marginals', self.project.controlUserProv.personLocation)
+        check = self.checkIfTableExists('person_marginals')
 
-        if not self.query.exec_(personTableQuery.query1):
-            raise FileError, self.query.lastError().text()
+        if check:
+            personTableQuery = self.mysqlQueries('person_marginals', self.project.controlUserProv.personLocation)
 
-        if not self.query.exec_(personTableQuery.query2):
-            raise FileError, self.query.lastError().text()
+            if not self.query.exec_(personTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(personTableQuery.query2):
+                raise FileError, self.query.lastError().text()
 
 
     def mysqlQueries(self, name, filePath):
@@ -63,6 +72,26 @@ class UserImportControlData():
                                        fileProp.varTypesDummy)
         return fileQuery
 
+    def checkIfTableExists(self, tablename):
+        # 0 - some other error, 1 - overwrite error (table deleted)
+        if not self.query.exec_("""create table %s (dummy text)""" %tablename):
+            if self.query.lastError().number() == 1050:
+                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QMessageBox.Yes| QMessageBox.No)
+                if reply == QMessageBox.Yes:
+                    if not self.query.exec_("""drop table %s""" %tablename):
+                        raise FileError, self.query.lastError().text()
+                    return 1
+                else:
+                    return 0
+            else:
+                raise FileError, self.query.lastError().text()
+        else:
+            if not self.query.exec_("""drop table %s""" %tablename):
+                raise FileError, self.query.lastError().text()
+            return 1
+
 class AutoImportSFData():
     def __init__(self, project):
         self.project = project
@@ -75,7 +104,7 @@ class AutoImportSFData():
         
         self.countiesSelected = self.project.region.keys()
 
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
 
         self.query = QSqlQuery(self.projectDBC.dbc)
@@ -84,10 +113,10 @@ class AutoImportSFData():
         
         self.rawSFNamesNoExt = RAW_SUMMARY_FILES_NOEXT
 
-        self.downloadSFData()
-        self.createRawSFTable()
-        self.createMasterSFTable()
-
+        #self.downloadSFData()
+        #self.createRawSFTable()
+        #self.createMasterSFTable()
+        #self.createMasterSubSFTable()
 
     def downloadSFData(self):
         try:
@@ -252,7 +281,7 @@ class AutoImportSFData():
         var1.remove('logrecno')
         var1.append('temp1.logrecno')
         
-        if self.checkIfTableExists('mastersftable_%s' %self.stateAbb[self.state]):
+        if self.checkIfTableExists('mastersftable'):
             self.checkIfTableExists('temp1')
             self.checkIfTableExists('temp2')
             if not self.query.exec_("""create table temp1 select %s from %sgeo""" 
@@ -274,8 +303,30 @@ class AutoImportSFData():
                 if not self.query.exec_("""alter table temp2 rename to temp1"""):
                     raise FileError, self.query.lastError().text()
             
-            if not self.query.exec_("""alter table temp1 rename to mastersftable_%s""" %self.stateAbb[self.state]):
+            if not self.query.exec_("""alter table temp1 rename to mastersftable"""):
                 raise FileError, self.query.lastError().text()
+
+
+    def createMasterSubSFTable(self):
+        #Based on the resolution import a summary file table for only that resolution
+
+        
+
+        if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
+            print self.project.resolution
+            if self.project.resolution == 'Blockgroup':
+                sumlev = 150
+            if self.project.resolution == 'Tract':
+                sumlev = 140
+            if self.project.resolution == 'County':
+                sumlev = 510
+            if not self.query.exec_("""create table mastersftable%s """
+                                    """select * from mastersftable where sumlev = %s """ 
+                                    %(self.project.resolution, sumlev)):
+                raise FileError, self.query.lastError().text()
+
+        
+
 
     def createVariableString(self, variableList):
         variableString = ""
@@ -285,7 +336,7 @@ class AutoImportSFData():
 
 
     def createHousingSFTable(self):
-        #HousingTables = [9, 10, 14, 52]
+
         HousingTables = HOUSING_SUMMARY_TABLES
 
         import copy
@@ -299,15 +350,14 @@ class AutoImportSFData():
 
         if not self.query.exec_("""create table housing_marginals_%s select %s from mastersftable_%s"""
                                 %(self.stateAbb[self.state], varstring, self.stateAbb[self.state])):
+                                        
             raise FileError, self.query.lastError().text()
 
     def createPersonSFTable(self):
-        #PersonTables = [6, 8, 43]
         PersonTables = PERSON_SUMMARY_TABLES
         
         import copy
         var = copy.deepcopy(MASTER_SUMMARY_FILE_VARS)
-        #var = ['state', 'county', 'tract', 'bg', 'sumlev', 'logrecno']
 
         for i in PersonTables:
             var1, var1types = self.variableNames(tablenumber = i)
