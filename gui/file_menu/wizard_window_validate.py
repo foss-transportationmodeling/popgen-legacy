@@ -4,7 +4,6 @@ from PyQt4.QtSql import *
 
 import sys, os, re
 import newproject
-from database.createDBConnection import createDBC
 from intro_page import IntroPage
 from resolution_page import ResolutionPage
 from sample_page import SampleDataPage
@@ -107,6 +106,7 @@ class Wizard(QWizard):
                                    "QMYSQL")
 
             self.project.name = self.page1.nameLineEdit.text()
+            self.project.filename = self.project.name
             self.project.location = self.page1.locationComboBox.currentText()
             self.project.description = self.page1.descTextEdit.toPlainText()
             self.project.region = self.page1.selectedCounties
@@ -116,20 +116,11 @@ class Wizard(QWizard):
             self.project.sampleUserProv = sampleUserProv
             self.project.controlUserProv = controlUserProv
             self.project.db = db
-            #self.project = newproject.NewProject(self.page1.nameLineEdit.text(),
-            #                                     self.page1.locationComboBox.currentText(),
-            #                                     self.page1.descTextEdit.toPlainText(),
-            #                                     self.page1.selectedCounties,
-            #                                     self.page2.resolutionComboBox.currentText(),
-            #                                     geocorrUserProv,
-            #                                     sampleUserProv,
-            #                                     controlUserProv,
-            #                                     db)
 
             self.page6.fillPage(self.project)
 
             self.page6.checkProjectLocation(self.project.location, self.project.name)
-            self.page6.checkProjectDatabase(self.project.db, self.project.name)
+            self.page6.checkProjectDatabase(self.project.db, self.project.filename)
 
 
 
