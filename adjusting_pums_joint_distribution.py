@@ -45,10 +45,11 @@ def create_update_string(db, control_variables, dimensions):
 
 def add_unique_id(db, tablename, synthesis_type, update_string):
     dbc = db.cursor()
+
     if len(update_string) >0:
         try:
             dbc.execute('alter table %s ADD %suniqueid int'%(tablename, synthesis_type))
-        except:
+        except Exception, e:
             pass
         dbc.execute('update %s set %suniqueid = %s' %(tablename, synthesis_type, update_string))
     dbc.close()
@@ -77,6 +78,11 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
 #        print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
         pass
 
+    variable_list = 'pumano, tract, bg, '
+    for i in control_variables:
+        variable_list = variable_list + i + ', '
+    variable_list = variable_list + 'frequency'
+
     if pumano ==0:
         dbc.execute('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         #print ('select %s, count(*), %suniqueid from %s_pums group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
@@ -95,12 +101,12 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
     dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
     dummy_table = str([tuple(i) for i in dummy_table])
 
-    try:
-        dbc.execute('alter table %s_%s_joint_dist drop column %suniqueid' %(synthesis_type, pumano, synthesis_type))
-    except:
-        pass
-    
-    dbc.execute('insert into %s_%s_joint_dist values %s' %(synthesis_type, pumano, dummy_table[1:-1]))
+    #try:
+    #    dbc.execute('alter table %s_%s_joint_dist drop column %suniqueid' %(synthesis_type, pumano, synthesis_type))
+    #except:
+    #    pass
+
+    dbc.execute('insert into %s_%s_joint_dist (%s) values %s' %(synthesis_type, pumano, variable_list, dummy_table[1:-1]))
     dbc.close()
 
     update_string = create_update_string(db, control_variables, dimensions)
