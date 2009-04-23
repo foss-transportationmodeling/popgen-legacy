@@ -55,6 +55,7 @@ def populate_master_matrix(db, pumano, sample_size, hhld_dimensions, gq_dimensio
 	for i in range(dbc.rowcount):
 	    matrix[result[i, 2]-1, start+result[i, -1]] = matrix[result[i, 2]-1, start+result[i, -1]] + 1
     dbc.close()
+    db.commit()
     return matrix
 
 
@@ -96,6 +97,7 @@ def psuedo_sparse_matrix(db, matrix, pumano):
         dbc.execute("load data local infile '%s' into table sparse_matrix_%s" %(path, pumano))
     os.remove('dummy.txt')
     dbc.close()
+    db.commit()
     return arr(sparse_matrix)
 
 def generate_index_matrix(db, pumano):
@@ -116,6 +118,7 @@ def generate_index_matrix(db, pumano):
     result = dbc.fetchall()
     index_matrix = arr(result)
     dbc.close()       
+    db.commit()
     return index_matrix
 
 
