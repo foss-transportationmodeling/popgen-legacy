@@ -52,6 +52,7 @@ def add_unique_id(db, tablename, synthesis_type, update_string):
             pass
         dbc.execute('update %s set %suniqueid = %s' %(tablename, synthesis_type, update_string))
     dbc.close()
+    db.commit()
 
 def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano = 0, tract = 0, bg = 0):
 
@@ -184,6 +185,7 @@ def adjust_weights(db, synthesis_type, control_variables, pumano = 0, tract = 0,
         pass
 #    print "Marginals off by - %s" %adjustment_characteristic
     dbc.close()
+    db.commit()
 
 def marginals(db, synthesis_type, variable_name, pumano, tract, bg):
 # Returns the marginals wrt the entered dimension for calculating the adjustment in each iteration
@@ -194,6 +196,7 @@ def marginals(db, synthesis_type, variable_name, pumano, tract, bg):
     for i in result:
         marginal.append(float(i[1]))
     dbc.close()
+    db.commit()
     return marginal
 
 def update_weights (db, synthesis_type, control_variables, control_variable, pumano, tract, bg, adjustment):
@@ -240,6 +243,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, pumano, tra
                     variable_marginals.append(0.1)
         control_marginals.append(variable_marginals)
     dbc.close()
+    db.commit()
     return control_marginals
 
 
