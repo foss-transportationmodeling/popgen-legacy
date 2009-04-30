@@ -20,61 +20,61 @@ class ParametersDialog(QDialog):
         self.project = project
 
         ipfTolLabel = QLabel("Tolerance level for convergence in the IPF procedure")
-        ipfTolEdit = QLineEdit()
-        ipfTolLabel.setBuddy(ipfTolEdit)
-        ipfTolEdit.setText('%s' %self.project.parameters.ipfTol)
+        self.ipfTolEdit = QLineEdit()
+        ipfTolLabel.setBuddy(self.ipfTolEdit)
+        self.ipfTolEdit.setText('%s' %self.project.parameters.ipfTol)
         #ipfTolEdit.setText('%s' %IPF_TOLERANCE)
         
         ipfMaxIterLabel = QLabel("Maximum iterations after which IPF procedure should stop")
-        ipfMaxIterEdit = QSpinBox()
-        ipfMaxIterLabel.setBuddy(ipfMaxIterEdit)
-        ipfMaxIterEdit.setRange(0,  500)
-        ipfMaxIterEdit.setValue(self.project.parameters.ipfIter)
+        self.ipfMaxIterEdit = QSpinBox()
+        ipfMaxIterLabel.setBuddy(self.ipfMaxIterEdit)
+        self.ipfMaxIterEdit.setRange(0,  500)
+        self.ipfMaxIterEdit.setValue(self.project.parameters.ipfIter)
         #ipfMaxIterEdit.setValue(IPF_MAX_ITERATIONS)
                            
         ipuTolLabel = QLabel("Tolerance level for convergence in the IPU procedure")
-        ipuTolEdit = QLineEdit()
-        ipuTolLabel.setBuddy(ipfTolEdit)        
-        ipuTolEdit.setText('%s' %self.project.parameters.ipuTol)
+        self.ipuTolEdit = QLineEdit()
+        ipuTolLabel.setBuddy(self.ipfTolEdit)        
+        self.ipuTolEdit.setText('%s' %self.project.parameters.ipuTol)
         #ipuTolEdit.setText('%s' %IPU_TOLERANCE)
         
         ipuMaxIterLabel = QLabel("Maximum iterations after which IPU procedure should stop")
-        ipuMaxIterEdit = QSpinBox()
-        ipuMaxIterLabel.setBuddy(ipuMaxIterEdit)
-        ipuMaxIterEdit.setRange(0,  500)
-        ipuMaxIterEdit.setValue(self.project.parameters.ipuIter)
+        self.ipuMaxIterEdit = QSpinBox()
+        ipuMaxIterLabel.setBuddy(self.ipuMaxIterEdit)
+        self.ipuMaxIterEdit.setRange(0,  500)
+        self.ipuMaxIterEdit.setValue(self.project.parameters.ipuIter)
         #ipuMaxIterEdit.setValue(IPU_MAX_ITERATIONS)
         
         synPopDrawsLabel = QLabel("Maximum number of draws to find a desirable Synthetic Population")
-        synPopDrawsEdit = QSpinBox()
-        synPopDrawsLabel.setBuddy(synPopDrawsEdit)
-        synPopDrawsEdit.setRange(0,  50)
-        synPopDrawsEdit.setValue(self.project.parameters.synPopDraws)
+        self.synPopDrawsEdit = QSpinBox()
+        synPopDrawsLabel.setBuddy(self.synPopDrawsEdit)
+        self.synPopDrawsEdit.setRange(0,  50)
+        self.synPopDrawsEdit.setValue(self.project.parameters.synPopDraws)
         #synPopDrawsEdit.setValue(SYNTHETIC_POP_MAX_DRAWS)
 
         synPopPValTolLabel = QLabel("Tolerance level of the P-value for the desirable Synthetic Population")
-        synPopPValTolEdit = QLineEdit()
-        synPopPValTolLabel.setBuddy(synPopPValTolEdit)
-        synPopPValTolEdit.setText('%s' %self.project.parameters.synPopPTol)
+        self.synPopPValTolEdit = QLineEdit()
+        synPopPValTolLabel.setBuddy(self.synPopPValTolEdit)
+        self.synPopPValTolEdit.setText('%s' %self.project.parameters.synPopPTol)
         #synPopPValTolEdit.setText('%s' %SYNTHETIC_POP_PVALUE_TOLERANCE)
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
         ipfLabel = QLabel("IPF related parameters:")
         vLayout11 = self.vLayout(ipfTolLabel, ipfMaxIterLabel)
-        vLayout12 = self.vLayout(ipfTolEdit, ipfMaxIterEdit)
+        vLayout12 = self.vLayout(self.ipfTolEdit, self.ipfMaxIterEdit)
         
         hLayout1 = self.hLayout(vLayout11, vLayout12)
 
         ipuLabel = QLabel("IPU related parameters:")
         vLayout21 = self.vLayout(ipuTolLabel, ipuMaxIterLabel)
-        vLayout22 = self.vLayout(ipuTolEdit, ipuMaxIterEdit)
+        vLayout22 = self.vLayout(self.ipuTolEdit, self.ipuMaxIterEdit)
         
         hLayout2 = self.hLayout(vLayout21, vLayout22)
 
         synLabel = QLabel("Synthetic Population draws related parameters:")
         vLayout31 = self.vLayout(synPopDrawsLabel, synPopPValTolLabel)
-        vLayout32 = self.vLayout(synPopDrawsEdit, synPopPValTolEdit)
+        vLayout32 = self.vLayout(self.synPopDrawsEdit, self.synPopPValTolEdit)
         
         hLayout3 = self.hLayout(vLayout31, vLayout32)
 
@@ -101,7 +101,16 @@ class ParametersDialog(QDialog):
         
         #self.connect(
 
-    
+
+    def accept(self):
+        self.project.parameters.ipfTol = QVariant(self.ipfTolEdit.text()).toDouble()[0]
+        self.project.parameters.ipfIter = self.ipfMaxIterEdit.value()
+        self.project.parameters.ipuTol = QVariant(self.ipuTolEdit.text()).toDouble()[0]
+        self.project.parameters.ipuIter = self.ipuMaxIterEdit.value()
+        self.project.parameters.synPopDraws = self.synPopDrawsEdit.value()
+        self.project.parameters.synPopPTol = QVariant(self.synPopPValTolEdit.text()).toDouble()[0]
+
+        QDialog.accept(self)
 
 
     def vLayout(self, widget1, widget2):
