@@ -170,6 +170,14 @@ class VariableSelectionDialog(QDialog):
         self.connect(self.variableListWidget, SIGNAL("currentRowChanged(int)"), self.displayVariableDescription)
         self.connect(self.selectedVariableListWidget, SIGNAL("currentRowChanged(int)"), self.displaySelectedVariableDescription)
 
+
+    def accept(self):
+        
+        QDialog.accept(self)
+
+
+
+
     def displayVariableDescription(self, row):
         if row is not -1:
             self.variableDescLabel.setText('%s'%self.variableDict['%s'%self.variableListWidget.item(row).text()])
