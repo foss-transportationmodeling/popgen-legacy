@@ -62,7 +62,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
 
-        tablename = self.item.text(1)
+        tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
 
         create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "%s" %tablename)
@@ -90,7 +90,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
 
-        tablename = self.item.text(1)
+        tablename = self.item.text(0)
 
         disp = DisplayTable(self.project, "%s" %tablename)
         disp.exec_()
@@ -101,7 +101,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
 
-        tablename = self.item.text(1)
+        tablename = self.item.text(0)
         modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename)
         modify.exec_()
         
@@ -112,7 +112,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
         
-        tablename = self.item.text(1)
+        tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
 
         deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = "Delete Dialog")
@@ -135,7 +135,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         query = QSqlQuery()
 
-        tablename = self.item.text(1)
+        tablename = self.item.text(0)
 
         checkPUMSTableTransforms = False
         checkSFTableTransforms = False
@@ -299,7 +299,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.expandSort(sampleParent, 0)
         self.expandSort(controlParent, 0)
         self.expandSort(dbParent, 0)
-        self.expandSort(self.tableParent, 1)
+        self.expandSort(self.tableParent, 0)
 
 
 
@@ -313,21 +313,17 @@ class QTreeWidgetCMenu(QTreeWidget):
         if not self.query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
         
-        tableItems = {}
-        i = 1
+        tableItems = []
+
         while self.query.next():
-            tableItems["Table %s" %i] = '%s' %self.query.value(0).toString()
-            i = i + 1
+            tableItems.append(self.query.value(0).toString())
             
         projectDBC.dbc.close()
 
-        for i,j in tableItems.items():
-            child = QTreeWidgetItem(self.tableParent, [QString(''), QString(j)])
+        tableItems.sort()
 
-    #def addChild(self, tablename):
-    #    count = self.tableParent.childCount()+1
-    #    
-    #    child = QTreeWidgetItem(self.tableParent, [QString('Table %s' %count), QString(tablename)])
+        for i in tableItems:
+            child = QTreeWidgetItem(self.tableParent, [QString(i)])
 
     def expandSort(self, item, index):
         self.expandItem(item)
