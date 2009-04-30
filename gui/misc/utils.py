@@ -46,21 +46,6 @@ class UnzipFile:
 
 
 
-class DictLevel(object):
-    def __init__(self, level):
-        self.level = level
-        self.nesdict = self.nestedDictionary()
-
-    def nestedDictionary(self):
-        if self.level < 1:
-            raise ValueError, 'Invalid number of levels in the nested dictionary'
-        result = dict
-        while self.level > 1:
-            result = lambda: defaultdict(result)
-            self.level -= 1
-        return result
-
-
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
