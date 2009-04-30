@@ -43,7 +43,7 @@ class FileProperties():
 
     def checkVarTypes(self, line):
         validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
-                              'float', 'doubke',
+                              'float', 'double',
                               'decimal',
                               'bit',
                               'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
