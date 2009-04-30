@@ -6,7 +6,7 @@ SAMPLE,Sample Identifier,H,A,0,9,9,1
 STATE,State Code,H,A,1,10,11,2
 REGION,Region  Code,H,A,0,12,12,1
 DIVISION,Division Code,H,A,0,13,13,1
-PUMA5,Public Use Microdata Area Code (PUMA),H,A,1,14,18,5
+PUMANO,Public Use Microdata Area Code (PUMA),H,A,1,14,18,5
 PUMA1,Super Public Use Microdata Area Code (SuperPUMA),H,A,0,19,23,5
 MSACMSA5,Metropolitan Area (MA): MSA/CMSA for PUMA,H,A,0,24,27,4
 MSAPMSA5,Metropolitan Area: MSA/PMSA for PUMA,H,A,0,28,31,4
@@ -146,8 +146,8 @@ MARSTATA,Marital Status Allocation Flag,P,A,0,45,45,1
 MSP,Married Spouse Present Recode,P,A,0,46,46,1
 SFN,Subfamily Number for this person,P,A,0,47,47,1
 SFREL,Subfamily Relationship,P,A,0,48,48,1
-ENROLL,"School Enrollment; Attended since February 1 2000",P,A,0,49,49,1
-ENROLLA,"School Enrollment: Attended since February 1 2000 Allocation Flag",P,A,0,50,50,1
+ENROLL,School Enrollment; Attended since February 1 2000,P,A,0,49,49,1
+ENROLLA,School Enrollment: Attended since February 1 2000 Allocation Flag,P,A,0,50,50,1
 GRADE,School Enrollment: Grade Level Attending,P,A,0,51,51,1
 GRADEA,School Enrollment: Grade Level Attending Allocation Flag,P,A,0,52,52,1
 EDUC,Educational Attainment,P,A,0,53,54,2
