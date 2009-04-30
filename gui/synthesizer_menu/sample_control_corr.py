@@ -1,4 +1,5 @@
 import sys
+from collections import defaultdict
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -7,7 +8,7 @@ from PyQt4.QtSql import *
 
 from database.createDBConnection import createDBC
 from gui.misc.widgets import *
-from gui.misc.utils import DictLevel
+
 
 class SetCorrDialog(QDialog):
     def __init__(self, project, parent=None):
@@ -25,17 +26,54 @@ class SetCorrDialog(QDialog):
         layout.addWidget(dialogButtonBox)
         self.setLayout(layout)
 
+        self.populate(self.project.selVariables.hhld, self.tabWidget.housingTab)
+        self.populate(self.project.selVariables.person, self.tabWidget.personTab)
+        self.populate(self.project.selVariables.gq, self.tabWidget.gqTab)
+
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
+
+
+
+    def populate(self, selVariable, tab):
+
+        for i in selVariable.keys():
+            tab.selSampleVarListWidget.addItem(i)
+            row = tab.sampleVarListWidget.rowOf(i)
+            tab.sampleVarListWidget.setCurrentRow(row)
+            tab.sampleVarListWidget.remove()
+            cats = []
+            for j in selVariable[i].keys():
+
+                varCatString = j
+
+                dummy = ('%s' %j).split()
+
+                sampleVarCat = dummy[-1]
+                varName = i
+                controlVar = selVariable[i][varCatString]
+
+                relation = '%s -  %s' %(varCatString, controlVar)
+                
+                tab.selVarCatStrings[varCatString] = varName
+                tab.relationStrings[relation] = varName
+                tab.selVariables = selVariable
+
+                tab.selSampleVarCatListWidget.addItem(varCatString)
+                tab.relationsListWidget.addItem(relation)
+
+                cats.append(sampleVarCat)
+            tab.sampleVarsDict[i] = cats       
+
 
 
     def accept(self):
         if self.tabWidget.housingTab.check():
             if self.tabWidget.personTab.check():
                 if self.tabWidget.gqTab.checkNumRelationsDefined():
-                    print self.tabWidget.housingTab.selVariables.keys()
-                    print self.tabWidget.personTab.selVariables.keys()
-                    print self.tabWidget.gqTab.selVariables.keys()
+                    self.project.selVariables.hhld = self.tabWidget.housingTab.selVariables
+                    self.project.selVariables.person = self.tabWidget.personTab.selVariables
+                    self.project.selVariables.gq = self.tabWidget.gqTab.selVariables
                     self.projectDBC.dbc.close()
                     QDialog.hide(self)
                     QDialog.accept(self)
@@ -95,7 +133,7 @@ class TabWidgetItems(QWidget):
     def __init__(self, controlType, controlTable, sampleTable, parent=None):
         super(TabWidgetItems, self).__init__(parent)
         
-        self.selVariables = DictLevel(3).nesdict()
+        self.selVariables = defaultdict(dict)
 
         self.controlType = controlType
 
@@ -110,6 +148,7 @@ class TabWidgetItems(QWidget):
         sampleTableLabel = QLabel("Sample Table")
         sampleVarLabel = QLabel("Sample Variable")
         self.sampleTableComboBox = QComboBox()
+        self.sampleTableComboBox.setEnabled(False)
 
         self.sampleVarListWidget = ListWidget()
         self.selSampleVarListWidget = ListWidget()
@@ -142,6 +181,7 @@ class TabWidgetItems(QWidget):
         controlTableLabel = QLabel("Control Table")
         controlVarLabel = QLabel("Control Variables")
         self.controlTableComboBox = QComboBox()
+        self.controlTableComboBox.setEnabled(False)
         self.controlVarListWidget = ListWidget()
 
         vLayout3 = QVBoxLayout()
@@ -280,15 +320,15 @@ class TabWidgetItems(QWidget):
 
 
     def addSampleVarCats(self, item):
-        varname = item.text()
+        varName = item.text()
 
-        self.categories(varname)
-        varCats = self.sampleVarsDict['%s' %varname]
+        self.categories(varName)
+        varCats = self.sampleVarsDict['%s' %varName]
 
-        string = self.varCatStrings(varname, varCats)
+        string = self.varCatStrings(varName, varCats)
 
         for i in string:
-            self.selVarCatStrings[i] = varname
+            self.selVarCatStrings[i] = varName
 
         self.selSampleVarCatListWidget.addItems(string)
 
@@ -331,6 +371,9 @@ class TabWidgetItems(QWidget):
                 row = self.relationsListWidget.rowOf(i)
                 self.relationsListWidget.takeItem(row)
 
+        self.selVariables.pop(varName)
+            
+
 
     def addRelationAction(self):
         sampleVarCat = self.selSampleVarCatListWidget.currentItem().text()
@@ -339,7 +382,7 @@ class TabWidgetItems(QWidget):
 
         relation = '%s -  %s' %(sampleVarCat, controlVar)
 
-        self.selVariables[relation][varName][sampleVarCat] = controlVar
+        self.selVariables[varName][sampleVarCat] = controlVar
 
         self.relationStrings[relation] = varName
         
