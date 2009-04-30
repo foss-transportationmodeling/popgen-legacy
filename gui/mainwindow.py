@@ -17,6 +17,7 @@ from data_menu.display_data import DisplayTable
 from results_menu.results_preprocessor import *
 from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
+from synthesizer_menu.run import RunDialog
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -226,7 +227,15 @@ class MainWindow(QMainWindow):
         
         #self.connect(self.fileManager, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.fileManager.editItem)
         self.connect(self.fileManager, SIGNAL("itemClicked(QTreeWidgetItem *,int)"), self.fileManager.click)
+        self.connect(self, SIGNAL("Dirty(bool)"), self.windowDirty)
 
+    def windowDirty(self, value):
+        print 'entering dirty %s' %value
+        if value:
+            self.setWindowTitle("PopSim Version-0.50 %s*" %self.project.name)
+        else:
+            self.setWindowTitle("PopSim Version-0.50 %s" %self.project.name)
+            
 
 
 # Defining all the slots and supporting methods
@@ -339,7 +348,7 @@ class MainWindow(QMainWindow):
     def dataModify(self):
         try:
             check = self.fileManager.item.parent().text(0) == 'Data Tables'
-            tablename = self.fileManager.item.text(1)
+            tablename = self.fileManager.item.text(0)
             if check:
                 b = DisplayTable(self.project, tablename)
                 
@@ -348,9 +357,6 @@ class MainWindow(QMainWindow):
             print e
             
 
-
-
-
     def synthesizerControlVariables(self):
         QMessageBox.information(self, "Synthesizer", "Select control variables", QMessageBox.Ok)
 
@@ -358,26 +364,36 @@ class MainWindow(QMainWindow):
     def synthesizerSetCorrBetVariables(self):
         #Set the correspondence between variables
         vars = SetCorrDialog(self.project)
-        vars.exec_()
+        if vars.exec_():
+            self.project.save()
 
-        pass
+
 
     def synthesizerParameter(self):
         parameters = ParametersDialog(self.project)
         if parameters.exec_():
-            if not self.project == parameters.project:
-                self.project = parameters.project
-                self.project.save
+            self.project.save()
 
     def synthesizerRun(self):
-        res = ResultsGen(self.project)
-        #QMessageBox.information(self, "Synthesizer", "Run the population synthesizer", QMessageBox.Ok)
+        runDia = RunDialog(self.project)
+        runDia.exec_()
+        for i in runDia.runGeoIds:
+            try:
+                self.project.synGeoIds.index(i)
+            except:
+                self.project.synGeoIds.append(i)
+                
+        self.project.fileManager.populate()
+        self.project.save()
 
+        for i in self.project.synGeoIds:
+            print i.tract, i.bg
+        #res = ResultsGen(self.project)
+        #QMessageBox.information(self, "Synthesizer", "Run the population synthesizer", QMessageBox.Ok)
 
     def synthesizerStop(self):
         QMessageBox.information(self, "Synthesizer", "Stop the current run of the population synthesizer", QMessageBox.Ok)
 
-    
     def resultsRegionalAARD(self):
         aard = Absreldiff(self.project)
         aard.exec_()
