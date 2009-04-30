@@ -9,7 +9,6 @@ from PyQt4.QtGui import *
 from gui.global_vars  import *
 
 
-
 class Geocorr(object):
     def __init__(self, userprov=None, geocorrLocation=""):
         self.userProv = userprov
@@ -37,12 +36,81 @@ class DBInfo(object):
         self.password = password
 
 
-class ProjectControlVariables(object):
+class SelectedVariables(object):
     def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict)):
-        self.hhldVariables = hhldVariables
-        self.gqVariables = gqVariables
-        self.personVariables = personVariables
+        self.hhld = hhldVariables
+        self.gq = gqVariables
+        self.person = personVariables
 
+
+
+class Geography(object):
+    def __init__(self, state, county, tract, bg, puma5=None):
+        self.state = state
+        self.county = county
+        self.tract = tract
+        self.bg = bg
+        self.puma5 = puma5
+        
+    """
+    def gqControlVariables(self):
+        pass
+
+    def hhldControlVariables(self):
+        pass
+
+    def personControlVariables(self):
+        pass
+
+    def gqDimensions(self):
+        pass
+
+    def hhldDimensions(self):
+        pass
+
+    def personDimensions(self):
+        pass
+    
+
+    def runIPFHousingNoAdj(self):
+        #return objective freq
+        pass
+
+    def runIPFHousingWithAdj(self):
+        #return constraint freq
+        pass
+
+    def runIPFGqNoAdj(self):
+        #return objective freq
+        pass
+
+    def runIPFGqWithAdj(self):
+        #return constraint freq
+        pass
+
+    def runIPFPersonNoAdj(self):
+        #return objective freq
+        pass
+
+    def runIPFPersonWithAdj(self):
+        #return constraint freq
+        pass
+
+
+    def constraints(self):
+        pass
+
+    def runIPU(self):
+        pass
+
+
+    def createSynPop(self):
+        pass
+
+    def writeSynPop(self):
+        pass
+
+    """
 
 class Parameters(object):
     def __init__(self, 
@@ -67,7 +135,8 @@ class NewProject(object):
                  region="", state="", countyCode="", stateCode="", stateAbb="",
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
-                 db=DBInfo(), parameters=Parameters()):
+                 db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariables(),
+                 geoIds=[]):
         self.name = name
         self.filename = name
         self.location = location
@@ -83,6 +152,8 @@ class NewProject(object):
         self.controlUserProv = controlUserProv
         self.db = db
         self.parameters = parameters
+        self.selVariables = controlVariables
+        self.synGeoIds = geoIds
 
     def save(self):
         if len(self.filename) < 1:
@@ -99,9 +170,11 @@ class NewProject(object):
         pass
 
 
+if __name__ == "__main__":
+    a = ControlVariable()
 
-
-
+    print dir(a)
+    print type(a)
 
 
 
