@@ -309,8 +309,11 @@ class AutoImportPUMSData():
             
         housingVariablesSelected = copy.deepcopy(self.housingVariablesSelected)
         housingVariablesSelected.insert(0, 'hhid')
+        
+        housingVariablesSelectedType = ['float'] * len(housingVariablesSelected)
+
         housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
-                                                   housingVariablesSelected, [], False, False)
+                                                   housingVariablesSelected, housingVariablesSelectedType, False, False)
 
         if not self.query.exec_(housingPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
@@ -333,10 +336,13 @@ class AutoImportPUMSData():
 
 
         personVariablesSelected.insert(0, 'hhid')
-        personVariablesSelected.insert(0, 'puma5')
+        personVariablesSelected.insert(0, 'pumano')
         personVariablesSelected.insert(0, 'state')        
+        
+        personVariablesSelectedType = ['float'] * len(personVariablesSelected)
+
         personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
-                                                   personVariablesSelected, [], False, False)
+                                                   personVariablesSelected, personVariablesSelectedType, False, False)
 
         if not self.query.exec_(personPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
