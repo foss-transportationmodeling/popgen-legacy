@@ -392,9 +392,7 @@ class MainWindow(QMainWindow):
         for i in self.project.synGeoIds:
             print i.tract, i.bg
         
-        #res = ResultsGen(self.project)
-
-
+        
     def synthesizerStop(self):
         QMessageBox.information(self, "Synthesizer", "Stop the current run of the population synthesizer", QMessageBox.Ok)
 
@@ -415,6 +413,8 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Results", "Regional Performance Statistics", QMessageBox.Ok)
     
     def resultsIndividual(self):
+        res = ResultsGen(self.project)
+
         indgeo = Indgeo(self.project)
         indgeo.exec_()         
     def resultsViewHH(self):
