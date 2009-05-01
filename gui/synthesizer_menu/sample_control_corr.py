@@ -26,9 +26,9 @@ class SetCorrDialog(QDialog):
         layout.addWidget(dialogButtonBox)
         self.setLayout(layout)
 
-        self.populate(self.project.selVariables.hhld, self.tabWidget.housingTab)
-        self.populate(self.project.selVariables.person, self.tabWidget.personTab)
-        self.populate(self.project.selVariables.gq, self.tabWidget.gqTab)
+        self.populate(self.project.selVariableDicts.hhld, self.tabWidget.housingTab)
+        self.populate(self.project.selVariableDicts.person, self.tabWidget.personTab)
+        self.populate(self.project.selVariableDicts.gq, self.tabWidget.gqTab)
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
@@ -72,9 +72,9 @@ class SetCorrDialog(QDialog):
         if self.tabWidget.housingTab.check():
             if self.tabWidget.personTab.check():
                 if self.tabWidget.gqTab.checkNumRelationsDefined():
-                    self.project.selVariables.hhld = self.tabWidget.housingTab.selVariables
-                    self.project.selVariables.person = self.tabWidget.personTab.selVariables
-                    self.project.selVariables.gq = self.tabWidget.gqTab.selVariables
+                    self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
+                    self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
+                    self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
                     self.projectDBC.dbc.close()
                     QDialog.hide(self)
                     QDialog.accept(self)
