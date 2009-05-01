@@ -25,7 +25,7 @@ class ResultsGen():
         self.name = self.project.name
         self.resultsloc = self.project.location + os.path.sep + self.name + os.path.sep + "results"
         self.resultsloc = os.path.realpath(self.resultsloc)
-        self.mapsloc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.project.state + os.path.sep + 'shapefile'
+        self.mapsloc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.project.state + os.path.sep + 'SHAPEFILES'
         self.mapsloc = os.path.realpath(self.mapsloc)
         self.stateCode = self.project.stateCode[self.project.state]
         self.countyCodes=[]
@@ -34,8 +34,9 @@ class ResultsGen():
             county = i + ',' + self.project.state
             self.countyCodes.append(self.project.countyCode['%s' %county])
 
-        if self.project.resolution == "County":
-            self.res_prefix = "co"
+        #if self.project.resolution == "County":
+        #    self.res_prefix = "co"
+
         if self.project.resolution == "Tract":
             self.res_prefix = "tr"
         if self.project.resolution == "Blockgroup":
@@ -48,18 +49,13 @@ class ResultsGen():
         print self.countyCodes
         print self.res_prefix
 
+        self.generate()
         #self.resultsloc = "C:/populationsynthesis/gui/results"
         #self.mapsloc = "C:/populationsynthesis/gui/data"
         #self.stateCode = "04"
         #self.countyCodes = ["013", "025"]
 
     
-    def downloadShapeFiles(self):
-        pass
-
-    def extractShapeFiles(self):
-        pass
-
     def generate(self):
         self.create_hhmap()
         self.create_regstats()
@@ -71,7 +67,6 @@ class ResultsGen():
         # Decide whether to show points or not
     
     def makesublayer(self):
-        folder = self.res_prefix+self.stateCode+"_d00_shp"
         filename = self.res_prefix+self.stateCode+"_d00.shp"
         filedbf = self.res_prefix+self.stateCode+"_d00.dbf"
         fileshx = self.res_prefix+self.stateCode+"_d00.shx"
