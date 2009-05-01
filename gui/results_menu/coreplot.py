@@ -1,5 +1,5 @@
 """
-This demo demonstrates how to embed a matplotlib (mpl) plot 
+This demo demonstrates how to embed a matplotlib (mpl) plot
 into a PyQt4 GUI application, including:
 
 * Using the navigation toolbar
@@ -31,27 +31,27 @@ from matplotlib.figure import Figure
 class Matplot(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.setBaseSize(QSize(1000,500))
-        # Create the mpl Figure and FigCanvas objects. 
+        self.setMinimumSize(QSize(1000,500))
+        # Create the mpl Figure and FigCanvas objects.
         # 5x4 inches, 100 dots-per-inch
         #
         self.dpi = 100
         self.fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.canvas = FigureCanvas(self.fig)
-        # Since we have only one plot, we can use add_axes 
+        # Since we have only one plot, we can use add_axes
         # instead of add_subplot, but then the subplot
         # configuration tool in the navigation toolbar wouldn't
         # work.
         #
-        self.axes = self.fig.add_subplot(111)  
-        
-        self.vbox = QVBoxLayout()  
-        
+        self.axes = self.fig.add_subplot(111)
+
+        self.vbox = QVBoxLayout()
+
     def on_draw(self):
         pass
 
-    def create_action(  self, text, slot=None, shortcut=None, 
-                        icon=None, tip=None, checkable=False, 
+    def create_action(  self, text, slot=None, shortcut=None,
+                        icon=None, tip=None, checkable=False,
                         signal="triggered()"):
         action = QAction(text, self)
         if icon is not None:
@@ -70,14 +70,14 @@ class Matplot(QDialog):
     def executeSelectQuery(self, vars, tablename, filter="", group =""):
         query = QSqlQuery()
         if filter != "" and group != "":
-           if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
+            if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
                 raise FileError, query.lastError().text()
         elif filter != "" and group == "":
-           if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
+            if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
                 raise FileError, query.lastError().text()
         elif filter == "" and group != "":
-           if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
-               raise FileError, query.lastError().text()
+            if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
+                raise FileError, query.lastError().text()
         else:
             if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
                 raise FileError, query.lastError().text()
