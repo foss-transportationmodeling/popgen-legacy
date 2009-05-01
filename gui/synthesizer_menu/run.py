@@ -91,6 +91,28 @@ class RunDialog(QDialog):
         self.projectDBC.dbc.close()
         QDialog.accept(self)
 
+
+    def checkIfRelationsDefined(self, vardict, override=False):
+        if len (vardict.keys()) > 0 or override:
+            controlVariables = ['%s' %i for i in vardict.keys()]
+            controlDimensions = numpy.asarray([len(vardict[i].keys()) for i in vardict])
+            return controlVariables, controlDimensions        
+        else:
+            QMessageBox.warning(self, "PopSim: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
+                                """Please choose variables/ define relations and then run the synthesizer.""")
+            self.reject()
+
+
+
+    def variableControlCorrDict(self, vardict):
+        varCorrDict = {}
+        vars = vardict.keys()
+        for i in vars:
+            for j in vardict[i].keys():
+                cat = (('%s' %j).split())[-1]
+                varCorrDict['%s%s' %(i, cat)] = '%s' %vardict[i][j]
+        return varCorrDict
+
     def runSynthesizer(self):
         
         date = datetime.date.today()
@@ -105,7 +127,21 @@ class RunDialog(QDialog):
         query = QSqlQuery()
         if not query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
+
         
+        
+        self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
+
+
+        varCorrDict = {}
+        varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
+        varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+        varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
+        print 'total dict', varCorrDict
+
+
         projectTables = []
         missingTables = []
         missingTablesString = ""
@@ -120,11 +156,17 @@ class RunDialog(QDialog):
                 missingTables.append(i)
 
         if len(missingTables) > 0:
-            reply = QMessageBox.warning(self, "PopSim: Run Synthesizer", "The following tables are missing %s, "
-                                        " the program will run the prepare data step." %(missingTablesString[:-2]))
+            QMessageBox.warning(self, "PopSim: Run Synthesizer", "The following tables are missing %s, "
+                                " the program will run the prepare data step." %(missingTablesString[:-2]))
             self.prepareData()
         # For now implement it without checking for each individual table that is created in this step
         # in a later implementation check for each table before you proceed with the creation of that particular table
+        else:
+            reply = QMessageBox.warning(self, "PopSim: Run Synthesizer", """Do you wish to prepare the data? """
+                                        """Please run this step if the control variables or their categories have changed.""",
+                                        QMessageBox.Yes| QMessageBox.No)
+            if reply == QMessageBox.Yes:
+                self.prepareData()
 
         self.readData()
 
@@ -156,7 +198,7 @@ class RunDialog(QDialog):
                 for geo in self.runGeoIds:
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-                    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo)
+                    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
 
 
     def getPUMA5(self, geo):
@@ -253,7 +295,7 @@ class RunDialog(QDialog):
         db = MySQLdb.connect(user = '%s' %self.project.db.username, 
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
-        prepare_data(db)
+        prepare_data(db, self.project)
 
         db.commit()
         db.close()
