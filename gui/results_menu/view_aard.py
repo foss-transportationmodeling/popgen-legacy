@@ -25,9 +25,9 @@ class Absreldiff(Matplot):
         self.axes.grid(True)
         
         #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
-        self.axes.hist(self.err , normed=True, align='mid')
+        self.axes.hist(self.err , normed=False, align='mid')
         self.axes.set_xlabel("Average Absolute Relative Differences")
-        self.axes.set_ylabel("Proportions")
+        self.axes.set_ylabel("Frequency")
         self.canvas.draw()    
     
     def retrieveResults(self):
