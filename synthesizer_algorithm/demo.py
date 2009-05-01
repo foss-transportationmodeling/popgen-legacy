@@ -1,5 +1,6 @@
 # Running IPF on Person and Household data
 
+from PyQt4.QtCore import *
 
 import heuristic_algorithm
 import psuedo_sparse_matrix
@@ -12,7 +13,7 @@ import numpy
 import MySQLdb
 import time
 
-def configure_and_run(project, index_matrix, p_index_matrix, geo):
+def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
 
     county = int(geo.county)
     pumano = int(geo.puma5)
@@ -24,7 +25,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
                                                                          %(pumano, float(tract)/100, bg)
     print '------------------------------------------------------------------'
 
-    db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username, 
+    db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username,
                          passwd = '%s' %project.db.password, db = '%s' %project.name)
     dbc = db.cursor()
 
@@ -48,14 +49,14 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
     housing_units = gq_units + hhld_units
 
 # Identifying the control variables for the households, gq's, and persons
-    hhld_control_variables = adjusting_sample_joint_distribution.choose_control_variables(db, 'hhld')
-    gq_control_variables = adjusting_sample_joint_distribution.choose_control_variables(db, 'gq')
-    person_control_variables = adjusting_sample_joint_distribution.choose_control_variables(db, 'person')
+    hhld_control_variables = project.hhldVars
+    gq_control_variables = project.gqVars
+    person_control_variables = project.personVars
 
 # Identifying the number of categories within each control variable for the households, gq's, and persons
-    hhld_dimensions = numpy.asarray(adjusting_sample_joint_distribution.create_dimensions(db, 'hhld', hhld_control_variables))
-    gq_dimensions = numpy.asarray(adjusting_sample_joint_distribution.create_dimensions(db, 'gq', gq_control_variables))
-    person_dimensions = numpy.asarray(adjusting_sample_joint_distribution.create_dimensions(db, 'person', person_control_variables))
+    hhld_dimensions = project.hhldDims
+    gq_dimensions = project.gqDims
+    person_dimensions = project.personDims
 
 #______________________________________________________________________
 # Creating the sparse array
@@ -65,19 +66,19 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
 #______________________________________________________________________
 # Running IPF for Households
     print 'Step 1A: Running IPF procedure for Households... '
-    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, hhld_dimensions, county, pumano, tract, bg)
+    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, hhld_dimensions, county, pumano, tract, bg)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for GQ
     print 'Step 1B: Running IPF procedure for Gqs... '
-    gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, gq_dimensions, county, pumano, tract, bg)
+    gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, gq_dimensions, county, pumano, tract, bg)
     print 'IPF procedure for GQ was completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for Persons
     print 'Step 1C: Running IPF procedure for Persons... '
-    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, person_dimensions, county, pumano, tract, bg)
+    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, varCorrDict, person_dimensions, county, pumano, tract, bg)
     print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
@@ -92,7 +93,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
 #______________________________________________________________________
 # Creating the control array
     total_constraint = numpy.hstack((hhld_estimated_constraint[:,0], gq_estimated_constraint[:,0], person_estimated_constraint[:,0]))
-    
+
 #______________________________________________________________________
 # Running the heuristic algorithm for the required geography
     iteration, weights, conv_crit_array, wts_array = heuristic_algorithm.heuristic_adjustment(db, 0, index_matrix, weights, total_constraint, sp_matrix)
@@ -127,7 +128,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
 # Creating synthetic hhld, and person attribute tables
 
         synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix, housing_sample, person_sample, hhidRowDict, rowHhidDict)
-        
+
 
 
         synth_person_stat, count_person, person_estimated_frequency = drawing_households.checking_against_joint_distribution(person_objective_frequency,
@@ -168,7 +169,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo):
     print 'Number of Synthetic Household - %d, and given Household total from the Census SF - %d' %(sum(max_p_housing_attributes[:,-2]), hhld_total + gq_total)
     print 'Number of Synthetic Persons - %d and given Person total from the Census SF - %d' %(sum(max_p_person_attributes[:,-2]), persontotal)
     print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-ti)
-    
+
     db.commit()
     dbc.close()
     db.close()
