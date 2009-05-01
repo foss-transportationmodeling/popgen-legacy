@@ -10,26 +10,26 @@ from numpy import fix as quo
 from numpy import zeros
 from defining_a_database import *
 
-def create_dimensions(db, synthesis_type, control_variables):
-    pums = database(db, '%s_sample'%synthesis_type)
-    dimensions = []
-    if len(control_variables) > 0:
-        for i in control_variables:
-            dimensions.append(pums.categories(i))
-    return dimensions
+#def create_dimensions(db, synthesis_type, control_variables):
+#    pums = database(db, '%s_sample'%synthesis_type)
+#    dimensions = []
+#    if len(control_variables) > 0:
+#        for i in control_variables:
+#            dimensions.append(pums.categories(i))
+#    return dimensions
 
-def choose_control_variables(db, synthesis_type):
-    if synthesis_type == 'hhld':
+#def choose_control_variables(db, project, synthesis_type):
+#    if synthesis_type == 'hhld':
 #        control_variables = [ 'hhldtype', 'hhldsize', 'hhldinc']
-        control_variables = ['childpresence', 'hhldtype', 'hhldsize', 'hhldinc']
+#        control_variables = ['childpresence', 'hhldtype', 'hhldsize', 'hhldinc']
 
-    elif synthesis_type == 'gq':
-        control_variables = ['groupquarter']
-    elif synthesis_type == 'person':
+#    elif synthesis_type == 'gq':
+#        control_variables = ['groupquarter']
+#    elif synthesis_type == 'person':
 #        control_variables = ['gender', 'age', 'race']
-        control_variables = ['gender', 'agep', 'race']
+#        control_variables = ['gender', 'agep', 'race']
 
-    return control_variables
+#    return control_variables
 
 def create_update_string(db, control_variables, dimensions):
     update_string = ''
@@ -76,7 +76,8 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dbc.execute('alter table %s_%s_joint_dist add bg int after tract'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add frequency float(27)'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add index(tract, bg)'%(synthesis_type, pumano))
-    except:
+    except Exception, e:
+        print e
 #        print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
         pass
 
@@ -146,11 +147,11 @@ def create_aggregation_string(control_variables):
     return string
 
 
-def adjust_weights(db, synthesis_type, control_variables, county, pumano = 0, tract = 0, bg = 0):
+def adjust_weights(db, synthesis_type, control_variables, varCorrDict, county, pumano = 0, tract = 0, bg = 0):
 
     dbc = db.cursor()
 
-    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, county, tract, bg)
+    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, county, tract, bg)
 
     tol = 1
     iteration = 0
@@ -228,27 +229,40 @@ def tolerance (adjustment_all, adjustment_old, iteration):
 #        print "Convergence Criterion - %s" %adjustment_convergence_characteristic
         return 0
 
-def prepare_control_marginals(db, synthesis_type, control_variables, county, tract, bg):
+def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict, county, tract, bg):
 
     dbc = db.cursor()
-    #if synthesis_type == 'hhld' or synthesis_type == 'gq':
-    #	type = 'housing'
-    #else:
-    #   type = 'person'
     marginals = database(db, '%s_marginals'%synthesis_type)
     variable_names = marginals.variables()
     control_marginals = []
     for dummy in control_variables:
-        variable_marginals =[]
-        for i in variable_names:
-            if match(dummy, i):
-                dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s'%(i, synthesis_type, county, tract, bg))
-                result = dbc.fetchall()
-                if result[0][0] <> 0:
-                    variable_marginals.append(result[0][0])
-                else:
-                    variable_marginals.append(0.1)
-        control_marginals.append(variable_marginals)
+        dbc.execute('select %s from %s_sample group by %s' %(dummy, synthesis_type, dummy))
+        cats = arr(dbc.fetchall(), int)
+        #print dummy, cats
+        
+        variable_marginals1 = []
+        for i in cats:
+            corrVar = varCorrDict['%s%s' %(dummy, i[0])]
+            dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
+            result = dbc.fetchall()
+            if result[0][0] <> 0:
+                variable_marginals1.append(result[0][0])
+            else:
+                variable_marginals1.append(0.1)            
+        #print 'new', variable_marginals1
+                     
+
+        #variable_marginals =[]
+        #for i in variable_names:
+        #    if match(dummy, i):
+        #        dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s'%(i, synthesis_type, county, tract, bg))
+        #        result = dbc.fetchall()
+        #        if result[0][0] <> 0:
+        #            variable_marginals.append(result[0][0])
+        #        else:
+        #            variable_marginals.append(0.1)
+        #print 'old', variable_marginals
+        control_marginals.append(variable_marginals1)
     dbc.close()
     db.commit()
     return control_marginals
