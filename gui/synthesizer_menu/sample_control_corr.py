@@ -36,8 +36,9 @@ class SetCorrDialog(QDialog):
 
 
     def populate(self, selVariable, tab):
-
+        print selVariable.keys()
         for i in selVariable.keys():
+            
             tab.selSampleVarListWidget.addItem(i)
             row = tab.sampleVarListWidget.rowOf(i)
             tab.sampleVarListWidget.setCurrentRow(row)
@@ -93,21 +94,9 @@ class SetCorrTabWidget(QTabWidget):
 
         tablesProject = self.tables()
 
-        housingSampleVars = {'first':[1,2,3,4],
-                             'second': [-99, 1, 2, 3]}
-        
-        housingControlVars = ['first1', 'first2', 'first3', 'first4', 'second-99', 'second11', 'second2', 'second3']
-
-        personSampleVars = {'pfirst':[1,2,3,-99],
-                             'psecond': [-99, 2, 3,23]}
-
-        personControlVars = ['pirst1', 'pirst2', 'pirst3', 'pirst-99', 'psecond-99', 'psecond11', 'psecond2', 'psecond23']
-
-        
         self.housingTab = TabWidgetItems('Household', 'hhld_marginals', 'hhld_sample')
         self.gqTab = TabWidgetItems('Group Quarter', 'gq_marginals', 'gq_sample')
         self.personTab = TabWidgetItems('Person', 'person_marginals', 'person_sample')
-
 
         self.addTab(self.housingTab, 'Housing Variables')
         self.addTab(self.personTab, 'Person Variables')
