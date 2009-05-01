@@ -4,6 +4,7 @@ from PyQt4.QtGui import *
 from pums_data import AutoImportPUMSData, UserImportSampleData
 from sf_data import AutoImportSFData, UserImportControlData
 from geocorr_data import AutoImportGeocorrData, UserImportGeocorrData
+from shape_data import Shapes
 from misc.errors import FileError
 
 
@@ -31,6 +32,7 @@ class DataDialog(QDialog):
         self.SamplePersonLayout = CheckLabel("3. Processing Person PUMS Data", "incomplete")
         self.ControlHousingLayout = CheckLabel("4. Processing Housing Summary Data", "incomplete")
         self.ControlPersonLayout = CheckLabel("5. Processing Person Summary Data", "incomplete")
+        self.RegionShapeLayout = CheckLabel("6. Processing Region's Shape File", "incomplete")
 
         #self.detailsTextEdit = QTextEdit()
         #self.detailsTextEdit.setMinimumHeight(250)
@@ -41,6 +43,7 @@ class DataDialog(QDialog):
         layout.addLayout(self.SamplePersonLayout)
         layout.addLayout(self.ControlHousingLayout)
         layout.addLayout(self.ControlPersonLayout)
+        layout.addLayout(self.RegionShapeLayout)
         #layout.addWidget(self.detailsTextEdit)
         layout.addWidget(self.dialogButtonBox)
 
@@ -62,10 +65,22 @@ class DataDialog(QDialog):
             self.geocorr()
             self.sample()
             self.control()
-
+            self.shapes()
 
         if button.text() == 'Ok':
             self.close()
+
+
+    def shapes(self):
+        shapesDataInstance = Shapes(self.project)
+        try:
+            shapesDataInstance.downloadShapes()
+            self.RegionShapeLayout.changeStatus(True)
+        except Exception, e:
+            print "Exception: %s" %e
+            self.RegionShapeLayout.changeStatus(False)
+
+
 
     def geocorr(self):
         # GEOCORR FILE
