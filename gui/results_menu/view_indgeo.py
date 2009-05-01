@@ -4,6 +4,7 @@ from qgis.core import *
 from qgis.gui import *
 
 from coreplot import *
+from file_menu.newproject import Geography
 from misc.map_toolbar import *
 
 # Inputs for this module
@@ -15,8 +16,13 @@ class Indgeo(Matplot):
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
         self.project = project
-        if self.project.resolution == "County":
-            self.res_prefix = "co"
+
+        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC.dbc.open()
+
+
+        #if self.project.resolution == "County":
+        #    self.res_prefix = "co"
         if self.project.resolution == "Tract":
             self.res_prefix = "tr"
         if self.project.resolution == "Blockgroup":
@@ -28,9 +34,9 @@ class Indgeo(Matplot):
         self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
 
         
-        self.makeComboBox()
+        #self.makeComboBox()
         self.makeMapWidget()
-        self.vbox.addWidget(self.geocombobox)
+        #self.vbox.addWidget(self.geocombobox)
         self.vbox.addWidget(self.mapwidget)
         self.vboxwidget = QWidget()
         self.vboxwidget.setLayout(self.vbox)
@@ -70,13 +76,28 @@ class Indgeo(Matplot):
         self.selblkgroup = ""
         self.pumano = -1
 
+    def accept(self):
+        self.projectDBC.dbc.close()
+        QDialog.accept(self)
+
+    def reject(self):
+        self.projectDBC.dbc.close()
+        QDialog.reject(self)
+
+
     def on_draw(self, provider=None, selfeat=None ):
         if provider != None:
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
             tractidx = provider.indexFromFieldName("TRACT")
             countyidx = provider.indexFromFieldName("COUNTY")
+            
             attrMap = selfeat.attributeMap()
-            self.selcounty = attrMap[countyidx].toString().trimmed()
+            try:
+                self.selcounty = attrMap[countyidx].toString().trimmed()
+            except Exception, e:
+                print "Exception: %s" %e
+                
+
             if blkgroupidx == -1 & tractidx == -1:
                 self.selgeog.setText("County - " + self.selcounty)
             if tractidx != -1:
@@ -135,49 +156,80 @@ class Indgeo(Matplot):
         self.mapwidget = QWidget()
         self.mapwidget.setLayout(maplayout)
 
+    def getPUMA5(self, geo):
+        query = QSqlQuery()
+        
+        if not geo.puma5:
+            if self.project.resolution == 'County':
+                geo.puma5 = 0
+
+            elif self.project.resolution == 'Tract':
+                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
+                                   %(geo.state, geo.county, geo.tract)):
+                    raise FileError, query.lastError().text()
+                while query.next():
+                    geo.puma5 = query.value(0).toInt()[0]
+            else:
+                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
+                                   %(geo.state, geo.county, geo.tract, geo.bg)):
+                    raise FileError, query.lastError().text()
+                while query.next():
+                    geo.puma5 = query.value(0).toInt()[0]
+
+        return geo
+
+
     def retrieveResults(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
-        projectDBC.dbc.open()
         
         # Get p-values and aard-values from performance statistics
         performancetable = "performance_statistics"
         aardvalvar = "aardvalue"
         pvaluevar = "pvalue"
-        pumanovar = "pumano"
-        vars = aardvalvar + "," + pvaluevar + "," + pumanovar
+        vars = aardvalvar + "," + pvaluevar 
         filter = ""
         group = ""
         if self.selblkgroup != "":
-            filter = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
-        elif self.seltract != "":
-            filter = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
+            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
+            filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
 
-        query = self.executeSelectQuery(vars, performancetable, filter, group)
+        elif self.seltract != "":
+            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
+            filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
+
+
+
+
+        query = self.executeSelectQuery(vars, performancetable, filter_syn, group)
         aardval = 0.0
         pval = 0.0
         while query.next():
             aardval = query.value(0).toDouble()[0]
             pval = query.value(1).toDouble()[0]
-            self.pumano = query.value(2).toInt()[0]
+                                     
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
+
+        geo = Geography(self.stateCode, self.selcounty, int(self.seltract)*100, self.selblkgroup)
+        geo = self.getPUMA5(geo)
+        
+        self.pumano = geo.puma5
         
         # Get and populate the actual and synthetics unique person type frequencies for the scatter plot
-        if self.pumano > 0:
+        if int(self.pumano) > 0:
             actualtable = "person_" + str(self.pumano) + "_joint_dist"
             vars = "personuniqueid" + "," + "frequency"
             group = "personuniqueid"
-            query = self.executeSelectQuery(vars, actualtable, filter, group)
+            query = self.executeSelectQuery(vars, actualtable, filter_act, group)
             while query.next():
                 id= query.value(0).toInt()[0]
                 freq = query.value(1).toDouble()[0]
                 self.ids.append(id)
                 self.act.append(freq)
-            
+                
             syntable = "person_synthetic_data"
             vars = "personuniqueid" + "," + "sum(frequency)"
             group = "personuniqueid"
-            query = self.executeSelectQuery(vars, syntable, filter, group)
+            query = self.executeSelectQuery(vars, syntable, filter_syn, group)
             self.syn = [0.0] * len(self.act)
             while query.next():
                 id= query.value(0).toInt()[0]
@@ -186,7 +238,8 @@ class Indgeo(Matplot):
                     idx = self.ids.index(id)
                     self.syn[idx] = freq
 
-        projectDBC.dbc.close()
+
+
         
 def main():
     app = QApplication(sys.argv)
