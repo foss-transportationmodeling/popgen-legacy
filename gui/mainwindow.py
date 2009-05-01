@@ -188,6 +188,7 @@ class MainWindow(QMainWindow):
 # Adding actions to toolbar
 
         self.resultsToolBar = self.addToolBar("Results")
+        #self.resultsToolBar.addToolBar(QIcon("Regional SubMenu"))
         self.addActions(self.resultsToolBar, (resultsRegionalAction, resultsIndividualAction))
 
         #self.resultsMenu.setDisabled(True)
@@ -375,7 +376,9 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
+        
         runDia = RunDialog(self.project)
+        
         runDia.exec_()
         for i in runDia.runGeoIds:
             try:
@@ -383,13 +386,14 @@ class MainWindow(QMainWindow):
             except:
                 self.project.synGeoIds.append(i)
                 
-        self.project.fileManager.populate()
+        self.fileManager.populate()
         self.project.save()
 
         for i in self.project.synGeoIds:
             print i.tract, i.bg
+        
         #res = ResultsGen(self.project)
-        #QMessageBox.information(self, "Synthesizer", "Run the population synthesizer", QMessageBox.Ok)
+
 
     def synthesizerStop(self):
         QMessageBox.information(self, "Synthesizer", "Stop the current run of the population synthesizer", QMessageBox.Ok)
@@ -401,10 +405,10 @@ class MainWindow(QMainWindow):
         pval = Pval(self.project)
         pval.exec_()  
     def resultsRegionalHousDist(self):
-        hhdist = Hhdist()
+        hhdist = Hhdist(self.project)
         hhdist.exec_()
     def resultsRegionalPersDist(self):
-        ppdist = Ppdist()
+        ppdist = Ppdist(self.project)
         ppdist.exec_()    
         
     def resultsRegional(self):
