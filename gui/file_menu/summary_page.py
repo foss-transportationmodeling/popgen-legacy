@@ -161,7 +161,7 @@ class SummaryPage(QWizardPage):
 
     def checkProjectLocation(self, projectLocation, projectName):
         try:
-            os.makedirs("%s/%s/data" %(projectLocation, projectName))
+            os.makedirs("%s/%s/results" %(projectLocation, projectName))
             self.projectLocationDummy = True
         except WindowsError, e:
             reply = QMessageBox.question(None, "PopSim: New Project Wizard",
@@ -176,7 +176,7 @@ class SummaryPage(QWizardPage):
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
                     shutil.rmtree("%s/%s" %(projectLocation, projectName))
-                    os.makedirs("%s/%s/data" %(projectLocation, projectName))
+                    os.makedirs("%s/%s/results" %(projectLocation, projectName))
                     self.projectLocationDummy = True
                 else:
                     self.projectLocationDummy = False
