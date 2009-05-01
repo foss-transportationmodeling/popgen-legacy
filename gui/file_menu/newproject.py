@@ -1,7 +1,7 @@
 from __future__ import with_statement
 from collections import defaultdict
 
-import pickle
+import pickle, numpy
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -36,11 +36,12 @@ class DBInfo(object):
         self.password = password
 
 
-class SelectedVariables(object):
+class SelectedVariableDicts(object):
     def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict)):
         self.hhld = hhldVariables
         self.gq = gqVariables
         self.person = personVariables
+
 
 
 
@@ -135,9 +136,9 @@ class NewProject(object):
                  region="", state="", countyCode="", stateCode="", stateAbb="",
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
-                 db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariables(),
-                 geoIds=[]):
-        self.name = name
+                 db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariableDicts(),
+                 hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds=[]):
+        self.name = name 
         self.filename = name
         self.location = location
         self.description = description
@@ -152,7 +153,13 @@ class NewProject(object):
         self.controlUserProv = controlUserProv
         self.db = db
         self.parameters = parameters
-        self.selVariables = controlVariables
+        self.selVariableDicts = controlVariables
+        self.hhldVars = hhldVars
+        self.hhldDims = hhldDims
+        self.gqVars = gqVars
+        self.gqDims = gqDims
+        self.personVars = personVars
+        self.personDims = personDims
         self.synGeoIds = geoIds
 
     def save(self):
