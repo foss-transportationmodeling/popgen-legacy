@@ -23,10 +23,12 @@ selectlist = [["04", "013"]]
 hhcount_fieldname = "hhfreq"
 
 class Hhmap(QDialog):
-    def __init__(self, parent=None):
+    def __init__(self, project, parent=None):
         #super(Hhmap, self).__init__(parent)
         QDialog.__init__(self,parent)
-        self.setFixedSize(QSize(800,500))
+        self.setWindowTitle("View Synthetic Households")
+        self.project = project
+        self.setMinimumSize(QSize(800,500))
 
     # Displaying counties and selecting counties using the map
         self.canvas = QgsMapCanvas()
@@ -43,6 +45,9 @@ class Hhmap(QDialog):
         #modlayer = 
         #Output a new layer with selected geographies
         self.outSelectGeogs()
+        renderer = self.geoglayer.renderer()
+        symbol = renderer.symbols()[0]
+        symbol.setFillColor(QColor(153,204,0))
         #Create a field for hhfreq in the new layer
         self.addHHField()
         rp = RandPoints(self)

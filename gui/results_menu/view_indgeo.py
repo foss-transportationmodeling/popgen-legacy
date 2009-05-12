@@ -97,7 +97,6 @@ class Indgeo(Matplot):
             except Exception, e:
                 print "Exception: %s" %e
                 
-
             if blkgroupidx == -1 & tractidx == -1:
                 self.selgeog.setText("County - " + self.selcounty)
             if tractidx != -1:
@@ -111,19 +110,17 @@ class Indgeo(Matplot):
             self.ids = []
             self.act = []
             self.syn = []
-
-            self.retrieveResults()
-            
-            provider.fields()
-
-            # clear the axes and redraw the plot anew
+            # clear the axes
             self.axes.clear()
             self.axes.grid(True)
-            if len(self.act) > 0:
-                self.axes.scatter(self.act, self.syn)
             self.axes.set_xlabel("Joint Frequency Distribution from IPF")
             self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
             self.canvas.draw()
+            
+            self.retrieveResults()
+            provider.fields()
+            if len(self.ids) > 0:
+                self.axes.scatter(self.act, self.syn)
 
     def makeComboBox(self):
         self.geocombobox = QComboBox(self)
@@ -189,15 +186,20 @@ class Indgeo(Matplot):
         filter = ""
         group = ""
         if self.selblkgroup != "":
-            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
-            filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
-
+            if int(self.seltract) < 9999:
+                filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
+                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
+            else:
+                filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+            
         elif self.seltract != "":
-            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
-            filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
-
-
-
+            if int(self.seltract) < 9999:
+                filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
+                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
+            else:
+                filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
+                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=0"
 
         query = self.executeSelectQuery(vars, performancetable, filter_syn, group)
         aardval = 0.0
@@ -209,7 +211,10 @@ class Indgeo(Matplot):
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
 
-        geo = Geography(self.stateCode, self.selcounty, int(self.seltract)*100, self.selblkgroup)
+        if int(self.seltract) < 9999:
+            geo = Geography(self.stateCode, self.selcounty, int(self.seltract)*100, self.selblkgroup)
+        else:
+            geo = Geography(self.stateCode, self.selcounty, int(self.seltract), self.selblkgroup)
         geo = self.getPUMA5(geo)
         
         self.pumano = geo.puma5

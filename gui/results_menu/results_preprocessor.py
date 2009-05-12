@@ -42,13 +42,6 @@ class ResultsGen():
         if self.project.resolution == "Blockgroup":
             self.res_prefix = "bg"
 
-        print self.name
-        print self.resultsloc        
-        print self.mapsloc
-        print self.stateCode
-        print self.countyCodes
-        print self.res_prefix
-
         self.generate()
         #self.resultsloc = "C:/populationsynthesis/gui/results"
         #self.mapsloc = "C:/populationsynthesis/gui/data"
