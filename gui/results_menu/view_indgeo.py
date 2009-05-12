@@ -100,7 +100,7 @@ class Indgeo(Matplot):
             if blkgroupidx == -1 & tractidx == -1:
                 self.selgeog.setText("County - " + self.selcounty)
             if tractidx != -1:
-                self.seltract = attrMap[tractidx].toString().trimmed()
+                self.seltract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
                 if blkgroupidx == -1:
                     self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract)
                 else:
@@ -186,20 +186,12 @@ class Indgeo(Matplot):
         filter = ""
         group = ""
         if self.selblkgroup != "":
-            if int(self.seltract) < 9999:
-                filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
-                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=" + str(int(self.selblkgroup))
-            else:
-                filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
-                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+            filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
             
         elif self.seltract != "":
-            if int(self.seltract) < 9999:
-                filter_act = "tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
-                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)*100) + " and " + "bg=0"
-            else:
-                filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
-                filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=0"
+            filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
+            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=0"
 
         query = self.executeSelectQuery(vars, performancetable, filter_syn, group)
         aardval = 0.0
@@ -210,11 +202,8 @@ class Indgeo(Matplot):
                                      
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
-
-        if int(self.seltract) < 9999:
-            geo = Geography(self.stateCode, self.selcounty, int(self.seltract)*100, self.selblkgroup)
-        else:
-            geo = Geography(self.stateCode, self.selcounty, int(self.seltract), self.selblkgroup)
+        
+        geo = Geography(self.stateCode, self.selcounty, int(self.seltract), self.selblkgroup)
         geo = self.getPUMA5(geo)
         
         self.pumano = geo.puma5
