@@ -25,7 +25,7 @@ class DisplayTable(QDialog):
 
         self.populateVariableDictionary()
 
-        self.model = QSqlTableModel()
+        self.model = QSqlTableModel(parent, self.projectDBC.dbc)
         self.model.setTable(self.tablename)
         self.model.select()
 
@@ -77,7 +77,7 @@ class DisplayTable(QDialog):
 
             COUNT, AVERAGE, MINIMUM, MAXIMUM, SUM = range(5)
             
-            query = QSqlQuery()
+            query = QSqlQuery(self.projectDBC.dbc)
 
             self.output.append("DESCRIPTIVES:")
             self.output.append("%s, %s, %s, %s, %s, %s" %('FIELD', 'COUNT', 'AVERAGE', 'MINIMUM', 'MAXIMUM', 'SUM'))
@@ -90,10 +90,10 @@ class DisplayTable(QDialog):
                 while query.next():
                     count = query.value(COUNT).toInt()[0]
                     average = query.value(AVERAGE).toDouble()[0]
-                    minimum = query.value(MINIMUM).toInt()[0]
-                    maximum = query.value(MAXIMUM).toInt()[0]
-                    sum = query.value(SUM).toInt()[0]
-                self.output.append("%s, %s, %.4f, %s, %s, %s" %(i, count, average, minimum, maximum, sum))
+                    minimum = query.value(MINIMUM).toDouble()[0]
+                    maximum = query.value(MAXIMUM).toDouble()[0]
+                    sum = query.value(SUM).toDouble()[0]
+                self.output.append("%s, %d, %.4f, %.4f, %.4f, %.4f" %(i, count, average, minimum, maximum, sum))
             self.output.append("")
             
     
@@ -105,7 +105,7 @@ class DisplayTable(QDialog):
 
             CATEGORY, FREQUENCY = range(2)
             
-            query = QSqlQuery()
+            query = QSqlQuery(self.projectDBC.dbc)
 
             self.output.append("FREQUENCIES:")
 
@@ -125,7 +125,7 @@ class DisplayTable(QDialog):
             
     
     def populateVariableDictionary(self):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         query.exec_("""desc %s""" %self.tablename)
 
         FIELD, TYPE, NULL, KEY, DEFAULT, EXTRA = range(6)
