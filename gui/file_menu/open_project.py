@@ -10,7 +10,7 @@ class OpenProject(QFileDialog):
     def __init__(self, parent=None):
         super(OpenProject, self).__init__(parent)
         self.file = self.getOpenFileName(parent, "Browse to select file", "/home",
-                                         "PopSim File (*.pop)")
+                                         "PopGen File (*.pop)")
         
 
         

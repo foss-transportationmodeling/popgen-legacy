@@ -132,7 +132,7 @@ class Wizard(QWizard):
         samplePersonLocationComboBox = QLabel("Select the population sample file")
 
     def reject(self):
-        reply = QMessageBox.question(None, "PopSim: New Project Wizard",
+        reply = QMessageBox.question(None, "PopGen: New Project Wizard",
                                      QString("Do you wish to continue?"),
                                      QMessageBox.Yes| QMessageBox.No)
         if reply == QMessageBox.Yes:
@@ -625,14 +625,14 @@ class Wizard(QWizard):
             os.makedirs("%s/%s/data" %(self.project.location, self.project.name))
             projectLocationDummy = True
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopSim: Processing Data",
+            reply = QMessageBox.question(None, "PopGen: Processing Data",
                                          QString("""Database Error: %s. \n\nDo you wish"""
                                                  """ to keep the previous data?"""
                                                  """\n    If Yes then rescpecify project location. """
                                                  """\n    If you wish to delete the previous data press No."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopSim: Processing Data",
+                confirm = QMessageBox.question(None, "PopGen: Processing Data",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -650,20 +650,20 @@ class Wizard(QWizard):
         projectDBC = createDBC(self.project.db)
 
         if not projectDBC.dbc.open():
-            QMessageBox.warning(None, "PopSim: Processing Data",
+            QMessageBox.warning(None, "PopGen: Processing Data",
                                 QString("DatabaseError: %s" %projectDBC.dbc.lastError().text()))
             projectDatabaseDummy = False
         else:
             query = QSqlQuery(projectDBC.dbc)
             if not query.exec_("""Create Database %s""" %(self.project.name)):
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""QueryError: %s. \n\n"""
                                                      """Do you wish to keep the old MySQL database?"""
                                                      """\n    If Yes then respecify the project name."""
                                                      """\n    If you wish to delete press No."""%query.lastError().text()),
                                              QMessageBox.Yes|QMessageBox.No)
                 if reply == QMessageBox.No:
-                    confirm = QMessageBox.question(None, "PopSim: Processing Data",
+                    confirm = QMessageBox.question(None, "PopGen: Processing Data",
                                                    QString("""Are you sure you want to continue?"""),
                                                    QMessageBox.Yes|QMessageBox.No)
                     if confirm == QMessageBox.Yes:
