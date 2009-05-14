@@ -14,7 +14,7 @@ class ParametersDialog(QDialog):
     def __init__(self, project, parent = None):
         super(ParametersDialog, self).__init__(parent)
 
-        self.setWindowTitle("PopSim: Parameters")
+        self.setWindowTitle("PopGen: Parameters")
         self.setWindowIcon(QIcon("./images/parameters.png"))
 
         self.project = project
