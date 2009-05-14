@@ -99,8 +99,8 @@ class SetCorrDialog(QDialog):
     def clearTables(self, tableNamePrefix):
         print "variable relations modified - %s" %(tableNamePrefix)
         
-        query = QSqlQuery()
-        query1 = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
+        query1 = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, query.lastError().text()
          
@@ -137,9 +137,9 @@ class SetCorrTabWidget(QTabWidget):
 
         tablesProject = self.tables()
 
-        self.housingTab = TabWidgetItems('Household', 'hhld_marginals', 'hhld_sample')
-        self.gqTab = TabWidgetItems('Group Quarter', 'gq_marginals', 'gq_sample')
-        self.personTab = TabWidgetItems('Person', 'person_marginals', 'person_sample')
+        self.housingTab = TabWidgetItems(self.project, 'Household', 'hhld_marginals', 'hhld_sample')
+        self.gqTab = TabWidgetItems(self.project, 'Group Quarter', 'gq_marginals', 'gq_sample')
+        self.personTab = TabWidgetItems(self.project, 'Person', 'person_marginals', 'person_sample')
 
         self.addTab(self.housingTab, 'Housing Variables')
         self.addTab(self.personTab, 'Person Variables')
@@ -150,20 +150,26 @@ class SetCorrTabWidget(QTabWidget):
         
 
     def tables(self):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()        
+
         tables = []
-        query = QSqlQuery()
+        query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, query.lastError().text()
         
         while query.next():
             tables.append('%s' %query.value(0).toString())
             
+        projectDBC.dbc.close()
         return tables
             
 
 class TabWidgetItems(QWidget):
-    def __init__(self, controlType, controlTable, sampleTable, parent=None):
+    def __init__(self, project, controlType, controlTable, sampleTable, parent=None):
         super(TabWidgetItems, self).__init__(parent)
+        
+        self.project = project
         
         self.selVariables = defaultdict(dict)
 
@@ -329,8 +335,11 @@ class TabWidgetItems(QWidget):
         
 
     def variablesInTable(self, tablename):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+
         variables = []
-        query = QSqlQuery()
+        query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""desc %s""" %tablename):
             raise FileError, query.lastError().text()
         
@@ -340,6 +349,7 @@ class TabWidgetItems(QWidget):
             field = query.value(FIELD).toString()
             variables.append(field)
             
+        projectDBC.dbc.close()
         return variables
 
     def enableSelButton(self):
@@ -385,7 +395,7 @@ class TabWidgetItems(QWidget):
 
     def categories(self, varname):
         cats = []
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""select %s from %s group by %s""" %(varname, self.sampleSelTable, varname)):
             raise FileError, query.lastError().text()
 
