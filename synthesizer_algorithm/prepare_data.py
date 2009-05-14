@@ -24,13 +24,10 @@ def prepare_data(db, project):
     gq_control_variables = project.gqVars
     person_control_variables = project.personVars
 
-
 # Identifying the number of categories within each control variable for the households, gq's, and persons
     hhld_dimensions = project.hhldDims
     gq_dimensions = project.gqDims
     person_dimensions = project.personDims
-
-
 
     print 'Dimensions and Control Variables in %.4f' %(time.clock()-ti)
     ti = time.clock()
