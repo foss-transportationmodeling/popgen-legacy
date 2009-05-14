@@ -38,7 +38,7 @@ class MainWindow(QMainWindow):
         self.projectName = None
 
         
-        self.setWindowTitle("PopSim Version-0.50")
+        self.setWindowTitle("PopGen Version-0.50")
         self.setWindowIcon(QIcon("./images/popsyn.png"))
         self.workingWindow = QLabel()
         self.showMaximized()
@@ -57,15 +57,15 @@ class MainWindow(QMainWindow):
 # FILE MENU 
 # Defining menu/toolbar actions        
         projectNewAction = self.createAction("&New Project", self.projectNew, QKeySequence.New, 
-                                             "projectnew", "Create a new PopSim project.")
+                                             "projectnew", "Create a new PopGen project.")
         projectOpenAction = self.createAction("&Open Project", self.projectOpen, QKeySequence.Open, 
-                                              "projectopen", "Open an existing PopSim project.")
+                                              "projectopen", "Open an existing PopGen project.")
         projectSaveAction = self.createAction("&Save Project", self.projectSave, QKeySequence.Save, 
-                                              "projectsave", "Save the current PopSim project.")
+                                              "projectsave", "Save the current PopGen project.")
         projectSaveAsAction = self.createAction("Save Project &As...", self.projectSaveAs, 
-                                                icon="projectsaveas", tip="Save the current PopSim project with a new name.")
+                                                icon="projectsaveas", tip="Save the current PopGen project with a new name.")
         projectCloseAction = self.createAction("&Close Project", self.projectClose, "Ctrl+W",
-                                                tip="Close the current PopSim project.")
+                                                tip="Close the current PopGen project.")
         applicationQuitAction = self.createAction("&Quit", self.close, "Ctrl+Q",
                                                 icon="quit", tip="Close the application.")
 # Adding actions to menu
@@ -199,14 +199,14 @@ class MainWindow(QMainWindow):
 # Defining menu/toolbar actions
         helpDocumentationAction = self.createAction("Documentation",
                                                     self.showDocumentation, 
-                                                    tip="Display the documentation of PopSim.", 
+                                                    tip="Display the documentation of PopGen.", 
                                                     icon = "documentation")
         helpHelpAction = self.createAction("Help",
                                            self.showHelp, 
                                            tip="Quick reference for important parameters",
                                            icon="help")
 
-        helpAboutAction = self.createAction("About PopSim",
+        helpAboutAction = self.createAction("About PopGen",
                                             self.showAbout, 
                                             tip="Display software information")
 
@@ -233,9 +233,9 @@ class MainWindow(QMainWindow):
     def windowDirty(self, value):
         print 'entering dirty %s' %value
         if value:
-            self.setWindowTitle("PopSim Version-0.50 %s*" %self.project.name)
+            self.setWindowTitle("PopGen Version-0.50 %s*" %self.project.name)
         else:
-            self.setWindowTitle("PopSim Version-0.50 %s" %self.project.name)
+            self.setWindowTitle("PopGen Version-0.50 %s" %self.project.name)
             
 
 
@@ -245,11 +245,11 @@ class MainWindow(QMainWindow):
         if not self.fileManager.isEnabled():
             self.runWizard()
         else:
-            reply = QMessageBox.question(None, "PopSim: New Project Wizard",
-                                         QString("""A PopSim project already open. Do you wish to continue?"""),
+            reply = QMessageBox.question(None, "PopGen: New Project Wizard",
+                                         QString("""A PopGen project already open. Do you wish to continue?"""),
                                          QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
-                save = QMessageBox.question(None, "PopSim: New Project Wizard",
+                save = QMessageBox.question(None, "PopGen: New Project Wizard",
                                             QString("""Do you wish to save the project?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 if save == QMessageBox.Yes:
@@ -274,18 +274,18 @@ class MainWindow(QMainWindow):
         
         if not project.file.isEmpty():
             if self.fileManager.isEnabled():
-                reply = QMessageBox.warning(None, "PopSim: Open Existing Project",
-                                            QString("""A PopSim project already open. Do you wish to continue?"""),
+                reply = QMessageBox.warning(None, "PopGen: Open Existing Project",
+                                            QString("""A PopGen project already open. Do you wish to continue?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
-                    save = QMessageBox.warning(None, "PopSim: Save Existing Project",
+                    save = QMessageBox.warning(None, "PopGen: Save Existing Project",
                                                QString("""Do you wish to save the project?"""),
                                                QMessageBox.Yes| QMessageBox.No)
                     if save == QMessageBox.Yes:
                         SaveProject(self.project)
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
-                        self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
+                        self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         #PopulateFileManager(self.project, self.fileManager)
@@ -293,7 +293,7 @@ class MainWindow(QMainWindow):
             else:
                 with open(project.file, 'rb') as f:
                     self.project = pickle.load(f)
-                    self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
+                    self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     #PopulateFileManager(self.project, self.fileManager)
@@ -309,18 +309,18 @@ class MainWindow(QMainWindow):
         #QMessageBox.information(self, "Information", "Save project as", QMessageBox.Ok)
         file = QFileDialog.getSaveFileName(self, QString("Save As..."), 
                                                              "%s" %self.project.location, 
-                                                             "PopSim File (*.pop)")
+                                                             "PopGen File (*.pop)")
         
         file = re.split("[/.]", file)
         filename = file[-2]
         if not filename.isEmpty():
-            reply = QMessageBox.warning(self, "PopSim: Save Existing Projec As...",
+            reply = QMessageBox.warning(self, "PopGen: Save Existing Projec As...",
                                         QString("""Do you wish to continue?"""), 
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.project.filename = filename
                 self.project.save()
-                self.setWindowTitle("PopSim: Version-0.50 (%s)" %self.project.filename)
+                self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
 
     
     def projectClose(self):
@@ -366,7 +366,8 @@ class MainWindow(QMainWindow):
         #Set the correspondence between variables
         vars = SetCorrDialog(self.project)
         if vars.exec_():
-            self.project.save()
+            self.project = vars.project
+            self.fileManager.populate()
 
 
 
@@ -380,18 +381,16 @@ class MainWindow(QMainWindow):
         runDia = RunDialog(self.project)
         
         runDia.exec_()
-        for i in runDia.runGeoIds:
+        
+        for geo in runDia.runGeoIds:
             try:
-                self.project.synGeoIds.index(i)
+                self.project.synGeoIds.index(geo)
             except:
-                self.project.synGeoIds.append(i)
+                self.project.synGeoIds.append(geo)
                 
         self.fileManager.populate()
         self.project.save()
 
-        for i in self.project.synGeoIds:
-            print i.tract, i.bg
-        
         
     def synthesizerStop(self):
         QMessageBox.information(self, "Synthesizer", "Stop the current run of the population synthesizer", QMessageBox.Ok)
@@ -418,7 +417,7 @@ class MainWindow(QMainWindow):
         indgeo = Indgeo(self.project)
         indgeo.exec_()         
     def resultsViewHH(self):
-        res = Hhmap()
+        res = Hhmap(self.project)
         res.exec_()
         
 
