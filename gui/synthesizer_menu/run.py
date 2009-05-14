@@ -16,19 +16,6 @@ from gui.file_menu.newproject import Geography
 from gui.misc.widgets import VariableSelectionDialog, ListWidget
 from gui.misc.errors  import *
 
-import heuristic_algorithm
-import psuedo_sparse_matrix
-import drawing_households
-import adjusting_pums_joint_distribution
-import ipf
-import scipy
-import scipy.stats
-import numpy
-import MySQLdb
-import time
-import sys
-
-
 class RunDialog(QDialog):
     
     def __init__(self, project, parent=None):
@@ -51,12 +38,12 @@ class RunDialog(QDialog):
         self.selGeographiesList = ListWidget()
         outputLabel = QLabel("Output Window")
         self.outputWindow = QTextEdit()
-        selGeographiesButton = QPushButton("Select Geographies")
+        self.selGeographiesButton = QPushButton("Select Geographies")
         self.runSynthesizerButton = QPushButton("Run Synthesizer")
         self.runSynthesizerButton.setEnabled(False)
 
         vLayout1 = QVBoxLayout()
-        vLayout1.addWidget(selGeographiesButton)
+        vLayout1.addWidget(self.selGeographiesButton)
         vLayout1.addWidget(selGeographiesLabel)
         vLayout1.addWidget(self.selGeographiesList)
 
@@ -76,7 +63,7 @@ class RunDialog(QDialog):
         
         self.setLayout(vLayout3)
         
-        self.connect(selGeographiesButton, SIGNAL("clicked()"), self.selGeographies)
+        self.connect(self.selGeographiesButton, SIGNAL("clicked()"), self.selGeographies)
         self.connect(self.runSynthesizerButton, SIGNAL("clicked()"), self.runSynthesizer)
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
@@ -95,10 +82,12 @@ class RunDialog(QDialog):
     def checkIfRelationsDefined(self, vardict, override=False):
         if len (vardict.keys()) > 0 or override:
             controlVariables = ['%s' %i for i in vardict.keys()]
-            controlDimensions = numpy.asarray([len(vardict[i].keys()) for i in vardict])
+            controlVariables.sort()
+            controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
+
             return controlVariables, controlDimensions        
         else:
-            QMessageBox.warning(self, "PopSim: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
+            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
                                 """Please choose variables/ define relations and then run the synthesizer.""")
             self.reject()
 
@@ -130,16 +119,15 @@ class RunDialog(QDialog):
 
         
         
-        self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
-        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
+        #self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+        #self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+        #self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
 
 
         varCorrDict = {}
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
-        print 'total dict', varCorrDict
 
 
         projectTables = []
@@ -156,13 +144,13 @@ class RunDialog(QDialog):
                 missingTables.append(i)
 
         if len(missingTables) > 0:
-            QMessageBox.warning(self, "PopSim: Run Synthesizer", "The following tables are missing %s, "
-                                " the program will run the prepare data step." %(missingTablesString[:-2]))
+            QMessageBox.warning(self, "PopGen: Run Synthesizer", "The following tables are missing %s, "
+                                " the program will run the prepare data step." %(missingTablesString[-1:]))
             self.prepareData()
         # For now implement it without checking for each individual table that is created in this step
         # in a later implementation check for each table before you proceed with the creation of that particular table
         else:
-            reply = QMessageBox.warning(self, "PopSim: Run Synthesizer", """Do you wish to prepare the data? """
+            reply = QMessageBox.warning(self, "PopGen: Run Synthesizer", """Do you wish to prepare the data? """
                                         """Please run this step if the control variables or their categories have changed.""",
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
@@ -180,26 +168,35 @@ class RunDialog(QDialog):
                 geo = Geography(state, county, tract, bg)
                 
                 geo = self.getPUMA5(geo) 
-
-
                 
                 try:
-                    self.runGeoIds.index(geo)
+                    self.runGeoIds.index((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                 except:
-                    self.runGeoIds.append(geo)
+                    self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                 
 
             reply = QMessageBox.question(self, "PopGen: Run Synthesizer", """Do you wish to run the synthesizer in parallel """
-                                          """to take advantage of multiple cores on your processor""", QMessageBox.Yes| QMessageBox.No)
+                                          """to take advantage of multiple cores on your processor""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
             if reply == QMessageBox.Yes:
-                run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix)
-                pass
-            else:
+                dbList = ['%s' %self.project.db.hostname, '%s' %self.project.db.username, '%s' %self.project.db.password, '%s' %self.project.name]
+                run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+                self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
+                                             %(geo[0], geo[1], geo[3], geo[4]))
+            elif reply == QMessageBox.No:
+                for geo in self.runGeoIds:
+                    
+                    geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
+                    
+                    self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-                    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
 
+                    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
+                self.selGeographiesButton.setEnabled(False)
+            else:
+                self.runGeoIds = []
+                self.selGeographiesList.clear()
 
     def getPUMA5(self, geo):
         query = QSqlQuery()
@@ -307,20 +304,15 @@ class RunDialog(QDialog):
                              db = '%s' %self.project.name)
         dbc = db.cursor()
 
-        #dbc.execute("""select * from sparse_matrix1_%s""" %(0))
-        #self.sparseMatrix = numpy.asarray(dbc.fetchall())
-
         dbc.execute("""select * from index_matrix_%s""" %(0))
-        self.indexMatrix = numpy.asarray(dbc.fetchall())
+        self.indexMatrix = dbc.fetchall()
         
         import time
         ti = time.time()
 
         self.pIndexMatrix = person_index_matrix(db)
 
-        print self.pIndexMatrix[31595, :]
-
-        print 'person Index Matrix processed if - %.4f' %(time.time()-ti)
+        print 'Person Index Matrix in %.4f s' %(time.time()-ti)
 
         dbc.close()
         db.close()
@@ -331,7 +323,7 @@ class RunDialog(QDialog):
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
