@@ -79,20 +79,6 @@ class RunDialog(QDialog):
         QDialog.accept(self)
 
 
-    def checkIfRelationsDefined(self, vardict, override=False):
-        if len (vardict.keys()) > 0 or override:
-            controlVariables = ['%s' %i for i in vardict.keys()]
-            controlVariables.sort()
-            controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
-
-            return controlVariables, controlDimensions        
-        else:
-            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
-                                """Please choose variables/ define relations and then run the synthesizer.""")
-            self.reject()
-
-
-
     def variableControlCorrDict(self, vardict):
         varCorrDict = {}
         vars = vardict.keys()
@@ -113,17 +99,12 @@ class RunDialog(QDialog):
         preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
                                 'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
 
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
 
         
         
-        #self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
-        #self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-        #self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
-
-
         varCorrDict = {}
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
@@ -199,7 +180,7 @@ class RunDialog(QDialog):
                 self.selGeographiesList.clear()
 
     def getPUMA5(self, geo):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         
         if not geo.puma5:
             if self.project.resolution == 'County':
@@ -239,7 +220,7 @@ class RunDialog(QDialog):
         
 
     def allGeographyids(self):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         
         for i in self.project.region.keys():
             countyName = i
