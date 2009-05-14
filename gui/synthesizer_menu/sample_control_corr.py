@@ -1,4 +1,6 @@
 import sys
+import numpy
+
 from collections import defaultdict
 
 from PyQt4.QtCore import *
@@ -13,7 +15,11 @@ from gui.misc.widgets import *
 class SetCorrDialog(QDialog):
     def __init__(self, project, parent=None):
         super(SetCorrDialog, self).__init__(parent)
-        self.project = project
+
+        self.setWindowTitle("PopGen: Mapping Sample Categories with Control Variables")
+        self.setWindowIcon(QIcon("../images/varcorr.png"))
+        import copy
+        self.project = copy.deepcopy(project)
         self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
 
@@ -26,9 +32,12 @@ class SetCorrDialog(QDialog):
         layout.addWidget(dialogButtonBox)
         self.setLayout(layout)
 
-        self.populate(self.project.selVariableDicts.hhld, self.tabWidget.housingTab)
-        self.populate(self.project.selVariableDicts.person, self.tabWidget.personTab)
-        self.populate(self.project.selVariableDicts.gq, self.tabWidget.gqTab)
+        hhldSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.hhld)
+        self.populate(hhldSelVariableDicts, self.tabWidget.housingTab)
+        personSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.person)
+        self.populate(personSelVariableDicts, self.tabWidget.personTab)
+        gqSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.gq)
+        self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
@@ -36,7 +45,6 @@ class SetCorrDialog(QDialog):
 
 
     def populate(self, selVariable, tab):
-        print selVariable.keys()
         for i in selVariable.keys():
             
             tab.selSampleVarListWidget.addItem(i)
@@ -72,13 +80,48 @@ class SetCorrDialog(QDialog):
         if self.tabWidget.housingTab.check():
             if self.tabWidget.personTab.check():
                 if self.tabWidget.gqTab.checkNumRelationsDefined():
-                    self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
-                    self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
-                    self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
+                    if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
+                        self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
+                        self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+                        self.clearTables('hhld')
+                    if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
+                        self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
+                        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
+                        self.clearTables('person')
+                    if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
+                        self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
+                        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+                        self.clearTables('gq')
                     self.projectDBC.dbc.close()
                     QDialog.hide(self)
                     QDialog.accept(self)
 
+    def clearTables(self, tableNamePrefix):
+        print "variable relations modified - %s" %(tableNamePrefix)
+        
+        query = QSqlQuery()
+        query1 = QSqlQuery()
+        if not query.exec_("""show tables"""):
+            raise FileError, query.lastError().text()
+         
+        while query.next():
+            tableName = query.value(0).toString()
+            if tableName.startsWith(tableNamePrefix) and (tableName.endsWith("_joint_dist") or tableName.endsWith("_ipf")):
+                print 'table found'
+                if not query1.exec_("""drop table %s""" %(tableName)):
+                    raise FileError, query1.lastError().text()
+
+
+    def checkIfRelationsDefined(self, vardict, override=False):
+        if len (vardict.keys()) > 0 or override:
+            controlVariables = ['%s' %i for i in vardict.keys()]
+            controlVariables.sort()
+            controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
+
+            return controlVariables, controlDimensions        
+        else:
+            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
+                                """Please choose variables/ define relations and then run the synthesizer.""")
 
     def reject(self):
         self.projectDBC.dbc.close()
@@ -136,6 +179,8 @@ class TabWidgetItems(QWidget):
 
         sampleTableLabel = QLabel("Sample Table")
         sampleVarLabel = QLabel("Sample Variable")
+        selSampleVarLabel = QLabel("Selected Variable")
+        selSampleVarCatLabel = QLabel("Selected Variable Categories")
         self.sampleTableComboBox = QComboBox()
         self.sampleTableComboBox.setEnabled(False)
 
@@ -153,18 +198,33 @@ class TabWidgetItems(QWidget):
         vLayout4.addWidget(self.selSampleVar)
         vLayout4.addWidget(self.deselSampleVar)
         vLayout4.addItem(QSpacerItem(10,50))
-        
+
+                
+
+        vLayout5 = QVBoxLayout()
+        vLayout5.addWidget(sampleVarLabel)
+        vLayout5.addWidget(self.sampleVarListWidget)
+
+
+        vLayout6 = QVBoxLayout()
+        vLayout6.addWidget(selSampleVarLabel)
+        vLayout6.addWidget(self.selSampleVarListWidget)
+
+        vLayout7 = QVBoxLayout()
+        vLayout7.addWidget(selSampleVarCatLabel)
+        vLayout7.addWidget(self.selSampleVarCatListWidget)
+
 
         hLayout2 = QHBoxLayout()
-        hLayout2.addWidget(self.sampleVarListWidget)
+        hLayout2.addLayout(vLayout5)
         hLayout2.addLayout(vLayout4)
-        hLayout2.addWidget(self.selSampleVarListWidget)
-        hLayout2.addWidget(self.selSampleVarCatListWidget)
+        hLayout2.addLayout(vLayout6)
+        hLayout2.addLayout(vLayout7)
 
         vLayout2 = QVBoxLayout()
         vLayout2.addWidget(sampleTableLabel)
         vLayout2.addWidget(self.sampleTableComboBox)
-        vLayout2.addWidget(sampleVarLabel)
+        #vLayout2.addWidget(sampleVarLabel)
         vLayout2.addLayout(hLayout2)
 
         controlTableLabel = QLabel("Control Table")
@@ -235,7 +295,7 @@ class TabWidgetItems(QWidget):
 
     def checkSelectedVariables(self):
         if not (self.selSampleVarListWidget.count() > 0):
-            QMessageBox.warning(self, QString("PopSim: Synthesizer Inputs"),
+            QMessageBox.warning(self, QString("PopGen: Synthesizer Inputs"),
                                 QString("""No variable was selected for %s control."""
                                         """ Please select variables and define relations to continue.""" %self.controlType))
             return False
@@ -245,7 +305,7 @@ class TabWidgetItems(QWidget):
 
     def checkNumRelationsDefined(self):
         if self.relationsListWidget.count() <> self.selSampleVarCatListWidget.count():
-            QMessageBox.warning(self, QString("PopSim: Synthesizer Inputs"), 
+            QMessageBox.warning(self, QString("PopGen: Synthesizer Inputs"), 
                                 QString("""Not enough relations defined for the %s control.""" %self.controlType))
             return False
         else:
