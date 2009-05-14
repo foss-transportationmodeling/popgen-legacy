@@ -23,7 +23,7 @@ class UnzipFile:
             fileArchInfo = zipObject.getinfo(i)
             try:
                 fileExtrInfo = os.stat(os.path.join(self.mountpoint, i))
-                reply = QMessageBox.question(None, "PopSim: Extracting Data",
+                reply = QMessageBox.question(None, "PopGen: Extracting Data",
                                              QString("""Do you like to replace the existing file %s (size %s)"""
                                                      """ with the file %s (size %s) from the zip folder?""" 
                                              %(i, fileExtrInfo.st_size, i, fileArchInfo.file_size)), 
@@ -49,7 +49,7 @@ class UnzipFile:
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)
-    a = UnzipFile('C:\\PopSim\\data\\California\\PUMS', 'all_California.zip')
+    a = UnzipFile('C:\\PopGen\\data\\California\\PUMS', 'all_California.zip')
     a.unzip()
 
 

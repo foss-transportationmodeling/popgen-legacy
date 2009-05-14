@@ -94,7 +94,7 @@ class LineEdit(QLineEdit):
                     text.replace(i, '')
                     raise TextError, "Project name can only comprise of alphabets and an underscore (_)"
         except TextError, e:
-            QMessageBox.information(self, "PopSim: New Project Wizard", 
+            QMessageBox.information(self, "PopGen: New Project Wizard", 
                                     "%s" %e, 
                                     QMessageBox.Ok)
             self.setText(text)
@@ -520,7 +520,7 @@ class OldNewRelation(QDialog):
                 self.recodeCrit.append([old,new])
                 QDialog.accept(self)
         else:
-            reply = QMessageBox.question(self, "PopSim: Display and Modify Data",
+            reply = QMessageBox.question(self, "PopGen: Display and Modify Data",
                                          QString("No recode criterion set. Do you wish to continue?"),
                                          QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
