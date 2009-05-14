@@ -23,7 +23,7 @@ def configure_and_run(index_matrix, p_index_matrix, geoid):
                                                                          %(pumano, float(tract)/100, bg)
     print '------------------------------------------------------------------'
 
-    db = MySQLdb.connect(host = 'localhost', user = 'root', passwd = '1234', db = 'magnew')
+    db = MySQLdb.connect(host = 'localhost', user = 'root', passwd = '1234', db = 'northcarolina')
     dbc = db.cursor()
 
     tii = time.clock()
@@ -155,7 +155,7 @@ if __name__ == '__main__':
 
     start = time.clock()
     ti = time.clock()
-    db = MySQLdb.connect(host = 'localhost', user = 'root', passwd = '1234', db = 'magnew')
+    db = MySQLdb.connect(host = 'localhost', user = 'root', passwd = '1234', db = 'northcarolina')
     dbc = db.cursor()
 #______________________________________________________________________
 #Reading the Index Matrix
@@ -168,11 +168,11 @@ if __name__ == '__main__':
 #______________________________________________________________________
 # This is the serial implementation of the code
 
-    geography = (110, 941100, 1)
+    geography = (2900, 20100, 1)
     configure_and_run(index_matrix, p_index_matrix, geography)
     print 'Synthesis for the geography was completed in %.2f' %(time.clock()-ti)
 
-    geography = (110, 941000, 1)
+    geography = (2802, 101, 1)
     configure_and_run(index_matrix, p_index_matrix, geography)
     print 'Synthesis for the geography was completed in %.2f' %(time.clock()-ti)
 
