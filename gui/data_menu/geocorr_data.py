@@ -38,7 +38,7 @@ class UserImportGeocorrData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -80,7 +80,7 @@ class AutoImportGeocorrData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
