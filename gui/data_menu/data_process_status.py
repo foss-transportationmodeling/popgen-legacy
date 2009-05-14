@@ -12,7 +12,7 @@ class DataDialog(QDialog):
     def __init__(self, project, parent = None):
         super(DataDialog, self).__init__(parent)
         self.project = project
-        self.setFixedSize(QSize(600, 200))
+        self.setFixedSize(QSize(600, 300))
         self.setWindowTitle("PopGen: Processing Data")
         self.setWindowIcon(QIcon("./images/popsyn"))
 
@@ -24,6 +24,8 @@ class DataDialog(QDialog):
 
         start = QPushButton("Start")
         self.dialogButtonBox.addButton(start, QDialogButtonBox.ActionRole)
+
+        self.dialogButtonBox.addButton(QDialogButtonBox.Cancel)
 
         ok.setEnabled(False)
 
@@ -51,12 +53,12 @@ class DataDialog(QDialog):
         self.setLayout(layout)
 
         self.connect(self.dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.start)
-
+        self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
 
     def start(self, button):
         for i in self.dialogButtonBox.buttons():
-            if i.text() == "Start":
+            if i.text() == "Start" or i.text() == "Cancel":
                 i.setVisible(False)
             else:
                 i.setEnabled(True)
