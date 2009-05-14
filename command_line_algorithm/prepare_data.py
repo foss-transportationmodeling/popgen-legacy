@@ -73,7 +73,7 @@ def prepare_data(db):
 if __name__ == '__main__':
 
 
-    db = MySQLdb.connect(user = 'root', passwd = '1234', db = 'magnew')
+    db = MySQLdb.connect(user = 'root', passwd = '1234', db = 'northcarolina')
     prepare_data(db)
     db.commit()
     db.close()
