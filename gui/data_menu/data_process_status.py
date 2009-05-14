@@ -13,7 +13,7 @@ class DataDialog(QDialog):
         super(DataDialog, self).__init__(parent)
         self.project = project
         self.setFixedSize(QSize(600, 200))
-        self.setWindowTitle("PopSim: Processing Data")
+        self.setWindowTitle("PopGen: Processing Data")
         self.setWindowIcon(QIcon("./images/popsyn"))
 
         self.move(100,100)
