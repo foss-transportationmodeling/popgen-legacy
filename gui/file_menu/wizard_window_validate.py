@@ -70,7 +70,7 @@ class Wizard(QWizard):
         return countyCode, stateCode, stateAbb
 
     def reject(self):
-        reply = QMessageBox.question(None, "PopSim: New Project Wizard",
+        reply = QMessageBox.question(None, "PopGen: New Project Wizard",
                                      QString("Do you wish to continue?"),
                                      QMessageBox.Yes| QMessageBox.No)
         if reply == QMessageBox.Yes:
