@@ -10,27 +10,6 @@ from numpy import fix as quo
 from numpy import zeros
 from defining_a_database import *
 
-#def create_dimensions(db, synthesis_type, control_variables):
-#    pums = database(db, '%s_sample'%synthesis_type)
-#    dimensions = []
-#    if len(control_variables) > 0:
-#        for i in control_variables:
-#            dimensions.append(pums.categories(i))
-#    return dimensions
-
-#def choose_control_variables(db, project, synthesis_type):
-#    if synthesis_type == 'hhld':
-#        control_variables = [ 'hhldtype', 'hhldsize', 'hhldinc']
-#        control_variables = ['childpresence', 'hhldtype', 'hhldsize', 'hhldinc']
-
-#    elif synthesis_type == 'gq':
-#        control_variables = ['groupquarter']
-#    elif synthesis_type == 'person':
-#        control_variables = ['gender', 'age', 'race']
-#        control_variables = ['gender', 'agep', 'race']
-
-#    return control_variables
-
 def create_update_string(db, control_variables, dimensions):
     update_string = ''
     for i in range(len(control_variables)):
@@ -77,8 +56,8 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dbc.execute('alter table %s_%s_joint_dist add frequency float(27)'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add index(tract, bg)'%(synthesis_type, pumano))
     except Exception, e:
-        print e
-#        print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
+        #print e
+        #print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
         pass
 
     variable_list = 'pumano, tract, bg, '
@@ -147,7 +126,7 @@ def create_aggregation_string(control_variables):
     return string
 
 
-def adjust_weights(db, synthesis_type, control_variables, varCorrDict, county, pumano = 0, tract = 0, bg = 0):
+def adjust_weights(db, synthesis_type, control_variables, varCorrDict, county, pumano=0, tract=0, bg=0, parameters=0):
 
     dbc = db.cursor()
 
@@ -181,12 +160,12 @@ def adjust_weights(db, synthesis_type, control_variables, varCorrDict, county, p
                         adjustment_old.append(k/k)
                     target_adjustment = [adjustment_old]
 
-        tol = tolerance(adjustment_all, adjustment_old, iteration)
+        tol = tolerance(adjustment_all, adjustment_old, iteration, parameters)
         adjustment_old = adjustment_all
         adjustment_characteristic = abs(arr(adjustment_all) - arr(target_adjustment)).sum() / len(adjustment_all)
 
 
-    if (iteration>=250):
+    if (iteration>=parameters.ipfIter):
         pass
 #        print "Maximum iterations reached\n"
     else:
@@ -218,12 +197,12 @@ def update_weights (db, synthesis_type, control_variables, control_variable, pum
     dbc.close()
     db.commit()
 
-def tolerance (adjustment_all, adjustment_old, iteration):
+def tolerance (adjustment_all, adjustment_old, iteration, parameters):
     adjustment_all = arr(adjustment_all)
     adjustment_old = arr(adjustment_old)
     adjustment_difference = abs(adjustment_all - adjustment_old)
     adjustment_convergence_characteristic = adjustment_difference.cumsum()[-1]
-    if adjustment_convergence_characteristic > 1e-6:
+    if adjustment_convergence_characteristic > parameters.ipfTol:
         return 1
     else:
 #        print "Convergence Criterion - %s" %adjustment_convergence_characteristic
