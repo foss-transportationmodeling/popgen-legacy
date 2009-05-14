@@ -76,7 +76,7 @@ class UserImportControlData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -123,13 +123,13 @@ class AutoImportSFData():
             os.makedirs(self.loc)
             self.retrieveAndStoreSF(self.state)
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopSim: Processing Data",
+            reply = QMessageBox.question(None, "PopGen: Processing Data",
                                          QString("""Windows Error: %s.\n\n"""
                                                  """Do you wish to keep existing files?"""
                                                  """\nPress No if you wish to download the files again."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopSim: Processing Data",
+                confirm = QMessageBox.question(None, "PopGen: Processing Data",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -155,7 +155,7 @@ class AutoImportSFData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:

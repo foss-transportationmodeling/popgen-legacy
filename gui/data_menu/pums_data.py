@@ -78,7 +78,7 @@ class UserImportSampleData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -140,7 +140,7 @@ class AutoImportPUMSData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopSim: Processing Data",
+                reply = QMessageBox.question(None, "PopGen: Processing Data",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -163,13 +163,13 @@ class AutoImportPUMSData():
             os.makedirs(self.loc)
             self.retrieveAndStorePUMS()
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopSim: Processing Data",
+            reply = QMessageBox.question(None, "PopGen: Processing Data",
                                          QString("""Windows Error: %s.\n\n"""
                                                  """Do you wish to keep the existing files?"""
                                                  """\nPress No if you wish to download the files again."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopSim: Processing Data",
+                confirm = QMessageBox.question(None, "PopGen: Processing Data",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -287,7 +287,7 @@ class AutoImportPUMSData():
         try:
             fileInfo = os.stat(file)
 
-            reply = QMessageBox.question(None, "PopSim: Processing Data", 
+            reply = QMessageBox.question(None, "PopGen: Processing Data", 
                                          QString("""File %s exists. Do you wish to overwrite?""" %(file)),
                                          QMessageBox.Yes| QMessageBox.No)
 
@@ -400,7 +400,7 @@ class AutoImportPUMSData():
                             state = i[9:11]
                             nhousing = nhousing + 1
                 else:
-                    QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty person PUMS File and empty person PUMS"""
+                    QMessageBox.warning(None, "PopGen: Processing Data", QString("""Empty person PUMS File and empty person PUMS"""
                                                                                  """ table will be created since no"""
                                                                                  """ variables were selected for extraction."""))
         #print 'Person Records Parsed - %s' %nperson
@@ -422,7 +422,7 @@ class AutoImportPUMSData():
                             fhousing.write(housingRec)
 
                 else:
-                    QMessageBox.warning(None, "PopSim: Processing Data", QString("""Empty housing PUMS File and empty housing PUMS"""
+                    QMessageBox.warning(None, "PopGen: Processing Data", QString("""Empty housing PUMS File and empty housing PUMS"""
                                                                                  """ table will be created since no"""
                                                                                  """ variables were selected for extraction."""))
         #print 'Housing Records Parsed - %s' %nhousing        

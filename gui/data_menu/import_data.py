@@ -160,14 +160,14 @@ if __name__ == "__main__":
     #for b in ['test', 'names', 'types', 'none']:
     #for b in ['test']:
     for b in ['names', 'none']:
-        a = FileProperties("C:/PopSim/test/%s.dat" %b)
+        a = FileProperties("C:/PopGen/test/%s.dat" %b)
         print b
         print "Var Type Dummy:", a.varTypesDummy
         print a.varTypes
         print "Var Names Dummy:", a.varNamesDummy
         print a.varNames
 
-        c = ImportUserProvData(b, "c:/PopSim/test/%s.dat" %b, a.varNames, a.varTypes, a.varNamesDummy, a.varTypesDummy)
+        c = ImportUserProvData(b, "c:/PopGen/test/%s.dat" %b, a.varNames, a.varTypes, a.varNamesDummy, a.varTypesDummy)
         print c.query1
         print c.query2
 
