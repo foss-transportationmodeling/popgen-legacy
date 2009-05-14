@@ -8,7 +8,7 @@ from numpy import asarray as arr
 from numpy import ones, zeros
 
 
-def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
+def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix, parameters):
     dbc = db.cursor()
     ti =time.clock()
   
@@ -29,7 +29,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
     convergence = 0
 #    print 'Starting the Heuristic Procedure'    
     print 'iteration, Sum_Wts_Hhld_Adj, Sum_Wts_Person_Adj, Constraints, e-statistic, convergence (0/1)'
-    while (iteration < 10 or convergence == 0):
+    while (iteration < parameters.ipuIter and convergence == 0):
         ti = time.clock()
         iteration = iteration + 1
 
@@ -70,7 +70,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
         conv_criterion_array.append(conv_criterion)
         if iteration >=2:
             convergence = abs(conv_criterion_array[-1] - conv_criterion_array[-2])
-            if convergence < 1e-4:
+            if convergence < parameters.ipuTol:
                 convergence = 1
             else:
                 convergence = 0
