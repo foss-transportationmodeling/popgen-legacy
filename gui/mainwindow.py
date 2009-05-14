@@ -60,22 +60,27 @@ class MainWindow(QMainWindow):
                                              "projectnew", "Create a new PopGen project.")
         projectOpenAction = self.createAction("&Open Project", self.projectOpen, QKeySequence.Open, 
                                               "projectopen", "Open an existing PopGen project.")
-        projectSaveAction = self.createAction("&Save Project", self.projectSave, QKeySequence.Save, 
+        self.projectSaveAction = self.createAction("&Save Project", self.projectSave, QKeySequence.Save, 
                                               "projectsave", "Save the current PopGen project.")
-        projectSaveAsAction = self.createAction("Save Project &As...", self.projectSaveAs, 
+        self.projectSaveAsAction = self.createAction("Save Project &As...", self.projectSaveAs, 
                                                 icon="projectsaveas", tip="Save the current PopGen project with a new name.")
-        projectCloseAction = self.createAction("&Close Project", self.projectClose, "Ctrl+W",
+        self.projectCloseAction = self.createAction("&Close Project", self.projectClose, "Ctrl+W",
                                                 tip="Close the current PopGen project.")
         applicationQuitAction = self.createAction("&Quit", self.close, "Ctrl+Q",
                                                 icon="quit", tip="Close the application.")
+        
+        self.projectSaveAction.setEnabled(False)
+        self.projectSaveAsAction.setEnabled(False)
+        self.projectCloseAction.setEnabled(False)
+
 # Adding actions to menu
         self.fileMenu = self.menuBar().addMenu("&File")
-        self.addActions(self.fileMenu, (projectNewAction, projectOpenAction, None, projectSaveAction, 
-                                           projectSaveAsAction, None, projectCloseAction, None, applicationQuitAction))
+        self.addActions(self.fileMenu, (projectNewAction, projectOpenAction, None, self.projectSaveAction, 
+                                           self.projectSaveAsAction, None, self.projectCloseAction, None, applicationQuitAction))
 # Adding actions to toolbar
         self.fileToolBar = self.addToolBar("File")
         self.fileToolBar.setObjectName("FileToolBar")
-        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, projectSaveAction, projectSaveAsAction))
+        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAction, self.projectSaveAsAction))
         
 
 # DATA MENU 
@@ -101,8 +106,8 @@ class MainWindow(QMainWindow):
         #self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataStatisticsAction, dataModifyAction))
         self.addActions(self.dataToolBar, (dataSourceAction,  dataImportAction, dataModifyAction))
 
-        #self.dataMenu.setDisabled(True)
-        #self.dataToolBar.setDisabled(True)
+        self.dataMenu.setDisabled(True)
+        self.dataToolBar.setDisabled(True)
 
 # SYNTHESIZER MENU
 # Defining menu/toolbar actions
@@ -138,8 +143,8 @@ class MainWindow(QMainWindow):
 
         
 
-        #self.synthesizerMenu.setDisabled(True)
-        #self.synthesizerToolBar.setDisabled(True)
+        self.synthesizerMenu.setDisabled(True)
+        self.synthesizerToolBar.setDisabled(True)
 
 
 # RESULTS MENU
@@ -191,8 +196,8 @@ class MainWindow(QMainWindow):
         #self.resultsToolBar.addToolBar(QIcon("Regional SubMenu"))
         self.addActions(self.resultsToolBar, (resultsRegionalAction, resultsIndividualAction))
 
-        #self.resultsMenu.setDisabled(True)
-        #self.resultsToolBar.setDisabled(True)
+        self.resultsMenu.setDisabled(True)
+        self.resultsToolBar.setDisabled(True)
 
 
 # HELP MENU
@@ -252,10 +257,14 @@ class MainWindow(QMainWindow):
                 save = QMessageBox.question(None, "PopGen: New Project Wizard",
                                             QString("""Do you wish to save the project?"""),
                                             QMessageBox.Yes| QMessageBox.No)
+                self.fileManager.clear()
+                self.fileManager.setEnabled(False)
+                self.enableFunctions(False)
+                self.project = None
+
                 if save == QMessageBox.Yes:
                     self.project.save()
-                else:
-                    self.runWizard()
+                self.runWizard()
 
 
     def runWizard(self):
@@ -268,10 +277,26 @@ class MainWindow(QMainWindow):
             self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
+            self.enableFunctions(True)
+
+
+    def enableFunctions(self, option):
+        self.projectSaveAction.setEnabled(option)
+        self.projectSaveAsAction.setEnabled(option)
+        self.projectCloseAction.setEnabled(option)
+        
+        self.dataMenu.setEnabled(option)
+        self.dataToolBar.setEnabled(option)
+
+        self.synthesizerMenu.setEnabled(option)
+        self.synthesizerToolBar.setEnabled(option)
+
+        self.resultsMenu.setEnabled(option)
+        self.resultsToolBar.setEnabled(option)
 
     def projectOpen(self):
         project = OpenProject()
-        
+
         if not project.file.isEmpty():
             if self.fileManager.isEnabled():
                 reply = QMessageBox.warning(None, "PopGen: Open Existing Project",
@@ -288,6 +313,7 @@ class MainWindow(QMainWindow):
                         self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
+                        self.enableFunctions(True)
                         #PopulateFileManager(self.project, self.fileManager)
 
             else:
@@ -296,17 +322,16 @@ class MainWindow(QMainWindow):
                     self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
+                    self.enableFunctions(True)
                     #PopulateFileManager(self.project, self.fileManager)
                     
 
     def projectSave(self):
-        #QMessageBox.information(self, "Information", "Save project", QMessageBox.Ok)
         if self.project:
             self.project.save()
 
 
     def projectSaveAs(self):
-        #QMessageBox.information(self, "Information", "Save project as", QMessageBox.Ok)
         file = QFileDialog.getSaveFileName(self, QString("Save As..."), 
                                                              "%s" %self.project.location, 
                                                              "PopGen File (*.pop)")
@@ -325,14 +350,17 @@ class MainWindow(QMainWindow):
     
     def projectClose(self):
         QMessageBox.information(self, "Information", "Close project", QMessageBox.Ok)
+        self.fileManager.clear()
+        self.fileManager.setEnabled(False)
+        self.enableFunctions(False)
+        self.project = None
 
 
     def dataSource(self):
-        #QMessageBox.information(self, "Information", "Define MySQL datasource", QMessageBox.Ok)
         dataConnectionDia = DBConnectionDialog(self.project)
         if dataConnectionDia.exec_():
-            if self.project <> dataprocesscheck.project:
-                self.project = dataprocesscheck.project
+            if self.project <> dataConnectionDia.project:
+                self.project = dataConnectionDia.project
                 self.project.save()
                 self.fileManager.populate()
 
@@ -355,7 +383,7 @@ class MainWindow(QMainWindow):
                 
                 b.exec_()
         except Exception, e:
-            print e
+            print "Please highlight a valid table to display or use the context menu to bring up a table."
             
 
     def synthesizerControlVariables(self):
