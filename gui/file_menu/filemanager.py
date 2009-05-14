@@ -87,15 +87,10 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         
     def displayTable(self):
-        projectDBC = createDBC(self.project.db, self.project.filename)
-        projectDBC.dbc.open()
-
         tablename = self.item.text(0)
 
         disp = DisplayTable(self.project, "%s" %tablename)
         disp.exec_()
-
-        projectDBC.dbc.close()
 
     def modifyCategories(self):
         projectDBC = createDBC(self.project.db, self.project.filename)
@@ -309,7 +304,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         
         projectDBC.dbc.open()
         
-        self.query = QSqlQuery()
+        self.query = QSqlQuery(projectDBC.dbc)
         
         if not self.query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
