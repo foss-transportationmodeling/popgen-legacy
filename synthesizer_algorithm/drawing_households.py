@@ -30,9 +30,9 @@ def person_index_matrix(db, pumano = 0):
         print e
 
     dbc.execute('select hhid, min(id), max(id) from person_sample_%s group by hhid'%(pumano))
-    result = arr(dbc.fetchall())
+    result = dbc.fetchall()
 
-    print 'Person index matrix read in - %.4f' %(time.time()-ti)
+    #print 'Person index matrix read in - %.4f' %(time.time()-ti)
 
     #dbc.execute('drop table person_sample_%s'%(pumano))
 
@@ -158,13 +158,15 @@ def row_hhid_dictionary(person_index_matrix):
 
 def synthetic_population_properties(db, geo, synthetic_population, person_index_matrix, housing_sample, person_sample, hhidRowDict, rowHhidDict):
 
+    state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
+
     dbc = db.cursor()
 # Layout - housing attributes, frequency
     synthetic_housing_attributes = zeros((synthetic_population.shape[0], 8))
-    synthetic_housing_attributes[:,0] = geo.state
-    synthetic_housing_attributes[:,1] = geo.county
-    synthetic_housing_attributes[:,2] = geo.tract
-    synthetic_housing_attributes[:,3] = geo.bg
+    synthetic_housing_attributes[:,0] = state
+    synthetic_housing_attributes[:,1] = county
+    synthetic_housing_attributes[:,2] = tract
+    synthetic_housing_attributes[:,3] = bg
     
     synthetic_housing_attributes[:,4:-2] = housing_sample[synthetic_population[:,0],:]
     
@@ -188,10 +190,10 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
 
 # populating the person attribute array with synthetic population information
     dummy = 0
-    synthetic_person_attributes[:,0] = geo.state
-    synthetic_person_attributes[:,1] = geo.county
-    synthetic_person_attributes[:,2] = geo.tract
-    synthetic_person_attributes[:,3] = geo.bg
+    synthetic_person_attributes[:,0] = state
+    synthetic_person_attributes[:,1] = county
+    synthetic_person_attributes[:,2] = tract
+    synthetic_person_attributes[:,3] = bg
 
     for i in synthetic_population:
 
@@ -242,13 +244,9 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
 
 def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract = 0, bg = 0):
     dbc = db.cursor()
-    dbc.execute('delete from %s_synthetic_data where county = %s and tract = %d and bg = %d' %(synthesis_type, county, tract, bg))
-    #row_data = [0] * (attributes.shape[-1])
-    #row_data[0] = pumano
-    #row_data[1] = tract
-    #row_data[2] = bg
+    dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
+
     for i in range(attributes.shape[0]):
-        #row_data = attributes[i, :]
         dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(tuple(attributes[i,:]))))
     dbc.close()
     db.commit()
@@ -263,9 +261,12 @@ def create_performance_table(db):
     db.commit()
 
 def store_performance_statistics(db, geo, values):
+
+    state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
+
     dbc = db.cursor()
     dbc.execute("""delete from performance_statistics where"""
-                """ county = %s and tract = %s and bg = %s""" %(geo.county, geo.tract, geo.bg))
+                """ county = %s and tract = %s and bg = %s""" %(county, tract, bg))
     dbc.execute("""insert into performance_statistics values %s""" %str(values))
         
     dbc.close()
