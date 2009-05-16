@@ -98,11 +98,12 @@ class SetCorrDialog(QDialog):
 
     def clearTables(self, tableNamePrefix):
         print "variable relations modified - %s" %(tableNamePrefix)
-        
+        self.projectDBC.dbc.open()
         query = QSqlQuery(self.projectDBC.dbc)
-        query1 = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, query.lastError().text()
+
+        query1 = QSqlQuery(self.projectDBC.dbc)
          
         while query.next():
             tableName = query.value(0).toString()
