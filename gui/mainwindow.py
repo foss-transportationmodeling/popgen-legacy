@@ -410,12 +410,9 @@ class MainWindow(QMainWindow):
         
         runDia.exec_()
         
-        for geo in runDia.runGeoIds:
-            try:
-                self.project.synGeoIds.index(geo)
-            except:
-                self.project.synGeoIds.append(geo)
-                
+        for i in self.project.synGeoIds:
+            print i
+
         self.fileManager.populate()
         self.project.save()
 
