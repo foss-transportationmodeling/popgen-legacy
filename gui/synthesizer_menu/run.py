@@ -254,7 +254,7 @@ class RunDialog(QDialog):
 
     def allGeographyids(self):
         query = QSqlQuery(self.projectDBC.dbc)
-        
+        allGeoids = {}        
         for i in self.project.region.keys():
             countyName = i
             stateName = self.project.region[i]
@@ -280,7 +280,7 @@ class RunDialog(QDialog):
         
             STATE, COUNTY, TRACT, BG = range(4)
             
-            allGeoids = {}
+
             tract = 0
             bg = 0
 
