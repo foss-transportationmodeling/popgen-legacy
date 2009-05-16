@@ -75,7 +75,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if len(numericExpression) <1:
                 QMessageBox.warning(self, "PopGen: Data", QString("""Invalid numeric expression, enter again"""))
             else:
-                query = QSqlQuery()
+                query = QSqlQuery(project.dbc)
                 if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
                     raise FileError, query.lastError().text()
                 if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName, 
@@ -112,7 +112,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = "Delete Dialog")
 
-        query = QSqlQuery()
+        query = QSqlQuery(projectDBC.dbc)
 
         if deleteVariablesdia.exec_():
             deleteVariablesSelected = deleteVariablesdia.selectedVariableListWidget.variables
@@ -128,7 +128,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, self.project.filename)
         projectDBC.dbc.open()
 
-        query = QSqlQuery()
+        query = QSqlQuery(projectDBC.dbc)
 
         tablename = self.item.text(0)
 
@@ -171,8 +171,11 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def populateVariableDictionary(self, tablename):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+
         self.variableTypeDictionary = {}
-        query = QSqlQuery()
+        query = QSqlQuery(projectDBC.dbc)
         query.exec_("""desc %s""" %tablename)
 
         FIELD, TYPE, NULL, KEY, DEFAULT, EXTRA = range(6)
@@ -186,7 +189,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             extra = query.value(EXTRA).toString()
             
             self.variableTypeDictionary['%s' %field] = type
-
+        projectDBC.dbc.close()
 
     def editProject(self):
 
