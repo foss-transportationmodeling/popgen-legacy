@@ -137,7 +137,7 @@ class NewProject(object):
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
                  db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariableDicts(),
-                 hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds=[]):
+                 hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds={}):
         self.name = name 
         self.filename = name
         self.location = location
