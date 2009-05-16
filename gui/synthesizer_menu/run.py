@@ -145,23 +145,28 @@ class RunDialog(QDialog):
                                           """to take advantage of multiple cores on your processor""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
             if reply == QMessageBox.Yes:
                 dbList = ['%s' %self.project.db.hostname, '%s' %self.project.db.username, '%s' %self.project.db.password, '%s' %self.project.name]
-                run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+                # breaking down the whole list into lists of 100 geographies each
+                
+                from math import floor
+
+                geoCount = len(self.runGeoIds)
+                bins = int(floor(geoCount/100))
+                
+                index = [(i*100, i*100+100) for i in range(bins)]
+                index.append((bins*100, geoCount))
+
+                for i in index:
+                    run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
-                    try:
-                        self.project.synGeoIds.index((geo[0], geo[1], geo[2], geo[3], geo[4]))
-                    except:
-                        self.project.synGeoIds.append((geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo[0], geo[1], geo[3], geo[4]))
             elif reply == QMessageBox.No:
                 for geo in self.runGeoIds:
-
-                    try:
-                        self.project.synGeoIds.index((geo[0], geo[1], geo[2], geo[3], geo[4]))
-                    except:
-                        self.project.synGeoIds.append((geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
                     
                     geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
                     
@@ -219,7 +224,7 @@ class RunDialog(QDialog):
                         if not exists:
                             raise DummyError, 'skip messagebox'
 
-                        self.project.synGeoIds.index((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+                        self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)]
 
                         if not notoall:
                             reply = QMessageBox.warning(self, "PopGen: Run Synthesizer", """Synthetic population for """
@@ -302,6 +307,8 @@ class RunDialog(QDialog):
 
         
     def prepareData(self):
+        self.project.synGeoIds = {}
+
         import MySQLdb
         db = MySQLdb.connect(user = '%s' %self.project.db.username, 
                              passwd = '%s' %self.project.db.password,
