@@ -4,3 +4,7 @@ class FileError(Exception):
 
 class TextError(Exception):
     pass
+
+
+class DummyError(Exception):
+    pass
