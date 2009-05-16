@@ -139,22 +139,7 @@ class RunDialog(QDialog):
 
         self.readData()
 
-        if len(self.selectedGeoidsText) > 0:
-
-            for i in self.selectedGeoidsText:
-                i = re.split("[,]", i)
-                state, county, tract, bg = i
-
-
-                geo = Geography(state, county, tract, bg)
-                
-                geo = self.getPUMA5(geo) 
-                
-                try:
-                    self.runGeoIds.index((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
-                except:
-                    self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
-                
+        if len(self.runGeoIds) > 0:
 
             reply = QMessageBox.question(self, "PopGen: Run Synthesizer", """Do you wish to run the synthesizer in parallel """
                                           """to take advantage of multiple cores on your processor""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
@@ -163,10 +148,20 @@ class RunDialog(QDialog):
                 run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
+                    try:
+                        self.project.synGeoIds.index((geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    except:
+                        self.project.synGeoIds.append((geo[0], geo[1], geo[2], geo[3], geo[4]))
+
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo[0], geo[1], geo[3], geo[4]))
             elif reply == QMessageBox.No:
                 for geo in self.runGeoIds:
+
+                    try:
+                        self.project.synGeoIds.index((geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    except:
+                        self.project.synGeoIds.append((geo[0], geo[1], geo[2], geo[3], geo[4]))
                     
                     geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
                     
@@ -202,18 +197,56 @@ class RunDialog(QDialog):
         return geo
 
     def selGeographies(self):
+        self.runGeoIds=[]
         geoids = self.allGeographyids()
         dia = VariableSelectionDialog(geoids, title = "PopGen: Select geographies for synthesis", icon = "../images/run.png")
         if dia.exec_():
-            self.selectedGeoidsText = []
+            exists = True
+            notoall = False
             
             if dia.selectedVariableListWidget.count() > 0:
                 self.selGeographiesList.clear()
                 for i in range(dia.selectedVariableListWidget.count()):
                     itemText = dia.selectedVariableListWidget.item(i).text()
-                    self.selectedGeoidsText.append(itemText)
-                self.selGeographiesList.addItems(self.selectedGeoidsText)
-                self.runSynthesizerButton.setEnabled(True)
+                    
+                    item = re.split("[,]", itemText)
+                    state, county, tract, bg = item
+                    geo = Geography(int(state), int(county), int(tract), int(bg))
+                    geo = self.getPUMA5(geo) 
+
+                    try:
+
+                        if not exists:
+                            raise DummyError
+
+                        self.project.synGeoIds.index((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+
+                        if not notoall:
+                            reply = QMessageBox.warning(self, "PopGen: Run Synthesizer", """Synthetic population for """
+                                                        """State - %s, County - %s, PUMA5 - %s, Tract - %s, BG - %s exists. """
+                                                        """Do you wish to rerun the synthesizer for the geography(s)?""" 
+                                                        %(geo.state, geo.county, geo.puma5, geo.tract, geo.bg),
+                                                        QMessageBox.Yes| QMessageBox.No| QMessageBox.YesToAll| QMessageBox.NoToAll)
+                            if reply == QMessageBox.Yes:
+                                self.runGeoIds.append(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)
+                                self.selGeographiesList.addItem(itemText)
+                                exists = True
+                            elif reply == QMessageBox.No:
+                                exists = True
+                            elif reply == QMessageBox.YesToAll:
+                                self.runGeoIds.append(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)
+                                self.selGeographiesList.addItem(itemText)
+                                exists = False
+                            elif reply == QMessageBox.NoToAll:
+                                notoall = True
+
+                    except:
+                        self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+                        self.selGeographiesList.addItem(itemText)
+                if self.selGeographiesList.count()>0:
+                    self.runSynthesizerButton.setEnabled(True)
+                else:
+                    self.runSynthesizerButton.setEnabled(False)
             else:
                 self.selGeographiesList.clear()
                 self.runSynthesizerButton.setEnabled(False)
