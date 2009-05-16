@@ -394,8 +394,11 @@ class TabWidgetItems(QWidget):
 
 
     def categories(self, varname):
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()
+        
         cats = []
-        query = QSqlQuery(self.projectDBC.dbc)
+        query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""select %s from %s group by %s""" %(varname, self.sampleSelTable, varname)):
             raise FileError, query.lastError().text()
 
@@ -406,7 +409,7 @@ class TabWidgetItems(QWidget):
 
             cats.append(cat)
         self.sampleVarsDict['%s' %varname] = cats
-
+        projectDBC.dbc.close()
 
     def varCatStrings(self, varName, varCats):
         string = []
