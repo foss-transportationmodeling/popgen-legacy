@@ -217,7 +217,7 @@ class RunDialog(QDialog):
                     try:
 
                         if not exists:
-                            raise DummyError
+                            raise DummyError, 'skip messagebox'
 
                         self.project.synGeoIds.index((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
 
@@ -228,13 +228,13 @@ class RunDialog(QDialog):
                                                         %(geo.state, geo.county, geo.puma5, geo.tract, geo.bg),
                                                         QMessageBox.Yes| QMessageBox.No| QMessageBox.YesToAll| QMessageBox.NoToAll)
                             if reply == QMessageBox.Yes:
-                                self.runGeoIds.append(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)
+                                self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                                 self.selGeographiesList.addItem(itemText)
                                 exists = True
                             elif reply == QMessageBox.No:
                                 exists = True
                             elif reply == QMessageBox.YesToAll:
-                                self.runGeoIds.append(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)
+                                self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                                 self.selGeographiesList.addItem(itemText)
                                 exists = False
                             elif reply == QMessageBox.NoToAll:
