@@ -278,6 +278,8 @@ def create_synthetic_attribute_tables(db):
                 """hhid int, serialno int, frequency int, hhuniqueid int)""")
     dbc.execute("""create table if not exists person_synthetic_data(state int, county int, tract int, bg int,"""
                 """hhid int, serialno int, pnum int,  frequency int, personuniqueid int)""")
+    dbc.execute("""alter table housing_synthetic_data add index(serialno)""")
+    dbc.execute("""alter table person_synthetic_data add index(serialno, pnum)""")
     dbc.execute("""delete from housing_synthetic_data""")
     dbc.execute("""delete from person_synthetic_data""")
     dbc.close()
