@@ -310,7 +310,7 @@ class AutoImportPUMSData():
         housingVariablesSelected = copy.deepcopy(self.housingVariablesSelected)
         housingVariablesSelected.insert(0, 'hhid')
         
-        housingVariablesSelectedType = ['float'] * len(housingVariablesSelected)
+        housingVariablesSelectedType = ['bigint'] * len(housingVariablesSelected)
 
         housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
                                                    housingVariablesSelected, housingVariablesSelectedType, False, False)
@@ -339,7 +339,7 @@ class AutoImportPUMSData():
         personVariablesSelected.insert(0, 'pumano')
         personVariablesSelected.insert(0, 'state')        
         
-        personVariablesSelectedType = ['float'] * len(personVariablesSelected)
+        personVariablesSelectedType = ['bigint'] * len(personVariablesSelected)
 
         personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
                                                    personVariablesSelected, personVariablesSelectedType, False, False)
