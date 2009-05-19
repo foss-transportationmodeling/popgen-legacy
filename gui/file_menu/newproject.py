@@ -171,7 +171,7 @@ class NewProject(object):
         with open('%s/%s/%s.pop' %(self.location, self.name, self.filename),
                   'wb') as f:
             pickle.dump(self, f, True)
-        pass
+
 
     def update(self):
         pass
