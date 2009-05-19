@@ -156,7 +156,7 @@ class RunDialog(QDialog):
                 index.append((bins*100, geoCount))
 
                 for i in index:
-                    run_parallel(self.project, self.runGeoIds, self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+                    run_parallel(self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
 
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
