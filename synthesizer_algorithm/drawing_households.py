@@ -25,7 +25,7 @@ def person_index_matrix(db, pumano = 0):
 
 
     try:
-        dbc.execute('alter table person_sample_%s add column id int primary key auto_increment not null first'%(pumano))
+        dbc.execute('alter table person_sample_%s add column id bigint primary key auto_increment not null first'%(pumano))
     except Exception, e:
         print e
 
@@ -50,10 +50,10 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     try:
         dbc.execute('create table %s select pumano, tract, bg, frequency from hhld_%s_joint_dist where 0;' %(table_name, pumano))
         dbc.execute('alter table %s change frequency marginal float(27)'%(table_name))
-        dbc.execute('alter table %s add prior int default 0' %(table_name))
-        dbc.execute('alter table %s add r_marginal int default 0'%(table_name))
+        dbc.execute('alter table %s add prior bigint default 0' %(table_name))
+        dbc.execute('alter table %s add r_marginal bigint default 0'%(table_name))
         dbc.execute('alter table %s add diff_marginals float(27) default 0'%(table_name))
-        dbc.execute('alter table %s add %suniqueid int'%(table_name, synthesis_type))
+        dbc.execute('alter table %s add %suniqueid bigint'%(table_name, synthesis_type))
         dbc.execute('alter table %s add index(tract, bg)'%(table_name))
     except:
         pass
@@ -254,8 +254,8 @@ def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract =
 
 def create_performance_table(db):
     dbc = db.cursor()
-    dbc.execute("""create table if not exists performance_statistics(state int, county int, tract int,"""
-                """bg int, chivalue float, pvalue float, synpopiter float, heuriter float, aardvalue float)""")
+    dbc.execute("""create table if not exists performance_statistics(state bigint, county bigint, tract bigint,"""
+                """bg bigint, chivalue float, pvalue float, synpopiter float, heuriter float, aardvalue float)""")
     dbc.execute("""delete from performance_statistics""")
     dbc.close()
     db.commit()
@@ -274,10 +274,10 @@ def store_performance_statistics(db, geo, values):
 
 def create_synthetic_attribute_tables(db):
     dbc = db.cursor()
-    dbc.execute("""create table if not exists housing_synthetic_data(state int, county int, tract int, bg int,"""
-                """hhid int, serialno int, frequency int, hhuniqueid int)""")
-    dbc.execute("""create table if not exists person_synthetic_data(state int, county int, tract int, bg int,"""
-                """hhid int, serialno int, pnum int,  frequency int, personuniqueid int)""")
+    dbc.execute("""create table if not exists housing_synthetic_data(state bigint, county bigint, tract bigint, bg bigint,"""
+                """hhid bigint, serialno bigint, frequency bigint, hhuniqueid bigint)""")
+    dbc.execute("""create table if not exists person_synthetic_data(state bigint, county bigint, tract bigint, bg bigint,"""
+                """hhid bigint, serialno bigint, pnum bigint,  frequency bigint, personuniqueid bigint)""")
     dbc.execute("""alter table housing_synthetic_data add index(serialno)""")
     dbc.execute("""alter table person_synthetic_data add index(serialno, pnum)""")
     dbc.execute("""delete from housing_synthetic_data""")
