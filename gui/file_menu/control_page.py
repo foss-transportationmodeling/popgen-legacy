@@ -13,7 +13,7 @@ class ControlDataPage(QWizardPage):
         
         self.setTitle("Step 4: Control Totals")
 
-        self.controlGroupBox = QGroupBox("""Do you wish to provide the marginal totals for"""
+        self.controlGroupBox = QGroupBox("""Do you wish to provide the marginal totals for """
                                          """population characteristics of interest?""")
         self.controlUserProvRadio = QRadioButton("Yes")
         self.controlAutoRadio = QRadioButton("No")
