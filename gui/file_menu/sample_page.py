@@ -13,7 +13,7 @@ class SampleDataPage(QWizardPage):
 
         self.setTitle("Step 3: Population Sample")
 
-        self.sampleGroupBox = QGroupBox("""Do you wish to provide sample data or the program will"""
+        self.sampleGroupBox = QGroupBox("""Do you wish to provide sample data or the program will """
                                          """use PUMS for population synthesis?""")
         self.sampleUserProvRadio = QRadioButton("Yes")
         self.sampleAutoRadio = QRadioButton("No")
