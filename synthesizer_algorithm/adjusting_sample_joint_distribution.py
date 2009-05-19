@@ -29,7 +29,7 @@ def add_unique_id(db, tablename, synthesis_type, update_string):
 
     if len(update_string) >0:
         try:
-            dbc.execute('alter table %s ADD %suniqueid int'%(tablename, synthesis_type))
+            dbc.execute('alter table %s ADD %suniqueid bigint'%(tablename, synthesis_type))
         except Exception, e:
             pass
         dbc.execute('update %s set %suniqueid = %s' %(tablename, synthesis_type, update_string))
@@ -50,9 +50,9 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
 
     try:
         dbc.execute('create table %s_%s_joint_dist select %s from %s_sample where 0 '%(synthesis_type, pumano, dummy, synthesis_type))
-        dbc.execute('alter table %s_%s_joint_dist add pumano int first'%(synthesis_type, pumano))
-        dbc.execute('alter table %s_%s_joint_dist add tract int after pumano'%(synthesis_type, pumano))
-        dbc.execute('alter table %s_%s_joint_dist add bg int after tract'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add pumano bigint first'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add tract bigint after pumano'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add bg bigint after tract'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add frequency float(27)'%(synthesis_type, pumano))
         dbc.execute('alter table %s_%s_joint_dist add index(tract, bg)'%(synthesis_type, pumano))
     except Exception, e:
