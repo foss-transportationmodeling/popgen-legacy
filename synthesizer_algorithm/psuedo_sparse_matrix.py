@@ -122,7 +122,7 @@ def generate_index_matrix(db, pumano):
     except:
         pass
     dbc.execute("create table sparse_matrix1_%s select * from sparse_matrix_%s order by colno, rowno"%(pumano, pumano))
-    dbc.execute("alter table sparse_matrix1_%s add column id int primary key auto_increment not null first"%(pumano))
+    dbc.execute("alter table sparse_matrix1_%s add column id bigint primary key auto_increment not null first"%(pumano))
     try:
         dbc.execute("create table index_matrix_%s select colno, min(id), max(id) from sparse_matrix1_%s group by colno"%(pumano, pumano))
     except:
