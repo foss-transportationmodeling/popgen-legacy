@@ -272,8 +272,9 @@ class MainWindow(QMainWindow):
         self.wizard.setWindowIcon(QIcon("./images/projectnew.png"))
         
         if self.wizard.exec_():
-            print "complete"
+            #print "complete"
             self.project = self.wizard.project
+            self.setWindowTitle("PopGen: Version-0.50 (%s)" %(self.project.filename))
             self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
@@ -395,6 +396,7 @@ class MainWindow(QMainWindow):
         vars = SetCorrDialog(self.project)
         if vars.exec_():
             self.project = vars.project
+            self.project.save()
             self.fileManager.populate()
 
 
@@ -405,7 +407,6 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
-        
         runDia = RunDialog(self.project)
         
         runDia.exec_()
