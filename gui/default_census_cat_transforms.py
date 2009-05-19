@@ -25,9 +25,12 @@ DEFAULT_PERSON_PUMS_QUERIES = [ "alter table person_pums add column agep bigint"
                                 "update person_pums set employment = 3 where esr = 3",
                                 "update person_pums set employment = 4 where esr = 6",
                                 "drop table person_sample",
-                                "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment from person_pums"]
+                                "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment from person_pums",
+                                "alter table person_sample add index(serialno, pnum)"]
 
-DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add column hhtype bigint",
+
+DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add index(serialno)",
+                                "alter table housing_pums add column hhtype bigint",
                                 "alter table housing_pums add column hhldtype bigint",
                                 "alter table housing_pums add column hhldinc bigint",
                                 "alter table housing_pums add column hhldtenure bigint",
@@ -67,7 +70,10 @@ DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add column hhtype bigi
                                 "drop table hhld_sample",
                                 "drop table gq_sample",
                                 "create table hhld_sample select state, pumano, hhid, serialno, hhtype, hhldtype, hhldinc, hhldsize, childpresence from housing_pums where hhtype = 1",
-                                "create table gq_sample select state, pumano, hhid, serialno, hhtype, groupquarter from housing_pums where hhtype = 2"]
+                                "create table gq_sample select state, pumano, hhid, serialno, hhtype, groupquarter from housing_pums where hhtype = 2",
+                                "alter table hhld_sample add index(serialno)",
+                                "alter table gq_sample add index(serialno)"]
+
 
 DEFAULT_SF_QUERIES = ["alter table %s add column agep1 bigint",
                       "alter table %s add column agep2 bigint",
