@@ -1,9 +1,0 @@
-<!DOCTYPE RCC><RCC version="1.0">
-<qresource>
-<file alias = "">images/projectnew.png</file>
-<file alias = "">images/projectopen.png</file>
-<file alias = "">images/projectsave.png</file>
-<file alias = "">images/projectsaveas.png</file>
-<file alias = "">images/quit.png</file>
-</qresource>
-</RCC>
