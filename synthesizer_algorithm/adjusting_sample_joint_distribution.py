@@ -179,7 +179,7 @@ def marginals(db, synthesis_type, variable_name, pumano, tract, bg):
 # Returns the marginals wrt the entered dimension for calculating the adjustment in each iteration
     dbc = db.cursor()
     dbc.execute('select %s, sum(frequency) from %s_%s_joint_dist where tract = %s and bg = %s group by %s' %( variable_name, synthesis_type, pumano, tract, bg, variable_name))
-    result = dbc.fetchall()
+    result = arr(dbc.fetchall(), float)
     marginal = []
     for i in result:
         marginal.append(float(i[1]))
@@ -214,16 +214,20 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
     marginals = database(db, '%s_marginals'%synthesis_type)
     variable_names = marginals.variables()
     control_marginals = []
+    control_marginals_sum = []
     for dummy in control_variables:
         dbc.execute('select %s from %s_sample group by %s' %(dummy, synthesis_type, dummy))
-        cats = arr(dbc.fetchall(), int)
+        cats = arr(dbc.fetchall(), float)
         #print dummy, cats
         
         variable_marginals1 = []
+        check_marginal_sum = 0
         for i in cats:
-            corrVar = varCorrDict['%s%s' %(dummy, i[0])]
+            corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
             dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
-            result = dbc.fetchall()
+            result = arr(dbc.fetchall(), float)
+            check_marginal_sum = result[0][0] + check_marginal_sum
+
             if result[0][0] <> 0:
                 variable_marginals1.append(result[0][0])
             else:
@@ -241,7 +245,16 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         #        else:
         #            variable_marginals.append(0.1)
         #print 'old', variable_marginals
+        
+        if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
+            raise Exception, 'The given marginal distribution for a control variable sums to zero.'
         control_marginals.append(variable_marginals1)
+        control_marginals_sum.append(check_marginal_sum)
+    if synthesis_type == 'hhld' or synthesis_type == 'person':
+        for i in control_marginals_sum[0:]:
+            if i <> control_marginals_sum[0]:
+                raise Exception, 'The marginal distributions for the control variables are not the same.'
+            
     dbc.close()
     db.commit()
     return control_marginals
@@ -263,13 +276,14 @@ def create_adjusted_frequencies(db, synthesis_type, control_variables, pumano, t
     pums_table = ('%s_%s_joint_dist'%(synthesis_type, 0))
 
     dbc.execute('select * from %s where tract = %s and bg = %s order by %s' %(puma_table, tract, bg, dummy_order_string))
-    puma_joint = arr(dbc.fetchall())
+    puma_joint = arr(dbc.fetchall(), float)
     puma_prob = puma_joint[:,-2] / sum(puma_joint[:,-2])
     upper_prob_bound = 0.5 / sum(puma_joint[:,-2])
 
     dbc.execute('select * from %s order by %s' %(pums_table, dummy_order_string))
-    pums_joint = arr(dbc.fetchall())
+    pums_joint = arr(dbc.fetchall(), float)
     pums_prob = pums_joint[:,-2] / sum(pums_joint[:,-2])
+    
 
     puma_adjustment = (pums_prob <= upper_prob_bound) * pums_prob + (pums_prob > upper_prob_bound) * upper_prob_bound
     correction = 1 - sum((puma_prob == 0) * puma_adjustment)
