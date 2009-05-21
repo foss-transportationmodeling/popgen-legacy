@@ -21,18 +21,24 @@ class FileProperties():
 
             if self.checkVarTypes(firstline):
                 self.varTypesDummy = True
-                self.varTypes = re.split("[,|\t]", firstline[:-1])
+                firstline = firstline[:-1]
+                firstline = firstline.replace("\"", "")
+                self.varTypes = re.split("[,|\t]", firstline)
                 self.varNamesDummy = False
             else:
                 self.varTypesDummy = False
                 if self.checkVarNames(firstline):
                     self.varNamesDummy = True
-                    self.varNames = re.split("[,|\t]", firstline[:-1])
+                    firstline = firstline[:-1]
+                    firstline = firstline.replace("\"", "")
+                    self.varNames = re.split("[,|\t]", firstline)
                 else:
                     self.varNamesDummy = False
                 if self.checkVarTypes(secondline):
                     self.varTypesDummy = True
-                    self.varTypes = re.split("[,|\t]", secondline[:-1])
+                    secondline = secondline[:-1]
+                    secondline = secondline.replace("\"", "")
+                    self.varTypes = re.split("[,|\t]", secondline)
                 else:
                     self.varTypesDummy = False
 
@@ -47,7 +53,9 @@ class FileProperties():
                               'decimal',
                               'bit',
                               'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
+        line = line.replace("\"", "")
         line = re.split("[,|\t]", line[:-1])
+
         for i in line:
             try:
                 validVariableTypes.index(i.lower())
@@ -58,7 +66,10 @@ class FileProperties():
 
 
     def checkVarNames(self, line):
+        line = line.replace("\"", "")
         line = re.split("[,|\t]", line[:-1])
+        line = ['%s' %i for i in line]
+
         for i in line:
             if not re.match("[A-Za-z]", i[0]):
                 #raise FileError, "Enter a valid variable name"
@@ -117,6 +128,7 @@ class ImportUserProvData():
             firstrow = f.readline()
             firstrow = re.split("[,|\t]", firstrow[:-1])
 
+            
         for i in self.varNames:
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable name"
@@ -152,7 +164,7 @@ class ImportUserProvData():
         self.query1 = 'create table %s('%(self.tableName) + self.query1 + ')'
 
         self.query2 = ("""load data local infile "%s" into table %s fields terminated by "," """
-                       """lines terminated by "\n" ignore %s lines""" %(self.filePath,
+                       """lines terminated by "\r\n" ignore %s lines""" %(self.filePath,
                                                                         self.tableName,
                                                                         int(self.varNamesFileDummy) + int(self.varTypesFileDummy)))
 if __name__ == "__main__":
