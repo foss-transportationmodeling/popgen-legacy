@@ -23,6 +23,7 @@ class FileProperties():
                 self.varTypesDummy = True
                 firstline = firstline[:-1]
                 firstline = firstline.replace("\"", "")
+                firstline = firstline.replace("'", "")
                 self.varTypes = re.split("[,|\t]", firstline)
                 self.varNamesDummy = False
             else:
@@ -31,6 +32,7 @@ class FileProperties():
                     self.varNamesDummy = True
                     firstline = firstline[:-1]
                     firstline = firstline.replace("\"", "")
+                    firstline = firstline.replace("'", "")
                     self.varNames = re.split("[,|\t]", firstline)
                 else:
                     self.varNamesDummy = False
@@ -38,6 +40,7 @@ class FileProperties():
                     self.varTypesDummy = True
                     secondline = secondline[:-1]
                     secondline = secondline.replace("\"", "")
+                    secondline = secondline.replace("'", "")
                     self.varTypes = re.split("[,|\t]", secondline)
                 else:
                     self.varTypesDummy = False
@@ -54,6 +57,7 @@ class FileProperties():
                               'bit',
                               'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
         line = line.replace("\"", "")
+        line = line.replace("'", "")
         line = re.split("[,|\t]", line[:-1])
 
         for i in line:
@@ -67,6 +71,7 @@ class FileProperties():
 
     def checkVarNames(self, line):
         line = line.replace("\"", "")
+        line = line.replace("'", "")
         line = re.split("[,|\t]", line[:-1])
         line = ['%s' %i for i in line]
 
