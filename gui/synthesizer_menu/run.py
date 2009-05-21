@@ -124,9 +124,11 @@ class RunDialog(QDialog):
                 missingTablesString = missingTablesString + ', ' + i
                 missingTables.append(i)
 
+        print 'Missing Tables', missingTablesString
+
         if len(missingTables) > 0:
             QMessageBox.warning(self, "PopGen: Run Synthesizer", "The following tables are missing %s, "
-                                " the program will run the prepare data step." %(missingTablesString[-1:]))
+                                " the program will run the prepare data step." %(missingTablesString[1:-2]))
             self.prepareData()
         # For now implement it without checking for each individual table that is created in this step
         # in a later implementation check for each table before you proceed with the creation of that particular table
@@ -172,8 +174,11 @@ class RunDialog(QDialog):
                     
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-
-                    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
+                    try:
+                        configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
+                    except Exception, e:
+                        self.outputWindow.append("\t- Error in the Syntheiss for geography")
+                        print ('Exception: %s' %e)
                 self.selGeographiesButton.setEnabled(False)
             else:
                 self.runGeoIds = []
@@ -245,7 +250,8 @@ class RunDialog(QDialog):
                             elif reply == QMessageBox.NoToAll:
                                 notoall = True
 
-                    except:
+                    except Exception, e:
+                        print e
                         self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                         self.selGeographiesList.addItem(itemText)
                 if self.selGeographiesList.count()>0:
