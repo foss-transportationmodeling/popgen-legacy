@@ -97,7 +97,7 @@ class SetCorrDialog(QDialog):
                     QDialog.accept(self)
 
     def clearTables(self, tableNamePrefix):
-        print "variable relations modified - %s" %(tableNamePrefix)
+        #print "variable relations modified - %s" %(tableNamePrefix)
         self.projectDBC.dbc.open()
         query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
@@ -108,7 +108,6 @@ class SetCorrDialog(QDialog):
         while query.next():
             tableName = query.value(0).toString()
             if tableName.startsWith(tableNamePrefix) and (tableName.endsWith("_joint_dist") or tableName.endsWith("_ipf")):
-                print 'table found'
                 if not query1.exec_("""drop table %s""" %(tableName)):
                     raise FileError, query1.lastError().text()
 
@@ -117,7 +116,10 @@ class SetCorrDialog(QDialog):
         if len (vardict.keys()) > 0 or override:
             controlVariables = ['%s' %i for i in vardict.keys()]
             controlVariables.sort()
-            controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
+            #controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
+            controlDimensions = numpy.asarray([len(vardict[i].keys()) for i in controlVariables])
+            
+            #print controlVariables, controlDimensions
 
             return controlVariables, controlDimensions        
         else:
@@ -388,7 +390,7 @@ class TabWidgetItems(QWidget):
         string = self.varCatStrings(varName, varCats)
 
         for i in string:
-            self.selVarCatStrings[i] = varName
+            self.selVarCatStrings[i] = '%s' %varName
 
         self.selSampleVarCatListWidget.addItems(string)
 
@@ -422,7 +424,7 @@ class TabWidgetItems(QWidget):
     
 
     def removeSampleVarCats(self, item):
-        varName = item.text()
+        varName = '%s' %item.text()
 
         for i in self.selVarCatStrings.keys():
             if self.selVarCatStrings[i] == varName:
@@ -433,27 +435,45 @@ class TabWidgetItems(QWidget):
             if self.relationStrings[i] == varName:
                 row = self.relationsListWidget.rowOf(i)
                 self.relationsListWidget.takeItem(row)
-
-        self.selVariables.pop(varName)
-            
-
+        try:
+            self.selVariables.pop(varName)
+        except Exception, e:
+            print e
+            pass
 
     def addRelationAction(self):
-        sampleVarCat = self.selSampleVarCatListWidget.currentItem().text()
-        varName = self.selVarCatStrings['%s' %sampleVarCat]
-        controlVar = self.controlVarListWidget.currentItem().text()
+        try:
+            sampleVarCat = '%s' %self.selSampleVarCatListWidget.currentItem().text()
+            controlVar = '%s' %self.controlVarListWidget.currentItem().text()
+            varName = self.selVarCatStrings[sampleVarCat]
 
-        relation = '%s -  %s' %(sampleVarCat, controlVar)
+            try:
+            #print varName, sampleVarCat
+                self.selVariables[varName][sampleVarCat]
+                controlVar = self.selVariables[varName][sampleVarCat]
+                relation = '%s -  %s' %(sampleVarCat, controlVar)
+            #print relation
+            except:
+                self.selVariables[varName][sampleVarCat] = controlVar
+                relation = '%s -  %s' %(sampleVarCat, controlVar)
+                self.relationStrings[relation] = varName
+                
+            row = self.relationsListWidget.rowOf(relation)
+            itemAt = self.relationsListWidget.item(row)
 
-        self.selVariables[varName][sampleVarCat] = controlVar
+            if row >0:
+                QMessageBox.warning(self, "PopGen: Run Synthesizer", """If you wish to change the control variable """
+                                    """corresponding to a category of the control variable, please delete the existing correspondence """
+                                    """and define again.""", QMessageBox.Ok)
+                self.relationsListWidget.setCurrentItem(itemAt)
+            else:
+                self.relationsListWidget.addItem(relation)
 
-        self.relationStrings[relation] = varName
-        
-        row = self.relationsListWidget.rowOf(relation)
-        if row >0:
-            self.relationsListWidget.setItemSelected(itemAt, True)
-        else:
-            self.relationsListWidget.addItem(relation)
+        except Exception, e:
+            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Please select a variable category """
+                                """and a variable name to add a relation.""")
+            
+
 
 
     def deleteRelationAction(self):
@@ -463,6 +483,7 @@ class TabWidgetItems(QWidget):
     def deleteRelationNow(self):
         self.parseRelation(self.relationsListWidget.currentItem())
         self.relationsListWidget.remove()
+        #print self.selVariables
 
 
         
