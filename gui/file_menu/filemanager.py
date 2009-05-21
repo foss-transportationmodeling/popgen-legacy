@@ -209,15 +209,18 @@ class QTreeWidgetCMenu(QTreeWidget):
             check1 = (self.page.projectDescLineEdit.text() == self.project.description)
             check2 = (self.page.projectResolutionComboBox.currentText() == self.project.resolution)
             
+            #print check1, check2, 'checkkkkkkkkksssssssssssssssssss'
+
             if check1 and check2:
                 pass
             else:
+                #print 'project properties altereddddddddddddddddddddddddddddddddddddddddddddddddd'
                 self.page.updateProject()
                 self.project = self.page.project
                 self.project.save()
                 self.populate()
 
-            if not check2:
+            if not check2 and not self.project.controlUserProv:
                 autoImportSFDataInstance = AutoImportSFData(self.project)
                 autoImportSFDataInstance.createMasterSubSFTable()
                 autoImportSFDataInstance.projectDBC.dbc.close()      
