@@ -130,7 +130,7 @@ def generate_index_matrix(db, pumano):
         dbc.execute("create table index_matrix_%s select colno, min(id), max(id) from sparse_matrix1_%s group by colno"%(pumano, pumano))    
     dbc.execute("select * from index_matrix_%s"%(pumano))
     result = dbc.fetchall()
-    index_matrix = arr(result)
+    index_matrix = arr(result, int)
     dbc.close()       
     db.commit()
     return index_matrix
