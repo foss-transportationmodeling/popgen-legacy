@@ -44,15 +44,15 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
 # Identifying the number of housing units in the disaggregate sample
 # Make Sure that the file is sorted by hhid
     dbc.execute('select hhid, serialno from gq_sample')
-    gq_sample = numpy.asarray(dbc.fetchall())
+    gq_sample = numpy.asarray(dbc.fetchall(), int)
     gq_units = dbc.rowcount
 
     dbc.execute('select hhid, serialno from hhld_sample')
-    hhld_sample = numpy.asarray(dbc.fetchall())
+    hhld_sample = numpy.asarray(dbc.fetchall(), int)
     hhld_units = dbc.rowcount
 
     dbc.execute('select hhid, serialno, pnum, personuniqueid from person_sample')
-    person_sample = numpy.asarray(dbc.fetchall())
+    person_sample = numpy.asarray(dbc.fetchall(), int)
 
     housing_sample = numpy.vstack((hhld_sample, gq_sample))
     housing_units = gq_units + hhld_units
