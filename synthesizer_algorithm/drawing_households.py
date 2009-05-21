@@ -30,7 +30,7 @@ def person_index_matrix(db, pumano = 0):
         print e
 
     dbc.execute('select hhid, min(id), max(id) from person_sample_%s group by hhid'%(pumano))
-    result = dbc.fetchall()
+    result = arr(dbc.fetchall(), int)
 
     #print 'Person index matrix read in - %.4f' %(time.time()-ti)
 
@@ -58,10 +58,10 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     except:
         pass
     dbc.execute('select frequency from %s_%s_joint_dist where tract = %s and bg = %s order by %s;' %(synthesis_type, pumano, tract, bg, order_string))
-    frequency = arr(dbc.fetchall())
+    frequency = arr(dbc.fetchall(), float)
 
     dbc.execute('select frequency from %s_0_joint_dist order by %s' %(synthesis_type, order_string))
-    prior = arr(dbc.fetchall())
+    prior = arr(dbc.fetchall(), float)
 
     rowcount = dbc.rowcount
     dummy_table = zeros((rowcount, 6))
@@ -76,7 +76,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     dbc.execute('update %s set r_marginal = marginal where tract = %s and bg = %s'%(table_name, tract, bg))
     dbc.execute('update %s set diff_marginals = (marginal - r_marginal) * marginal where tract = %s and bg = %s'%(table_name, tract, bg))
     dbc.execute('select sum(marginal) - sum(r_marginal) from %s where tract = %s and bg = %s'%(table_name, tract, bg))
-    result = dbc.fetchall()
+    result = arr(dbc.fetchall(), float)
     diff_total = round(result[0][0])
 
 
@@ -93,7 +93,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
         dbc.execute('update %s set r_marginal = r_marginal + %s where %suniqueid = %s and tract = %s and bg = %s' %(table_name, diff_total / abs(diff_total), synthesis_type, result[i][0], tract, bg))
 
     dbc.execute('select r_marginal from %s where prior <> 0 and tract = %s and bg = %s order by %suniqueid'%(table_name, tract, bg, synthesis_type))
-    marginals = arr(dbc.fetchall())
+    marginals = arr(dbc.fetchall(), float)
     dbc.close()
     db.commit()
     return marginals
@@ -237,9 +237,9 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
     for i in range(len(objective_frequency)):
         if objective_frequency[i] > 0:
             counter = counter + 1
-
             statistic = statistic + sum(((objective_frequency[i] - estimated_frequency[i]) ** 2)/ objective_frequency[i])
 
+    #raw_input()
     return statistic, counter, estimated_frequency
 
 def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract = 0, bg = 0):
