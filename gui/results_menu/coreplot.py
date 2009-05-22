@@ -68,7 +68,7 @@ class Matplot(QDialog):
         return action
 
     def executeSelectQuery(self, vars, tablename, filter="", group =""):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         if filter != "" and group != "":
             if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
                 raise FileError, query.lastError().text()
