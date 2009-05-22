@@ -84,7 +84,7 @@ class Hhdist(Matplot):
             variable = seldict[self.current][i]
             self.catlabels.append(variable)
             variableAct = "sum(%s)" %variable
-            queryAct = self.executeSelectQuery(variableAct, tableAct, filterAct)
+            queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
             while queryAct.next():
                 value = queryAct.value(0).toInt()[0]
                 actTotal.append(value)
@@ -93,7 +93,7 @@ class Hhdist(Matplot):
             category = category.split()[-1]
             filterEst = self.current + " = %s" % category
             variableEst = "sum(frequency)"
-            queryEst = self.executeSelectQuery(variableEst, tableEst, filterEst)
+            queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
             
             while queryEst.next():
                 value = queryEst.value(0).toInt()[0]

@@ -39,7 +39,7 @@ class Absreldiff(Matplot):
         aardvalvar = "aardvalue"
         filter = ""
         group = ""
-        query = self.executeSelectQuery(aardvalvar, performancetable, filter, group)
+        query = self.executeSelectQuery(projectDBC.dbc,aardvalvar, performancetable, filter, group)
         
         while query.next():
             aardval = query.value(0).toDouble()[0]

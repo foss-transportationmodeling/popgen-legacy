@@ -154,7 +154,7 @@ class Indgeo(Matplot):
         self.mapwidget.setLayout(maplayout)
 
     def getPUMA5(self, geo):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         
         if not geo.puma5:
             if self.project.resolution == 'County':
@@ -193,7 +193,7 @@ class Indgeo(Matplot):
             filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
             filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=0"
 
-        query = self.executeSelectQuery(vars, performancetable, filter_syn, group)
+        query = self.executeSelectQuery(self.projectDBC.dbc,vars, performancetable, filter_syn, group)
         aardval = 0.0
         pval = 0.0
         while query.next():
@@ -213,7 +213,7 @@ class Indgeo(Matplot):
             actualtable = "person_" + str(self.pumano) + "_joint_dist"
             vars = "personuniqueid" + "," + "frequency"
             group = "personuniqueid"
-            query = self.executeSelectQuery(vars, actualtable, filter_act, group)
+            query = self.executeSelectQuery(self.projectDBC.dbc,vars, actualtable, filter_act, group)
             while query.next():
                 id= query.value(0).toInt()[0]
                 freq = query.value(1).toDouble()[0]
@@ -223,7 +223,7 @@ class Indgeo(Matplot):
             syntable = "person_synthetic_data"
             vars = "personuniqueid" + "," + "sum(frequency)"
             group = "personuniqueid"
-            query = self.executeSelectQuery(vars, syntable, filter_syn, group)
+            query = self.executeSelectQuery(self.projectDBC.dbc,vars, syntable, filter_syn, group)
             self.syn = [0.0] * len(self.act)
             while query.next():
                 id= query.value(0).toInt()[0]

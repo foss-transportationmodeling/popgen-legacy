@@ -40,7 +40,7 @@ class Pval(Matplot):
         pvaluevar = "pvalue"
         filter = ""
         group = ""
-        query = self.executeSelectQuery(pvaluevar, performancetable, filter, group)
+        query = self.executeSelectQuery(projectDBC.dbc,pvaluevar, performancetable, filter, group)
         
         while query.next():
             pval = query.value(0).toDouble()[0]
