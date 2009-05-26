@@ -14,7 +14,7 @@ class Ppdist(Matplot):
         self.projectDBC.dbc.open()
         self.variables = self.project.selVariableDicts.person.keys()
         self.variables.sort()
-        self.dimensions = [len(project.selVariableDicts.hhld[i].keys()) for i in self.variables]
+        #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
         self.setWindowTitle("Person Attributes Distribution")
         self.makeComboBox()
@@ -45,19 +45,29 @@ class Ppdist(Matplot):
     def on_draw(self):
         """ Redraws the figure  
         """
-        self.current = self.hhcombobox.currentText()      
+        self.current = '%s' %self.hhcombobox.currentText()          
         self.categories = self.project.selVariableDicts.person[self.current].keys()
         self.categories.sort()
         self.corrControlVariables =  self.project.selVariableDicts.person[self.current].values()
         
         filterAct = ""
-        self.countyCodes = []
-        for i in self.project.region.keys():
-            code = self.project.countyCode['%s,%s' % (i, self.project.state)]
-            self.countyCodes.append(code)
-            filterAct = filterAct + "county = %s or " %code
-            
-        filterAct = filterAct[:-3]
+        #self.countyCodes = []
+        #for i in self.project.region.keys():
+            #code = self.project.countyCode['%s,%s' % (i, self.project.state)]
+            #self.countyCodes.append(code)
+            #filterAct = filterAct + "county = %s or " %code
+        #filterAct = filterAct[:-3]   
+        table = "person_synthetic_data"
+        variable = "county,tract,bg"
+        queryAct = self.executeSelectQuery(self.projectDBC.dbc,variable, table, "",variable)
+        i=0
+        while queryAct.next():
+            filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
+            if i == 0:
+                filterAct = "(" + filterAct + filstr + ")"
+                i = 1
+            else:
+                filterAct = filterAct + " or " + "(" + filstr + ")"
         
         actTotal = []
         estTotal = []
@@ -79,14 +89,17 @@ class Ppdist(Matplot):
             variableEst = "sum(frequency)"
             queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
             
+            iteration = 0
             while queryEst.next():
                 value = queryEst.value(0).toInt()[0]
                 estTotal.append(value)
-                
+                iteration = 1
+            if iteration == 0:
+                estTotal.append(0)
+        
         # clear the axes and redraw the plot anew
         self.axes.clear()        
         self.axes.grid(True)
-        self.canvas.draw()  
         
         N=len(actTotal)
         ind = np.arange(N)
@@ -100,11 +113,21 @@ class Ppdist(Matplot):
         # generic labels should be created
         self.axes.set_xticklabels(self.catlabels)
         self.axes.legend((rects1[0], rects2[0]), ('Actual', 'Synthetic'))
+        self.canvas.draw()
         
     def makeComboBox(self):
         self.hhcombobox = QComboBox(self)
         self.hhcombobox.addItems(self.variables)
         self.hhcombobox.setFixedWidth(400)
+        
+    def getGeogFilStr(self,county,tract,bg):
+        if self.project.resolution == "County":
+            str = "county=%s" %(county)
+        if self.project.resolution == "Tract":
+            str = "county=%s and tract=%s" %(county,tract)
+        if self.project.resolution == "Blockgroup":
+            str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
+        return str
 
 def main():
     app = QApplication(sys.argv)

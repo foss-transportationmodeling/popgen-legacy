@@ -83,7 +83,6 @@ class Matplot(QDialog):
                 raise FileError, query.lastError().text()
         return query
 
-
 def main():
     app = QApplication(sys.argv)
     form = AppForm()

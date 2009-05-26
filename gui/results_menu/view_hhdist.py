@@ -53,7 +53,7 @@ class Hhdist(Matplot):
     def on_draw(self):
         """ Redraws the figure
         """
-        self.current = self.hhcombobox.currentText()
+        self.current = '%s' %self.hhcombobox.currentText()
         if self.current in self.hhldvariables:
             self.categories = self.project.selVariableDicts.hhld[self.current].keys()
             self.corrControlVariables =  self.project.selVariableDicts.hhld[self.current].values()
@@ -69,12 +69,17 @@ class Hhdist(Matplot):
         self.categories.sort()
 
         filterAct = ""
-        self.countyCodes = []
-        for i in self.project.region.keys():
-            code = self.project.countyCode['%s,%s' % (i, self.project.state)]
-            self.countyCodes.append(code)
-            filterAct = filterAct + "county = %s or " %code
-        filterAct = filterAct[:-3]
+        table = "housing_synthetic_data"
+        variable = "county,tract,bg"
+        queryAct = self.executeSelectQuery(self.projectDBC.dbc,variable, table, "",variable)
+        i=0
+        while queryAct.next():
+            filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
+            if i == 0:
+                filterAct = "(" + filterAct + filstr + ")"
+                i = 1
+            else:
+                filterAct = filterAct + " or " + "(" + filstr + ")"
         
         actTotal = []
         estTotal = []
@@ -95,9 +100,13 @@ class Hhdist(Matplot):
             variableEst = "sum(frequency)"
             queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
             
+            iteration = 0
             while queryEst.next():
                 value = queryEst.value(0).toInt()[0]
-                estTotal.append(value)        
+                estTotal.append(value) 
+                iteration = 1
+            if iteration == 0:
+                estTotal.append(0)
             
         # clear the axes and redraw the plot anew
         self.axes.clear()        
@@ -119,6 +128,15 @@ class Hhdist(Matplot):
         self.hhcombobox = QComboBox(self)
         self.hhcombobox.addItems(self.hhldvariables+self.gqvariables)
         self.hhcombobox.setFixedWidth(400)
+
+    def getGeogFilStr(self,county,tract,bg):
+        if self.project.resolution == "County":
+            str = "county=%s" %(county)
+        if self.project.resolution == "Tract":
+            str = "county=%s and tract=%s" %(county,tract)
+        if self.project.resolution == "Blockgroup":
+            str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
+        return str
 
 def main():
     app = QApplication(sys.argv)
