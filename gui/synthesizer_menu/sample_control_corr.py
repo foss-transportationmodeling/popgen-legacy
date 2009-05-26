@@ -448,12 +448,12 @@ class TabWidgetItems(QWidget):
             varName = self.selVarCatStrings[sampleVarCat]
 
             try:
-            #print varName, sampleVarCat
-                self.selVariables[varName][sampleVarCat]
                 controlVar = self.selVariables[varName][sampleVarCat]
                 relation = '%s -  %s' %(sampleVarCat, controlVar)
+                raise Exception, "The relation already exists"
             #print relation
-            except:
+            except Exception, e:
+                print '%s:%s' %(Exception, e)
                 self.selVariables[varName][sampleVarCat] = controlVar
                 relation = '%s -  %s' %(sampleVarCat, controlVar)
                 self.relationStrings[relation] = varName
@@ -461,7 +461,7 @@ class TabWidgetItems(QWidget):
             row = self.relationsListWidget.rowOf(relation)
             itemAt = self.relationsListWidget.item(row)
 
-            if row >0:
+            if row >= 0:
                 QMessageBox.warning(self, "PopGen: Run Synthesizer", """If you wish to change the control variable """
                                     """corresponding to a category of the control variable, please delete the existing correspondence """
                                     """and define again.""", QMessageBox.Ok)
@@ -488,11 +488,12 @@ class TabWidgetItems(QWidget):
 
         
     def parseRelation(self, item):
-        relation = item.text()
+        relation = '%s' %item.text()
         for i in self.selVariables.keys():
-            if i == relation:
-                self.selVariables.pop(i)
-
+            for j in self.selVariables[i].keys():
+                matchRelation = '%s -  %s' %(j, self.selVariables[i][j])
+                if matchRelation == relation:
+                    self.selVariables[i].pop(j)
 
     def populate(self):
         self.sampleTableComboBox.addItem(self.sampleTable)
