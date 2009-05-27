@@ -90,6 +90,7 @@ class Indgeo(Matplot):
 
 
     def on_draw(self, provider=None, selfeat=None ):
+
         if provider != None:
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
             tractidx = provider.indexFromFieldName("TRACT")
@@ -119,12 +120,21 @@ class Indgeo(Matplot):
             self.axes.grid(True)
             self.axes.set_xlabel("Joint Frequency Distribution from IPF")
             self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
-            self.canvas.draw()
+            self.axes.set_xbound(0)
+            self.axes.set_ybound(0)
+
+
             
             self.retrieveResults()
+
             provider.fields()
             if len(self.ids) > 0:
-                self.axes.scatter(self.act, self.syn)
+                scat_plot = self.axes.scatter(self.act, self.syn)
+                scat_plot.axes.set_xbound(0)
+                scat_plot.axes.set_ybound(0)
+            else:
+                pass
+            self.canvas.draw()
 
     def makeComboBox(self):
         self.geocombobox = QComboBox(self)
