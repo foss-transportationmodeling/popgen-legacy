@@ -438,8 +438,7 @@ class MainWindow(QMainWindow):
         QMessageBox.information(self, "Results", "Regional Performance Statistics", QMessageBox.Ok)
     
     def resultsIndividual(self):
-        res = ResultsGen(self.project)
-
+        #res = ResultsGen(self.project)
         indgeo = Indgeo(self.project)
         indgeo.exec_()         
     def resultsViewHH(self):
