@@ -56,7 +56,10 @@ class ResultsGen():
     
     def create_hhmap(self):
         # create a new shapefile with selected counties
-        self.makesublayer() 
+        newfilename = self.res_prefix+self.stateCode+"_selected" 
+        newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
+        if not os.path.exists(newfile):
+            self.makesublayer()
         # Decide whether to show points or not
     
     def makesublayer(self):
@@ -81,12 +84,12 @@ class ResultsGen():
         baselayer.select(QgsRect(), True)
         feat = QgsFeature()
         
-        if os.path.exists(newfile):
-            os.remove(newfile)
-        if os.path.exists(newdbf):
-            os.remove(newdbf)
-        if os.path.exists(newshx):
-            os.remove(newshx)
+        #if os.path.exists(newfile):
+        #    os.remove(newfile)
+        #if os.path.exists(newdbf):
+        #    os.remove(newdbf)
+        #if os.path.exists(newshx):
+        #    os.remove(newshx)
             
         writer = QgsVectorFileWriter(newfile, "CP1250", baseprovider.fields(), QGis.WKBPolygon, None)
         del writer
@@ -115,6 +118,7 @@ class ResultsGen():
                baselayer.getFeatureAtId(featid, selfeat)
                newlayer.addFeature(selfeat)
         newlayer.commitChanges()
+        newlayer = None
        
         f = open(newdbf, 'rb')
         db = list(dbfreader(f))

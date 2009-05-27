@@ -6,6 +6,7 @@ from qgis.gui import *
 from coreplot import *
 from file_menu.newproject import Geography
 from misc.map_toolbar import *
+from results_preprocessor import *
 
 # Inputs for this module
 resultsloc = "C:/populationsynthesis/gui/results"
@@ -13,6 +14,8 @@ resultmap = "bg04_selected.shp"
 
 class Indgeo(Matplot):
     def __init__(self, project, parent=None):
+        res = ResultsGen(project)
+        del res
         Matplot.__init__(self)
         self.setWindowTitle("Individual Geography Statistics")
         self.project = project
@@ -82,6 +85,7 @@ class Indgeo(Matplot):
 
     def reject(self):
         self.projectDBC.dbc.close()
+        f = open(self.resultfileloc)
         QDialog.reject(self)
 
 
