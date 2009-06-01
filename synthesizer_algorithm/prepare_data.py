@@ -29,6 +29,9 @@ def prepare_data(db, project):
     gq_dimensions = project.gqDims
     person_dimensions = project.personDims
 
+    print '------------------------------------------------------------------'
+    print 'Preparing Data for the Synthesizer Run'
+    print '------------------------------------------------------------------'
     print 'Dimensions and Control Variables in %.4f' %(time.clock()-ti)
     ti = time.clock()
 
@@ -39,23 +42,23 @@ def prepare_data(db, project):
     update_string = adjusting_sample_joint_distribution.create_update_string(db, person_control_variables, person_dimensions)
     adjusting_sample_joint_distribution.add_unique_id(db, 'person_sample', 'person', update_string)
 
-    print 'Uniqueid\'s in %.4f' %(time.clock()-ti)
+    print 'Uniqueid\'s in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 
 # Populating the Master Matrix
     populated_matrix = psuedo_sparse_matrix.populate_master_matrix(db, 0, hhld_units, gq_units, hhld_dimensions,
                                                                                                gq_dimensions, person_dimensions)
-    print 'Populated in %.4f' %(time.clock()-ti)
+    print 'Populated in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 
 # Sparse representation of the Master Matrix
     ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 0)
-    print 'Psuedo Sparse Matrix in %.4f' %(time.clock()-ti)
+    print 'Psuedo Sparse Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
 #Creating Index Matrix
     index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 0)
-    print 'Index Matrix in%.4f' %(time.clock()-ti)
+    print 'Index Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
     dbc.close()
 
