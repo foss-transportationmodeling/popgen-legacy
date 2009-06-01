@@ -251,6 +251,16 @@ def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract =
     dbc.close()
     db.commit()
 
+def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
+    dbc = db.cursor()
+    dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
+
+    values = tuple([tuple(i) for i in attributes])
+   
+    dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(values)[1:-1]))
+    dbc.close()
+    db.commit()
+
 
 def create_performance_table(db):
     dbc = db.cursor()
