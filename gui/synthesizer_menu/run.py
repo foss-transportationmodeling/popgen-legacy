@@ -124,8 +124,6 @@ class RunDialog(QDialog):
                 missingTablesString = missingTablesString + ', ' + i
                 missingTables.append(i)
 
-        print 'Missing Tables', missingTablesString
-
         if len(missingTables) > 0:
             QMessageBox.warning(self, "PopGen: Run Synthesizer", "The following tables are missing %s, "
                                 " the program will run the prepare data step." %(missingTablesString[1:-2]))
@@ -251,7 +249,7 @@ class RunDialog(QDialog):
                                 notoall = True
 
                     except Exception, e:
-                        print e
+                        #print e
                         self.runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
                         self.selGeographiesList.addItem(itemText)
                 if self.selGeographiesList.count()>0:
