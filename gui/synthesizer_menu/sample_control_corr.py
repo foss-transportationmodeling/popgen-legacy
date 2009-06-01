@@ -438,7 +438,7 @@ class TabWidgetItems(QWidget):
         try:
             self.selVariables.pop(varName)
         except Exception, e:
-            print e
+            #print e
             pass
 
     def addRelationAction(self):
@@ -453,7 +453,7 @@ class TabWidgetItems(QWidget):
                 raise Exception, "The relation already exists"
             #print relation
             except Exception, e:
-                print '%s:%s' %(Exception, e)
+                #print '%s:%s' %(Exception, e)
                 self.selVariables[varName][sampleVarCat] = controlVar
                 relation = '%s -  %s' %(sampleVarCat, controlVar)
                 self.relationStrings[relation] = varName
