@@ -30,6 +30,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
                          passwd = '%s' %project.db.password, db = '%s' %project.name)
     dbc = db.cursor()
 
+    tii = time.clock()
     ti = time.clock()
 
 # Identifying the number of housing units in the disaggregate sample
@@ -181,7 +182,7 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
     db.commit()
     dbc.close()
     db.close()
-
+    print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
 if __name__ == '__main__':
 
