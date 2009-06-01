@@ -39,6 +39,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
                          passwd = dbList[2], db = dbList[3])
     dbc = db.cursor()
 
+    tii = time.clock()
     ti = time.clock()
 
 # Identifying the number of housing units in the disaggregate sample
@@ -167,10 +168,21 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
+    #st = time.time()
+    #synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
+    #print 'housing one at a time - %.4f' %(time.time()-st)
+    #st = time.time()
+    
+    #synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
+    #print 'person one at a time - %.4f' %(time.time()-st)
 
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
+    st = time.time()
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
+    print 'housing together - %.4f' %(time.time()-st)
 
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
+    st = time.time()
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
+    print 'person together - %.4f' %(time.time()-st)
 
     
 
@@ -196,6 +208,8 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     db.commit()
     dbc.close()
     db.close()
+
+    print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
 def run_parallel(project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
 
@@ -238,6 +252,5 @@ def run_parallel(project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict
     job_server.print_stats()
 
     print ' Total time for puma - %.2f, Timing per geography - %.2f' %(time.time()-start, (time.time()-start)/len(geoIds))
-
 
 
