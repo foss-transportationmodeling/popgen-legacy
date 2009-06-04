@@ -169,38 +169,22 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
-    #st = time.time()
-    #synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
-    #print 'housing one at a time - %.4f' %(time.time()-st)
-    #st = time.time()
-    
-    #synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
-    #print 'person one at a time - %.4f' %(time.time()-st)
 
     st = time.time()
     synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
-    print 'housing together - %.4f' %(time.time()-st)
+    print 'Housing data stored in %.4f' %(time.time()-st)
 
     st = time.time()
     synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
-    print 'person together - %.4f' %(time.time()-st)
+    print 'Person data stored in %.4f' %(time.time()-st)
 
 
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     synthesizer_algorithm.drawing_households.store_performance_statistics(db, geo, values)
 
-    dbc.execute('select childpresence1 + childpresence2 from hhld_marginals where county = %s and tract = %s and bg = %s'%(county, tract, bg))
-    hhld_total = dbc.fetchall()[0][0]
 
-    dbc.execute('select groupquarter1 + groupquarter2 from gq_marginals where county = %s and tract = %s and bg = %s'%(county, tract, bg))
-    gq_total = dbc.fetchall()[0][0]
-
-
-    dbc.execute('select gender1 + gender2 from person_marginals where county = %s and tract = %s and bg = %s'%(county, tract, bg))
-    persontotal = dbc.fetchall()[0][0]
-
-    print 'Number of Synthetic Household - %d, and given Household total from the Census SF - %d' %(sum(max_p_housing_attributes[:,-2]), hhld_total + gq_total)
-    print 'Number of Synthetic Persons - %d and given Person total from the Census SF - %d' %(sum(max_p_person_attributes[:,-2]), persontotal)
+    print 'Number of Synthetic Household - %d' %(sum(max_p_housing_attributes[:,-2]))
+    print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
     print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-ti)
 
 
