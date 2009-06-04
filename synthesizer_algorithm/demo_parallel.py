@@ -14,6 +14,7 @@ import time
 import sys
 import pp
 import pickle
+import os
 
 #def configure_and_run(fileLoc, index_matrix=None, p_index_matrix=None, geo=None, varCorrDict=None):
 def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_matrix):
@@ -177,14 +178,13 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     #print 'person one at a time - %.4f' %(time.time()-st)
 
     st = time.time()
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
     print 'housing together - %.4f' %(time.time()-st)
 
     st = time.time()
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
     print 'person together - %.4f' %(time.time()-st)
 
-    
 
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     synthesizer_algorithm.drawing_households.store_performance_statistics(db, geo, values)
@@ -211,17 +211,17 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-def run_parallel(project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
+def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
     start = time.time()
-    ppservers = ()
-    if len(sys.argv) > 1:
-        ncpus = int(sys.argv[1])
-        job_server = pp.Server(ncpus, ppservers = ppservers)
-    else:
-        job_server = pp.Server(ppservers=ppservers)
+    #ppservers = ()
+    #if len(sys.argv) > 1:
+    #    ncpus = int(sys.argv[1])
+    #    job_server = pp.Server(ncpus, ppservers = ppservers)
+    #else:
+    #    job_server = pp.Server(ppservers=ppservers)
 
     print 'Number of geographies is %s'%(len(geoIds))
     modules = ('synthesizer_algorithm.heuristic_algorithm',
@@ -240,17 +240,36 @@ def run_parallel(project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
 
 
+    
+
+
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
                                                         varCorrDict,
                                                         dbList, 
                                                         indexMatrix, 
                                                         pIndexMatrix), (), modules)) for geo in geoIds]
-
     for geo, job in jobs:
         print job()
     job_server.print_stats()
 
-    print ' Total time for puma - %.2f, Timing per geography - %.2f' %(time.time()-start, (time.time()-start)/len(geoIds))
+
+
+    db = MySQLdb.connect(host = dbList[0], user = dbList[1],
+                         passwd = dbList[2], db = dbList[3])
+
+    import os
+    fileHousing = os.getcwd() + os.sep + 'housingdata.txt'
+    fileHousing = fileHousing.replace('\\', '/')
+    filePerson = os.getcwd() + os.sep + 'persondata.txt'
+    filePerson = filePerson.replace('\\', '/')
+
+    synthesizer_algorithm.drawing_households.store(db, fileHousing, 'housing_synthetic_data')
+    synthesizer_algorithm.drawing_households.store(db, filePerson, 'person_synthetic_data')    
+
+    os.remove(fileHousing)
+    os.remove(filePerson)
+    
+    print ' Total time for %d geographies - %.2f, Timing per geography - %.2f' %(len(geoIds), time.time()-start, (time.time()-start)/len(geoIds))
 
 
