@@ -133,7 +133,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
 
     dbc.close()
     db.commit()
-    return arr(synthetic_population)
+    return arr(synthetic_population, int)
 
 def hhid_row_dictionary(housing_sample):
     hhidRowDict = {}
@@ -167,11 +167,15 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
     synthetic_housing_attributes[:,1] = county
     synthetic_housing_attributes[:,2] = tract
     synthetic_housing_attributes[:,3] = bg
-    
-    synthetic_housing_attributes[:,4:-2] = housing_sample[synthetic_population[:,0],:]
-    
-    
 
+    try:
+        housing_sample[synthetic_population[:,0],:]
+        synthetic_housing_attributes[:,4:-2] = housing_sample[synthetic_population[:,0],:]
+    except Exception, e:
+        for i in synthetic_population[:,0]:
+            print i, housing_sample[i,:]
+        print e, 'Crashesssssssssssssssssssssssssssssssssssssssss Herrrrrrrrrrrrrrrrrrrreeeeeeeeeeeeeeeee'
+        
     # Store household frequency
     synthetic_housing_attributes[:,-2] = synthetic_population[:,1]
     # Store household unique id
@@ -245,11 +249,27 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
 def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract = 0, bg = 0):
     dbc = db.cursor()
     dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
-
-    for i in range(attributes.shape[0]):
-        dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(tuple(attributes[i,:]))))
-    dbc.close()
+    #print ('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
     db.commit()
+    filename = '%sdata.txt' %(synthesis_type)
+    f = open(filename, 'a')
+    
+    for i in range(attributes.shape[0]):
+        values = ''
+        for j in attributes[i,:]:
+            values = values + str(j) + '\t'
+        #values = str(tuple(attributes[i,:]))
+        f.write(values[:-1])
+        f.write('\n')
+        #dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(tuple(attributes[i,:]))))
+        #db.commit()
+    dbc.close()
+    f.close()
+
+def store(db, filePath, tablename):
+    dbc = db.cursor()
+    dbc.execute("""load data local infile '%s' into table %s  fields terminated by '\t'""" %(filePath, tablename))
+
 
 def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
     dbc = db.cursor()
@@ -257,7 +277,7 @@ def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract 
 
     values = tuple([tuple(i) for i in attributes])
    
-    dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(values)[1:-1]))
+    dbc.execute("""insert into %s_synthetic_data values %s;""" %(synthesis_type, str(values)[1:-1]))
     dbc.close()
     db.commit()
 
