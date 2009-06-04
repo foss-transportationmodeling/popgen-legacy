@@ -159,7 +159,17 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
     drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
     drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
 
+    import os
+    fileHousing = os.getcwd() + os.sep + 'housingdata.txt'
+    fileHousing = fileHousing.replace('\\', '/')
+    filePerson = os.getcwd() + os.sep + 'persondata.txt'
+    filePerson = filePerson.replace('\\', '/')
 
+    drawing_households.store(db, fileHousing, 'housing_synthetic_data')
+    drawing_households.store(db, filePerson, 'person_synthetic_data')    
+
+    os.remove(fileHousing)
+    os.remove(filePerson)
 
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     drawing_households.store_performance_statistics(db, geo, values)
