@@ -18,7 +18,9 @@ from gui.misc.errors  import *
 
 class RunDialog(QDialog):
     
-    def __init__(self, project, parent=None):
+    def __init__(self, project, jobserver, parent=None):
+
+        self.job_server = jobserver
         super(RunDialog, self).__init__(parent)
         
         self.setWindowTitle("PopGen: Run Synthesizer")
@@ -156,7 +158,7 @@ class RunDialog(QDialog):
                 index.append((bins*100, geoCount))
 
                 for i in index:
-                    run_parallel(self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+                    run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
 
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
