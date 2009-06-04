@@ -34,6 +34,14 @@ class MainWindow(QMainWindow):
     def __init__(self, parent=None):
         super(MainWindow, self).__init__(parent)
 
+        import pp
+        ppservers = ()
+        if len(sys.argv) > 1:
+            ncpus = int(sys.argv[1])
+            self.job_server = pp.Server(ncpus, ppservers = ppservers)
+        else:
+            self.job_server = pp.Server(ppservers=ppservers)
+
         self.dirty = False
         self.projectName = None
 
@@ -407,12 +415,12 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
-        runDia = RunDialog(self.project)
+        runDia = RunDialog(self.project, self.job_server)
         
         runDia.exec_()
         
-        for i in self.project.synGeoIds:
-            print i
+        #for i in self.project.synGeoIds:
+        #    print i
 
         self.fileManager.populate()
         self.project.save()
