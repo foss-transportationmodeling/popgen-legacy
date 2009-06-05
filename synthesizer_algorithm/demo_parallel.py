@@ -182,9 +182,21 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     synthesizer_algorithm.drawing_households.store_performance_statistics(db, geo, values)
 
+    hhld_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, county, tract, bg)
+    gq_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, county, tract, bg)
+    print 'Number of Synthetic Household/Group quarters - %d' %(sum(max_p_housing_attributes[:,-2]))
+    for i in range(len(hhld_control_variables)):
+        print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], sum(hhld_marginals[i]))
 
-    print 'Number of Synthetic Household - %d' %(sum(max_p_housing_attributes[:,-2]))
+    for i in range(len(gq_control_variables)):
+        print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], sum(gq_marginals[i]))
+
+
+    person_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, county, tract, bg)
     print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
+    for i in range(len(person_control_variables)):
+        print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], sum(person_marginals[i]))
+
     print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-ti)
 
 
