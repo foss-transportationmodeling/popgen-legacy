@@ -3,6 +3,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 import re
 from gui.misc.errors import *
+from database.createDBConnection import createDBC
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -279,6 +280,8 @@ class RecodeDialog(QDialog):
         self.tablename = tablename
         self.variableDict = {}
         self.project = project
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
         
         self.setWindowTitle(title)
 
@@ -371,7 +374,7 @@ class RecodeDialog(QDialog):
 
 
     def runRecodeCrit(self, variablename, newvariablename, recodeCrit):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         
         self.addColumn(newvariablename)
         
@@ -386,7 +389,7 @@ class RecodeDialog(QDialog):
         
 
     def addColumn(self, variablename):
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         
 
         if not query.exec_("""alter table %s add column %s text""" %(self.tablename, variablename)):
@@ -416,7 +419,7 @@ class RecodeDialog(QDialog):
 
     def variablesInTable(self):
         variables = []
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""desc %s""" %self.tablename):
             raise FileError, query.lastError().text()
 
@@ -433,7 +436,7 @@ class RecodeDialog(QDialog):
     def categories(self, varname):
         cats = []
 
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname)):
             raise FileError, query.lastError().text()
 
@@ -628,7 +631,9 @@ class CreateVariable(QDialog):
 
         self.setWindowTitle(title)
         self.tablename = tablename
-
+        self.project = project
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
         self.variableDict = {}
         self.variables = variableTypeDict.keys()
 
@@ -738,7 +743,7 @@ class CreateVariable(QDialog):
     def categories(self, varname):
         cats = []
 
-        query = QSqlQuery()
+        query = QSqlQuery(self.projectDBC.dbc)
         query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname))
 
         CATEGORY = 0
