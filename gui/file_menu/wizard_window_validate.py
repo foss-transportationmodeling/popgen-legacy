@@ -78,6 +78,13 @@ class Wizard(QWizard):
 
 
     def update(self, id):
+        if id == 2:
+            self.page3.emit(SIGNAL("resolutionChanged"), self.page2.resolutionComboBox.currentText())
+
+
+        if id == 3:
+            self.page4.emit(SIGNAL("resolutionChanged"), self.page2.resolutionComboBox.currentText())
+
         
         if id == 5:
             geocorrLocation = self.page2.geocorrLocationComboBox.currentText()
