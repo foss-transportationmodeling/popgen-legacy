@@ -35,6 +35,7 @@ class Matplot(QDialog):
         # Create the mpl Figure and FigCanvas objects.
         # 5x4 inches, 100 dots-per-inch
         #
+        self.project = None
         self.dpi = 100
         self.fig = Figure((5.0, 4.0), dpi=self.dpi)
         self.canvas = FigureCanvas(self.fig)
@@ -46,6 +47,7 @@ class Matplot(QDialog):
         self.axes = self.fig.add_subplot(111)
 
         self.vbox = QVBoxLayout()
+
 
     def on_draw(self):
         pass
@@ -68,20 +70,53 @@ class Matplot(QDialog):
         return action
 
     def executeSelectQuery(self, dbc, vars, tablename, filter="", group =""):
-        query = QSqlQuery(dbc)
-        if filter != "" and group != "":
-            if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
-                raise FileError, query.lastError().text()
-        elif filter != "" and group == "":
-            if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
-                raise FileError, query.lastError().text()
-        elif filter == "" and group != "":
-            if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
-                raise FileError, query.lastError().text()
+        if self.checkIfTableExists(tablename):
+            query = QSqlQuery(dbc)
+            if filter != "" and group != "":
+                if not query.exec_("""SELECT %s FROM %s WHERE %s GROUP BY %s"""%(vars,tablename,filter,group)):
+                    raise FileError, query.lastError().text()
+            elif filter != "" and group == "":
+                if not query.exec_("""SELECT %s FROM %s WHERE %s"""%(vars,tablename,filter)):
+                    raise FileError, query.lastError().text()
+            elif filter == "" and group != "":
+                if not query.exec_("""SELECT %s FROM %s GROUP BY %s"""%(vars,tablename,group)):
+                    raise FileError, query.lastError().text()
+            else:
+                if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
+                    raise FileError, query.lastError().text()
+            return query
         else:
-            if not query.exec_("""SELECT %s FROM %s"""%(vars,tablename)):
-                raise FileError, query.lastError().text()
-        return query
+            QMessageBox.warning(self, "Synthesizer", "A table with name - %s does not exist." %(tablename), QMessageBox.Ok)
+            return False
+
+
+
+    def checkIfTableExists(self, tablename):
+        tables = self.tableList()
+
+        try:
+            tables.index(tablename)
+        except:
+            return False
+        return True
+        
+
+    def tableList(self):
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
+        self.query = QSqlQuery(self.projectDBC.dbc)
+
+        tables = []
+
+        if not self.query.exec_("""show tables"""):
+            raise FileError, self.query.lastError.text()
+        while self.query.next():
+            tables.append('%s' %self.query.value(0).toString())
+        return tables
+    
+
+
+
 
 def main():
     app = QApplication(sys.argv)
