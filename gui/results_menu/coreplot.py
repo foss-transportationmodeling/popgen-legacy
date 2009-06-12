@@ -115,7 +115,27 @@ class Matplot(QDialog):
         return tables
     
 
-
+class LabComboBox(QWidget):
+    def __init__(self, label, list, parent=None):
+        QDialog.__init__(self, parent)
+        self.layout = QHBoxLayout()
+        self.setLayout(self.layout)
+        
+        self.label = QLabel(label)
+        self.combobox = QComboBox()
+        self.combobox.addItems(list)
+        
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.combobox)
+        self.connect(self.combobox, SIGNAL("currentIndexChanged(const QString&)"), self.emitSignal)
+        self.label.setFixedWidth(70)
+        self.setFixedWidth(300)
+        
+    def emitSignal(self):
+        self.emit(SIGNAL("currSelChanged"))
+        
+    def getCurrentText(self):
+        return self.combobox.currentText()
 
 
 def main():

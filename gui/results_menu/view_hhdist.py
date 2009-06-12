@@ -25,8 +25,9 @@ class Hhdist(Matplot):
         self.setLayout(self.vbox)
         self.makeTempTables()
         self.on_draw()
-        self.connect(self.attrbox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
-        self.connect(self.geobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+        self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
+        self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
+        
 
     def reject(self):
         self.projectDBC.dbc.close()
@@ -55,8 +56,8 @@ class Hhdist(Matplot):
     def on_draw(self):
         """ Redraws the figure
         """
-        self.current = '%s' %self.attrbox.currentText()
-        selgeog = '%s' %self.geobox.currentText()
+        self.current = '%s' %self.attrbox.getCurrentText()
+        selgeog = '%s' %self.geobox.getCurrentText()
         if self.current in self.hhldvariables:
             self.categories = self.project.selVariableDicts.hhld[self.current].keys()
             self.corrControlVariables =  self.project.selVariableDicts.hhld[self.current].values()
@@ -135,24 +136,16 @@ class Hhdist(Matplot):
         self.canvas.draw() 
         
     def makeComboBox(self):
-        self.comboboxholder = QWidget()
+        self.comboboxholder = QWidget(self)
         self.hbox = QHBoxLayout()
         self.comboboxholder.setLayout(self.hbox)
-        self.attrlabel = QLabel("Attribute: " )
-        self.attrlabel.setFixedWidth(50)
-        self.hbox.addWidget(self.attrlabel)
-        self.attrbox = QComboBox(self)
-        self.attrbox.setFixedWidth(300)
+        self.attrbox = LabComboBox("Attribute:",self.hhldvariables+self.gqvariables)
+        self.geobox = LabComboBox("Geography:",["All"] +self.getGeographies())
         self.hbox.addWidget(self.attrbox)
-        self.geolabel = QLabel("Geography: " )
-        self.geolabel.setFixedWidth(60)
-        self.geobox = QComboBox(self)
-        self.geobox.setFixedWidth(300)
         if self.enableindgeo:
-            self.hbox.addWidget(self.geolabel )
             self.hbox.addWidget(self.geobox)
-        self.attrbox.addItems(self.hhldvariables+self.gqvariables)
-        self.geobox.addItems(["All"] +self.getGeographies())
+        self.hbox.addWidget(QWidget())
+        self.hbox.addWidget(QWidget())
         
     def getGeogFilStr(self,county,tract,bg):
         if self.project.resolution == "County":
