@@ -7,6 +7,7 @@ from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
 import qrc_resources
+from database.createDBConnection import createDBC
 from file_menu.wizard_window_validate import Wizard
 from file_menu.filemanager import QTreeWidgetCMenu
 from file_menu.open_project import OpenProject
@@ -18,6 +19,7 @@ from results_menu.results_preprocessor import *
 from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
 from synthesizer_menu.run import RunDialog
+from misc.errors import FileError
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -401,12 +403,43 @@ class MainWindow(QMainWindow):
 
     def synthesizerSetCorrBetVariables(self):
         #Set the correspondence between variables
-        vars = SetCorrDialog(self.project)
-        if vars.exec_():
-            self.project = vars.project
-            self.project.save()
-            self.fileManager.populate()
+        if self.checkIfTablesExist():
+            vars = SetCorrDialog(self.project)
+            if vars.exec_():
+                self.project = vars.project
+                self.project.save()
+                self.fileManager.populate()
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Please import tables before setting variable correspondence.", QMessageBox.Ok)
 
+    def checkIfTablesExist(self):
+        reqTables = ['hhld_sample', 'hhld_sample', 'person_marginals', 'person_sample']
+        tables = self.tableList()
+
+        #print tables
+
+        for i in reqTables:
+            try:
+                tables.index(i)
+            except:
+                return False
+        return True
+         
+            
+    def tableList(self):
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
+        self.query = QSqlQuery(self.projectDBC.dbc)
+
+        tables = []
+
+        if not self.query.exec_("""show tables"""):
+            raise FileError, self.query.lastError.text()
+        while self.query.next():
+            tables.append('%s' %self.query.value(0).toString())
+        self.projectDBC.dbc.close()
+        return tables
+    
 
 
     def synthesizerParameter(self):
@@ -415,15 +448,18 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
-        runDia = RunDialog(self.project, self.job_server)
         
-        runDia.exec_()
-        
+        if len(self.project.selVariableDicts.hhld) > 0 and len(self.project.selVariableDicts.person) > 0:
+            runDia = RunDialog(self.project, self.job_server)
+            runDia.exec_()
+            self.fileManager.populate()
+            self.project.save()
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Please define variable correspondence before synthesizing population.", QMessageBox.Ok)
+
         #for i in self.project.synGeoIds:
         #    print i
 
-        self.fileManager.populate()
-        self.project.save()
 
         
     def synthesizerStop(self):
