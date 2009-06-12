@@ -63,6 +63,15 @@ class SampleDataPage(QWizardPage):
 
         self.connect(self.sampleAutoRadio, SIGNAL("clicked()"), self.sampleAutoAction)
         self.connect(self.sampleUserProvRadio, SIGNAL("clicked()"), self.sampleUserProvAction)
+        self.connect(self, SIGNAL("resolutionChanged"), self.resolutionAction)
+
+    def resolutionAction(self, resolution):
+        if resolution == 'TAZ':
+            self.sampleUserProvRadio.setChecked(True)
+            self.sampleUserProvRadio.emit(SIGNAL("clicked()"))
+            self.sampleAutoRadio.setEnabled(False)
+        else:
+            self.sampleAutoRadio.setEnabled(True)
 
     def sampleAutoAction(self):
         self.sampleUserProvGroupBox.setEnabled(False)

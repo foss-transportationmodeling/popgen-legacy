@@ -60,6 +60,15 @@ class ControlDataPage(QWizardPage):
         self.connect(self.controlPersonLocationComboBox, SIGNAL("activated(int)"), self.controlPersonCheck)
         self.connect(self.controlAutoRadio, SIGNAL("clicked()"), self.controlAutoAction)
         self.connect(self.controlUserProvRadio, SIGNAL("clicked()"), self.controlUserProvAction)
+        self.connect(self, SIGNAL("resolutionChanged"), self.resolutionAction)
+
+    def resolutionAction(self, resolution):
+        if resolution == 'TAZ':
+            self.controlUserProvRadio.setChecked(True)
+            self.controlUserProvRadio.emit(SIGNAL("clicked()"))
+            self.controlAutoRadio.setEnabled(False)
+        else:
+            self.controlAutoRadio.setEnabled(True)
 
 
     def controlAutoAction(self):

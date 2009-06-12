@@ -13,7 +13,7 @@ class ResolutionPage(QWizardPage):
 
         resolutionLabel = QLabel("At what resolution do you want to synthesize the population (County/Tract/Blockgroup level)?")
         self.resolutionComboBox = QComboBox()
-        self.resolutionComboBox.addItems([QString("County"), QString("Tract"), QString("Blockgroup")])
+        self.resolutionComboBox.addItems([QString("County"), QString("Tract"), QString("Blockgroup"), QString("TAZ")])
         self.resolutionComboBox.setFixedSize(QSize(250,20))
         self.geocorrGroupBox = QGroupBox("Will you provide Geographic Correspondence between the Geography and PUMA?")
         self.geocorrUserProvRadio = QRadioButton("Yes")
@@ -47,6 +47,15 @@ class ResolutionPage(QWizardPage):
         self.connect(self.geocorrAutoRadio, SIGNAL("clicked()"), self.geocorrAutoAction)
         self.connect(self.geocorrUserProvRadio, SIGNAL("clicked()"), self.geocorrUserProvAction)
         self.connect(self.geocorrLocationComboBox, SIGNAL("activated(int)"), self.fileCheck)
+        self.connect(self.resolutionComboBox, SIGNAL("activated(int)"), self.resolutionAction)
+
+    def resolutionAction(self):
+        if self.resolutionComboBox.currentText() == 'TAZ':
+            self.geocorrUserProvRadio.setChecked(True)
+            self.geocorrUserProvRadio.emit(SIGNAL("clicked()"))
+            self.geocorrAutoRadio.setEnabled(False)
+        else:
+            self.geocorrAutoRadio.setEnabled(True)
 
     def geocorrAutoAction(self):
         self.geocorrUserProvGroupBox.setEnabled(False)
