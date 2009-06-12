@@ -128,7 +128,7 @@ class RunDialog(QDialog):
 
         if len(missingTables) > 0:
             QMessageBox.warning(self, "PopGen: Run Synthesizer", "The following tables are missing %s, "
-                                " the program will run the prepare data step." %(missingTablesString[1:-2]))
+                                " the program will run the prepare data step." %(missingTablesString[1:-4]))
             self.prepareData()
         # For now implement it without checking for each individual table that is created in this step
         # in a later implementation check for each table before you proceed with the creation of that particular table
