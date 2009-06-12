@@ -210,9 +210,10 @@ class Indgeo(Matplot):
         query = self.executeSelectQuery(self.projectDBC.dbc,vars, performancetable, filter_syn, group)
         aardval = 0.0
         pval = 0.0
-        while query.next():
-            aardval = query.value(0).toDouble()[0]
-            pval = query.value(1).toDouble()[0]
+        if query:
+            while query.next():
+                aardval = query.value(0).toDouble()[0]
+                pval = query.value(1).toDouble()[0]
                                      
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
@@ -228,23 +229,25 @@ class Indgeo(Matplot):
             vars = "personuniqueid" + "," + "frequency"
             group = "personuniqueid"
             query = self.executeSelectQuery(self.projectDBC.dbc,vars, actualtable, filter_act, group)
-            while query.next():
-                id= query.value(0).toInt()[0]
-                freq = query.value(1).toDouble()[0]
-                self.ids.append(id)
-                self.act.append(freq)
+            if query:
+                while query.next():
+                    id= query.value(0).toInt()[0]
+                    freq = query.value(1).toDouble()[0]
+                    self.ids.append(id)
+                    self.act.append(freq)
                 
             syntable = "person_synthetic_data"
             vars = "personuniqueid" + "," + "sum(frequency)"
             group = "personuniqueid"
             query = self.executeSelectQuery(self.projectDBC.dbc,vars, syntable, filter_syn, group)
             self.syn = [0.0] * len(self.act)
-            while query.next():
-                id= query.value(0).toInt()[0]
-                freq = query.value(1).toDouble()[0]
-                if id in self.ids:
-                    idx = self.ids.index(id)
-                    self.syn[idx] = freq
+            if query:
+                while query.next():
+                    id= query.value(0).toInt()[0]
+                    freq = query.value(1).toDouble()[0]
+                    if id in self.ids:
+                        idx = self.ids.index(id)
+                        self.syn[idx] = freq
 
 
 
