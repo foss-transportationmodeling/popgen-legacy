@@ -29,6 +29,7 @@ class Pval(Matplot):
         self.axes.hist(self.err, normed=False, align='mid')
         self.axes.set_xlabel("P Values")
         self.axes.set_ylabel("Frequency")
+        self.axes.set_xbound(None,1)
         self.canvas.draw()      
 
     def retrieveResults(self):

@@ -17,14 +17,16 @@ class Ppdist(Matplot):
         #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
         self.setWindowTitle("Person Attributes Distribution")
+        self.enableindgeo = True
         self.makeComboBox()
-        self.vbox.addWidget(self.hhcombobox)
+        self.vbox.addWidget(self.comboboxholder)
         self.vbox.addWidget(self.canvas)
         self.setLayout(self.vbox)
         
         self.makeTempTables()
         self.on_draw()
-        self.connect(self.hhcombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+        self.connect(self.attrbox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+        self.connect(self.geobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
 
     def reject(self):
         self.projectDBC.dbc.close()
@@ -45,7 +47,8 @@ class Ppdist(Matplot):
     def on_draw(self):
         """ Redraws the figure  
         """
-        self.current = '%s' %self.hhcombobox.currentText()          
+        self.current = '%s' %self.attrbox.currentText()
+        selgeog = '%s' %self.geobox.currentText()
         self.categories = self.project.selVariableDicts.person[self.current].keys()
         self.categories.sort()
         self.corrControlVariables =  self.project.selVariableDicts.person[self.current].values()
@@ -57,17 +60,21 @@ class Ppdist(Matplot):
             #self.countyCodes.append(code)
             #filterAct = filterAct + "county = %s or " %code
         #filterAct = filterAct[:-3]   
-        table = "person_synthetic_data"
-        variable = "county,tract,bg"
-        queryAct = self.executeSelectQuery(self.projectDBC.dbc,variable, table, "",variable)
-        i=0
-        while queryAct.next():
-            filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
-            if i == 0:
-                filterAct = "(" + filterAct + filstr + ")"
-                i = 1
-            else:
-                filterAct = filterAct + " or " + "(" + filstr + ")"
+        if selgeog == 'All':
+            table = "person_synthetic_data"
+            variable = "county,tract,bg"
+            queryAct = self.executeSelectQuery(self.projectDBC.dbc,variable, table, "",variable)
+            i=0
+            while queryAct.next():
+                filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
+                if i == 0:
+                    filterAct = "(" + filterAct + filstr + ")"
+                    i = 1
+                else:
+                    filterAct = filterAct + " or " + "(" + filstr + ")"
+        else:
+            geosplit = selgeog.split(',')
+            filterAct = "county=%s and tract=%s and bg=%s" %(geosplit[1],geosplit[2],geosplit[3])            
         
         actTotal = []
         estTotal = []
@@ -86,6 +93,8 @@ class Ppdist(Matplot):
             category = category.split()[-1]
             tableEst = "temp"
             filterEst = self.current + " = %s" % category
+            if selgeog != 'All':
+                filterEst = filterEst + ' and ' + filterAct
             variableEst = "sum(frequency)"
             queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
             
@@ -116,9 +125,24 @@ class Ppdist(Matplot):
         self.canvas.draw()
         
     def makeComboBox(self):
-        self.hhcombobox = QComboBox(self)
-        self.hhcombobox.addItems(self.variables)
-        self.hhcombobox.setFixedWidth(400)
+        self.comboboxholder = QWidget()
+        self.hbox = QHBoxLayout()
+        self.comboboxholder.setLayout(self.hbox)
+        self.attrlabel = QLabel("Attribute: " )
+        self.attrlabel.setFixedWidth(50)
+        self.hbox.addWidget(self.attrlabel)
+        self.attrbox = QComboBox(self)
+        self.attrbox.setFixedWidth(300)
+        self.hbox.addWidget(self.attrbox)
+        self.geolabel = QLabel("Geography: " )
+        self.geolabel.setFixedWidth(60)
+        self.geobox = QComboBox(self)
+        self.geobox.setFixedWidth(300)
+        if self.enableindgeo:
+            self.hbox.addWidget(self.geolabel )
+            self.hbox.addWidget(self.geobox)
+        self.attrbox.addItems(self.variables)
+        self.geobox.addItems(["All"] +self.getGeographies())
         
     def getGeogFilStr(self,county,tract,bg):
         if self.project.resolution == "County":
@@ -128,7 +152,14 @@ class Ppdist(Matplot):
         if self.project.resolution == "Blockgroup":
             str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
         return str
-
+        
+    def getGeographies(self):
+        geolist = []
+        for geo in self.project.synGeoIds.keys():
+            geostr = str(geo[0]) + "," + str(geo[1]) + "," + str(geo[3]) + "," + str(geo[4])
+            geolist.append(geostr)
+        return geolist
+        
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)
