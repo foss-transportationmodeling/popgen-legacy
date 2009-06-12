@@ -141,16 +141,30 @@ class SetCorrTabWidget(QTabWidget):
         tablesProject = self.tables()
 
         self.housingTab = TabWidgetItems(self.project, 'Household', 'hhld_marginals', 'hhld_sample')
-        self.gqTab = TabWidgetItems(self.project, 'Group Quarter', 'gq_marginals', 'gq_sample')
         self.personTab = TabWidgetItems(self.project, 'Person', 'person_marginals', 'person_sample')
 
         self.addTab(self.housingTab, 'Housing Variables')
         self.addTab(self.personTab, 'Person Variables')
-        self.addTab(self.gqTab, 'Group Quarters Variables')
+        
+
+        if self.isGqAnalyzed():
+            self.gqTab = TabWidgetItems(self.project, 'Group Quarter', 'gq_marginals', 'gq_sample')
+            self.addTab(self.gqTab, 'Group Quarters Variables')
 
         self.setLayout(layout)
 
         
+    def isGqAnalyzed(self):
+        if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
+            return True
+        
+        if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
+            return False
+        
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
+            return False
+        
+
 
     def tables(self):
         projectDBC = createDBC(self.project.db, self.project.filename)
