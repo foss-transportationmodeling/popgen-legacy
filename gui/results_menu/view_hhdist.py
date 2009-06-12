@@ -9,6 +9,7 @@ from coreplot import *
 class Hhdist(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
+        self.setFixedSize(800,475)
         self.project = project
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()

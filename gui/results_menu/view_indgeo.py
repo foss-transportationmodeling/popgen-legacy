@@ -17,9 +17,9 @@ class Indgeo(Matplot):
         res = ResultsGen(project)
         del res
         Matplot.__init__(self)
+        self.setMinimumSize(QSize(1000,500))
         self.setWindowTitle("Individual Geography Statistics")
         self.project = project
-
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 

@@ -31,7 +31,7 @@ from matplotlib.figure import Figure
 class Matplot(QDialog):
     def __init__(self, parent=None):
         QDialog.__init__(self, parent)
-        self.setMinimumSize(QSize(1000,500))
+        self.setMinimumSize(QSize(800,500))
         # Create the mpl Figure and FigCanvas objects.
         # 5x4 inches, 100 dots-per-inch
         #
