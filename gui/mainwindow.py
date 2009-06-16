@@ -40,9 +40,9 @@ class MainWindow(QMainWindow):
         ppservers = ()
         if len(sys.argv) > 1:
             ncpus = int(sys.argv[1])
-            self.job_server = pp.Server(ncpus, ppservers = ppservers)
+            self.job_server = pp.Server(ncpus, ppservers = ppservers, restart = True)
         else:
-            self.job_server = pp.Server(ppservers=ppservers)
+            self.job_server = pp.Server(ppservers=ppservers, restart = True)
 
         self.dirty = False
         self.projectName = None
