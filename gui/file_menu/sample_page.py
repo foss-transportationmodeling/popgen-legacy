@@ -13,8 +13,9 @@ class SampleDataPage(QWizardPage):
 
         self.setTitle("Step 3: Population Sample")
 
-        self.sampleGroupBox = QGroupBox("""Do you wish to provide sample data or the program will """
-                                         """use PUMS for population synthesis?""")
+        self.sampleGroupBox = QGroupBox("""a. Will you provide sample data?""")
+        sampleWarning = QLabel("""<font color = blue>Note: If no is chosen, US Census Public Use """
+                               """Microdata Sample for year 2000 will be used. </font>""")
         self.sampleUserProvRadio = QRadioButton("Yes")
         self.sampleAutoRadio = QRadioButton("No")
         self.sampleAutoRadio.setChecked(True)
@@ -23,9 +24,9 @@ class SampleDataPage(QWizardPage):
         sampleHLayout.addWidget(self.sampleAutoRadio)
         self.sampleGroupBox.setLayout(sampleHLayout)
 
-        sampleHHLocationLabel = QLabel("Select the household sample file")
-        sampleGQLocationLabel = QLabel("Select the groupquarter sample file")
-        samplePersonLocationLabel = QLabel("Select the population sample file")
+        sampleHHLocationLabel = QLabel("Select the Household Sample file")
+        sampleGQLocationLabel = QLabel("Select the Groupquarter Sample file")
+        samplePersonLocationLabel = QLabel("Select the Population Sample file")
 
         self.sampleHHLocationComboBox = ComboBoxFile()
         self.sampleHHLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
@@ -39,7 +40,12 @@ class SampleDataPage(QWizardPage):
         self.samplePersonLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
         samplePersonLocationLabel.setBuddy(self.samplePersonLocationComboBox)
 
-        self.sampleUserProvGroupBox = QGroupBox("User provided:")
+        sampleUserProvWarning = QLabel("""<font color = blue> Note: Groupquarter data is optional but if the person control"""
+                                       """ totals include residents of groupquarters then provide groupquarter information as well"""
+                                       """ to generate a representative synthetic population. </font>""")
+        sampleUserProvWarning.setWordWrap(True)
+
+        self.sampleUserProvGroupBox = QGroupBox("b. User provided")
         sampleVLayout = QVBoxLayout()
         sampleVLayout.addWidget(sampleHHLocationLabel)
         sampleVLayout.addWidget(self.sampleHHLocationComboBox)
@@ -49,11 +55,14 @@ class SampleDataPage(QWizardPage):
         sampleVLayout.addWidget(self.samplePersonLocationComboBox)
         self.sampleUserProvGroupBox.setLayout(sampleVLayout)
 
+        
         self.sampleUserProvGroupBox.setEnabled(False)
 
         vLayout = QVBoxLayout()
         vLayout.addWidget(self.sampleGroupBox)
+        vLayout.addWidget(sampleWarning)
         vLayout.addWidget(self.sampleUserProvGroupBox)
+        vLayout.addWidget(sampleUserProvWarning)
         self.setLayout(vLayout)
 
 

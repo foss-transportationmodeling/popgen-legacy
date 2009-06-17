@@ -73,7 +73,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if len(whereExpression)<1:
                 whereExpression = '1'
             if len(numericExpression) <1:
-                QMessageBox.warning(self, "PopGen: Data", QString("""Invalid numeric expression, enter again"""))
+                QMessageBox.warning(self, "Data", QString("""Invalid numeric expression, enter again"""))
             else:
                 query = QSqlQuery(project.dbc)
                 if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):

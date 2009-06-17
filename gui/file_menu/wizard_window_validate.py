@@ -9,7 +9,7 @@ from resolution_page import ResolutionPage
 from sample_page import SampleDataPage
 from control_page import ControlDataPage
 from dbconnection_page import DBConnectionPage
-from summary_page import SummaryPage
+from summary_page_labels import SummaryPage
 from misc.errors import *
 from misc.widgets import *
 import misc.dbf as dbf
@@ -38,7 +38,7 @@ class Wizard(QWizard):
         self.page6 = SummaryPage()
         self.addPage(self.page6)
 
-        self.setWindowTitle("New Project Wizard")
+        self.setWindowTitle("Project Setup Wizard")
 
         self.connect(self.button(QWizard.CancelButton), SIGNAL("pressed()"), self.reject)
         self.connect(self, SIGNAL("currentIdChanged(int)"), self.update)
@@ -70,9 +70,9 @@ class Wizard(QWizard):
         return countyCode, stateCode, stateAbb
 
     def reject(self):
-        reply = QMessageBox.question(None, "PopGen: New Project Wizard",
-                                     QString("Do you wish to continue?"),
-                                     QMessageBox.Yes| QMessageBox.No)
+        reply = QMessageBox.warning(None, "Project Setup Wizard",
+                                    QString("Do you wish to continue?"),
+                                    QMessageBox.Yes| QMessageBox.No)
         if reply == QMessageBox.Yes:
             QWizard.reject(self)
 
@@ -84,6 +84,10 @@ class Wizard(QWizard):
 
         if id == 3:
             self.page4.emit(SIGNAL("resolutionChanged"), self.page2.resolutionComboBox.currentText())
+
+        if id == 4:
+            print 'emit dbc connection signal'
+            self.page5.hostnameLineEdit.emit(SIGNAL("editingFinished()"))
 
         
         if id == 5:

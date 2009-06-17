@@ -9,27 +9,37 @@ class ResolutionPage(QWizardPage):
 
         self.geocorrLocationDummy = True
 
-        self.setTitle("Step 2: Resolution of the Population Synthesis")
+        self.setTitle("Step 2: Geographic Resolution")
 
-        resolutionLabel = QLabel("At what resolution do you want to synthesize the population (County/Tract/Blockgroup level)?")
         self.resolutionComboBox = QComboBox()
         self.resolutionComboBox.addItems([QString("County"), QString("Tract"), QString("Blockgroup"), QString("TAZ")])
         self.resolutionComboBox.setFixedSize(QSize(250,20))
-        self.geocorrGroupBox = QGroupBox("Will you provide Geographic Correspondence between the Geography and PUMA?")
+
+        resolutionVLayout = QVBoxLayout()
+        resolutionVLayout.addWidget(self.resolutionComboBox)
+
+        resolutionGroupBox = QGroupBox("""a. Choose the geographic resolution at which you want to"""
+                                        """ synthesize the population""")
+        resolutionGroupBox.setLayout(resolutionVLayout)
+
+        resolutionWarning = QLabel("""<font color = blue> Note: If TAZ is chosen, all information including geographic correspondence, sample, """
+                                   """and control data  must be provided by the user.</font>""")
+        self.geocorrGroupBox = QGroupBox("""b. Will you provide Geographic Correspondence between the Geography and PUMA?""")
         self.geocorrUserProvRadio = QRadioButton("Yes")
         self.geocorrAutoRadio = QRadioButton("No")
         self.geocorrAutoRadio.setChecked(True)
+        geocorrWarning = QLabel("<font color = blue> Note: If no is chosen, MABLE/Geocorr2K: Geographic Correspondence Engine will be used.</font>")
         geocorrHLayout = QHBoxLayout()
         geocorrHLayout.addWidget(self.geocorrUserProvRadio)
         geocorrHLayout.addWidget(self.geocorrAutoRadio)
         self.geocorrGroupBox.setLayout(geocorrHLayout)
 
-        geocorrLocationLabel = QLabel("Select the geographic correspondence file")
+        geocorrLocationLabel = QLabel("Select the Geographic Correspondence file")
         self.geocorrLocationComboBox = ComboBoxFile()
         self.geocorrLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
         geocorrLocationLabel.setBuddy(self.geocorrLocationComboBox)
 
-        self.geocorrUserProvGroupBox = QGroupBox("User provided:")
+        self.geocorrUserProvGroupBox = QGroupBox("c. User provided")
         geocorrVLayout = QVBoxLayout()
         geocorrVLayout.addWidget(geocorrLocationLabel)
         geocorrVLayout.addWidget(self.geocorrLocationComboBox)
@@ -38,9 +48,10 @@ class ResolutionPage(QWizardPage):
         
 
         vLayout = QVBoxLayout()
-        vLayout.addWidget(resolutionLabel)
-        vLayout.addWidget(self.resolutionComboBox)
+        vLayout.addWidget(resolutionGroupBox)
+        vLayout.addWidget(resolutionWarning)
         vLayout.addWidget(self.geocorrGroupBox)
+        vLayout.addWidget(geocorrWarning)
         vLayout.addWidget(self.geocorrUserProvGroupBox)
         self.setLayout(vLayout)
         

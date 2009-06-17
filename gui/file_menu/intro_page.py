@@ -18,17 +18,17 @@ class IntroPage(QWizardPage):
         self.setTitle("Step 1: Region")
 
         # Project Description
-        nameLabel = QLabel("Project Name")
+        nameLabel = QLabel("a. Enter Project Name")
         self.nameLineEdit = LineEdit()
-        self.nameLineEdit.setText("enter_project_name")
+        self.nameLineEdit.setText("Project_Name")
         self.nameLineEdit.selectAll()
         nameLabel.setBuddy(self.nameLineEdit)
-        locationLabel = QLabel("Project Location")
+        locationLabel = QLabel("b. Select a Project Location")
         self.locationComboBox = ComboBoxFolder()
         #self.locationComboBox.addItems([QString("C:/"), QString("Browse to select folder...")])
         self.locationComboBox.addItems([QString("C:/SynTest"), QString("Browse to select folder...")])
         locationLabel.setBuddy(self.locationComboBox)
-        descLabel = QLabel("Project Description")
+        descLabel = QLabel("c. Enter Project Description")
         self.descTextEdit = QTextEdit()
         descLabel.setBuddy(self.descTextEdit)
 
@@ -42,6 +42,7 @@ class IntroPage(QWizardPage):
         projectVLayout.addWidget(self.descTextEdit)
 
         # Selecting Counties using the tree widget
+        countySelectLabel = QLabel("d. Select County(ies)")
         self.countySelectTree = QTreeWidget()
         self.countySelectTree.setColumnCount(1)
         self.countySelectTree.setHeaderLabels(["State/County"])
@@ -50,6 +51,15 @@ class IntroPage(QWizardPage):
         county = QTreeWidgetItem(state, [QString("County")])
         state = QTreeWidgetItem(self.countySelectTree, [QString("State1")])
         county = QTreeWidgetItem(state, [QString("County1")])
+        countySelectWarningLabel = QLabel("<font color = blue>Note: Counties cannot be chosen accross multiple states.</font>")
+
+
+        # County Selection Layout
+        countyVLayout = QVBoxLayout()
+        countyVLayout.addWidget(countySelectLabel)
+        countyVLayout.addWidget(self.countySelectTree)
+        countyVLayout.addWidget(countySelectWarningLabel)
+        
 
         # Displaying counties and selecting counties using the map
         self.canvas = QgsMapCanvas()
@@ -80,7 +90,7 @@ class IntroPage(QWizardPage):
         # Vertical layout of project description elements
         vLayout1 = QVBoxLayout()
         vLayout1.addLayout(projectVLayout)
-        vLayout1.addWidget(self.countySelectTree)
+        vLayout1.addLayout(countyVLayout)
         # Vertical layout of map elements
         vLayout2 = QVBoxLayout()
         self.toolbar = Toolbar(self.canvas, self.layer)
