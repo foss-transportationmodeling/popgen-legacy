@@ -23,7 +23,7 @@ class RunDialog(QDialog):
         self.job_server = jobserver
         super(RunDialog, self).__init__(parent)
         
-        self.setWindowTitle("PopGen: Run Synthesizer")
+        self.setWindowTitle("Run Synthesizer")
         self.setWindowIcon(QIcon("../images/run.png"))
         self.setMinimumSize(800,500)
 

@@ -16,7 +16,7 @@ class SetCorrDialog(QDialog):
     def __init__(self, project, parent=None):
         super(SetCorrDialog, self).__init__(parent)
 
-        self.setWindowTitle("PopGen: Mapping Sample Categories with Control Variables")
+        self.setWindowTitle("Corresponding Sample Categories with Marginal Variables")
         self.setWindowIcon(QIcon("../images/varcorr.png"))
         import copy
         self.project = copy.deepcopy(project)
@@ -27,8 +27,17 @@ class SetCorrDialog(QDialog):
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
+        correspondenceWarning = QLabel("""<font color = blue>Note: Select household/person/groupquarter variables of interest """
+                                       """from the <b>'Sample Variable'</b> that you wish to control. Once these have been selected, """
+                                       """create appropriate mapping between the categories of the selected variables and """
+                                       """the columns in the marginal tables. To do this, highlight a category from the """
+                                       """<b>'Selected Variable Categories'</b> and the corresponding column name under the """
+                                       """<b>'Marginal Variables'</b> and press <b>'Add Correspondence'</b> button.</font>""")
+        correspondenceWarning.setWordWrap(True)
+
         layout = QVBoxLayout()
         layout.addWidget(self.tabWidget)
+        layout.addWidget(correspondenceWarning)
         layout.addWidget(dialogButtonBox)
         self.setLayout(layout)
 
@@ -210,9 +219,9 @@ class TabWidgetItems(QWidget):
         self.sampleVarListWidget = ListWidget()
         self.selSampleVarListWidget = ListWidget()
         self.selSampleVarCatListWidget = ListWidget()
-        self.selSampleVar = QPushButton(">>")
+        self.selSampleVar = QPushButton("Select>>")
         self.selSampleVar.setEnabled(False)
-        self.deselSampleVar = QPushButton("<<")
+        self.deselSampleVar = QPushButton("<<Deselect")
         self.deselSampleVar.setEnabled(False)
 
         
@@ -250,8 +259,8 @@ class TabWidgetItems(QWidget):
         #vLayout2.addWidget(sampleVarLabel)
         vLayout2.addLayout(hLayout2)
 
-        controlTableLabel = QLabel("Control Table")
-        controlVarLabel = QLabel("Control Variables")
+        controlTableLabel = QLabel("Marginal Table")
+        controlVarLabel = QLabel("Marginal Variables")
         self.controlTableComboBox = QComboBox()
         self.controlTableComboBox.setEnabled(False)
         self.controlVarListWidget = ListWidget()
@@ -267,10 +276,10 @@ class TabWidgetItems(QWidget):
         hLayout1.addLayout(vLayout2)
         hLayout1.addLayout(vLayout3)
 
-        relationLabel = QLabel("Relationships between the Sample Variable Categories and the Control Variables")
+        relationLabel = QLabel("Correspondence between the Sample Variable Categories and the Marginal Variables")
         self.relationsListWidget = ListWidget()
-        self.addRelation = QPushButton("Add Relation")
-        self.deleteRelation = QPushButton("Delete Relation")
+        self.addRelation = QPushButton("Add Correspondence")
+        self.deleteRelation = QPushButton("Delete Correspondence")
         self.deleteRelation.setEnabled(False)
 
         vLayout3 = QVBoxLayout()
