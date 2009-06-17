@@ -34,8 +34,8 @@ class ResultsGen():
             county = i + ',' + self.project.state
             self.countyCodes.append(self.project.countyCode['%s' %county])
 
-        #if self.project.resolution == "County":
-        #    self.res_prefix = "co"
+        if self.project.resolution == "County":
+            self.res_prefix = "co"
 
         if self.project.resolution == "Tract":
             self.res_prefix = "tr"

@@ -43,9 +43,10 @@ class Pval(Matplot):
         group = ""
         query = self.executeSelectQuery(projectDBC.dbc,pvaluevar, performancetable, filter, group)
         
-        while query.next():
-            pval = query.value(0).toDouble()[0]
-            self.err.append(pval)
+        if query:
+            while query.next():
+                pval = query.value(0).toDouble()[0]
+                self.err.append(pval)
         
         projectDBC.dbc.close()
 def main():

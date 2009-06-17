@@ -24,8 +24,8 @@ class Indgeo(Matplot):
         self.projectDBC.dbc.open()
 
 
-        #if self.project.resolution == "County":
-        #    self.res_prefix = "co"
+        if self.project.resolution == "County":
+            self.res_prefix = "co"
         if self.project.resolution == "Tract":
             self.res_prefix = "tr"
         if self.project.resolution == "Blockgroup":
@@ -74,9 +74,9 @@ class Indgeo(Matplot):
         #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
         self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)
         
-        self.selcounty = ""
-        self.seltract = ""
-        self.selblkgroup = ""
+        self.selcounty = "0"
+        self.seltract = "0"
+        self.selblkgroup = "0"
         self.pumano = -1
 
     def accept(self):
@@ -199,13 +199,20 @@ class Indgeo(Matplot):
         vars = aardvalvar + "," + pvaluevar 
         filter = ""
         group = ""
-        if self.selblkgroup != "":
-            filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
-            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=" + str(int(self.selblkgroup))
+
+        if self.selcounty <> "0":
+            filter_act = "tract=0 and bg=0"
+            filter_syn = "county=" + str(self.selcounty) + " and tract=0 and bg=0"
+
+        elif self.seltract <> "0":
+            filter_act = "tract=" + str(self.seltract) + " and " + "bg=0"
+            filter_syn = "county=" + str(self.selcounty) + " and " +"tract=" + str(self.seltract) + " and " + "bg=0"
+
+        else:
+            filter_act = "tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
+            filter_syn = "county=" + str(self.selcounty) + " and " +"tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
             
-        elif self.seltract != "":
-            filter_act = "tract=" + str(int(self.seltract)) + " and " + "bg=0"
-            filter_syn = "county=" + str(int(self.selcounty)) + " and " +"tract=" + str(int(self.seltract)) + " and " + "bg=0"
+
 
         query = self.executeSelectQuery(self.projectDBC.dbc,vars, performancetable, filter_syn, group)
         aardval = 0.0
@@ -218,7 +225,7 @@ class Indgeo(Matplot):
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
         
-        geo = Geography(self.stateCode, self.selcounty, int(self.seltract), self.selblkgroup)
+        geo = Geography(self.stateCode, int(self.selcounty), int(self.seltract), int(self.selblkgroup))
         geo = self.getPUMA5(geo)
         
         self.pumano = geo.puma5

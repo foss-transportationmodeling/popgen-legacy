@@ -25,7 +25,7 @@ class Hhdist(Matplot):
         self.vbox.addWidget(self.canvas)
         self.setLayout(self.vbox)
         self.makeTempTables()
-        self.on_draw()
+
         self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
         self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         
@@ -35,25 +35,29 @@ class Hhdist(Matplot):
         QDialog.reject(self)
         
     def makeTempTables(self):
-        hhldvarstr = ""
-        gqvarstr = ""
-        for i in self.hhldvariables:
-            hhldvarstr = hhldvarstr + i + ','
-        hhldvarstr = hhldvarstr[:-1]
-        for i in self.gqvariables:
-            gqvarstr = gqvarstr + i + ','
-        gqvarstr = gqvarstr[:-1]
+
+        if self.checkIfTableExists('housing_synthetic_data'):
+            hhldvarstr = ""
+            gqvarstr = ""
+            for i in self.hhldvariables:
+                hhldvarstr = hhldvarstr + i + ','
+                hhldvarstr = hhldvarstr[:-1]
+            for i in self.gqvariables:
+                gqvarstr = gqvarstr + i + ','
+                gqvarstr = gqvarstr[:-1]
         
-        query = QSqlQuery(self.projectDBC.dbc)
-        query.exec_(""" DROP TABLE IF EXISTS temphhld""")
-        if not query.exec_("""CREATE TABLE temphhld SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
-            """ LEFT JOIN hhld_sample using (serialno)""" %(hhldvarstr)):
-            raise FileError, query.lastError().text()    
-        query.exec_(""" DROP TABLE IF EXISTS tempgq""")            
-        if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
-            """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
-            raise FileError, query.lastError().text()   
-            
+            query = QSqlQuery(self.projectDBC.dbc)
+            query.exec_(""" DROP TABLE IF EXISTS temphhld""")
+            if not query.exec_("""CREATE TABLE temphhld SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
+                               """ LEFT JOIN hhld_sample using (serialno)""" %(hhldvarstr)):
+                raise FileError, query.lastError().text()    
+            query.exec_(""" DROP TABLE IF EXISTS tempgq""")            
+            if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
+                               """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
+                raise FileError, query.lastError().text()   
+            self.on_draw()            
+        else:
+            QMessageBox.warning(self, "Synthesizer", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
     def on_draw(self):
         """ Redraws the figure
         """
@@ -80,13 +84,14 @@ class Hhdist(Matplot):
             variable = "county,tract,bg"
             queryAct = self.executeSelectQuery(self.projectDBC.dbc,variable, table, "",variable)
             i=0
-            while queryAct.next():
-                filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
-                if i == 0:
-                    filterAct = "(" + filterAct + filstr + ")"
-                    i = 1
-                else:
-                    filterAct = filterAct + " or " + "(" + filstr + ")"
+            if queryAct:
+                while queryAct.next():
+                    filstr = self.getGeogFilStr(queryAct.value(0).toInt()[0],queryAct.value(1).toInt()[0],queryAct.value(2).toInt()[0])
+                    if i == 0:
+                        filterAct = "(" + filterAct + filstr + ")"
+                        i = 1
+                    else:
+                        filterAct = filterAct + " or " + "(" + filstr + ")"
         else:
             geosplit = selgeog.split(',')
             filterAct = "county=%s and tract=%s and bg=%s" %(geosplit[1],geosplit[2],geosplit[3])
@@ -100,9 +105,12 @@ class Hhdist(Matplot):
             self.catlabels.append(variable)
             variableAct = "sum(%s)" %variable
             queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
-            while queryAct.next():
-                value = queryAct.value(0).toInt()[0]
-                actTotal.append(value)
+            if queryAct:
+                while queryAct.next():
+                    value = queryAct.value(0).toInt()[0]
+                    actTotal.append(value)
+            else:
+                break
 
             category = "%s" %i
             category = category.split()[-1]
@@ -112,13 +120,15 @@ class Hhdist(Matplot):
             variableEst = "sum(frequency)"
             queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
             
-            iteration = 0
-            while queryEst.next():
-                value = queryEst.value(0).toInt()[0]
-                estTotal.append(value) 
-                iteration = 1
-            if iteration == 0:
-                estTotal.append(0)
+            
+            if queryEst:
+                iteration = 0
+                while queryEst.next():
+                    value = queryEst.value(0).toInt()[0]
+                    estTotal.append(value) 
+                    iteration = 1
+                if iteration == 0:
+                    estTotal.append(0)
             
         # clear the axes and redraw the plot anew
         self.axes.clear()        

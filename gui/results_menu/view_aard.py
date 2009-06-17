@@ -18,18 +18,18 @@ class Absreldiff(Matplot):
         """ Redraws the figure
         """
         self.err = []
-        self.retrieveResults()
+        if self.retrieveResults():
+       
+            # clear the axes and redraw the plot anew
+            self.axes.clear()        
+            self.axes.grid(True)
         
-        # clear the axes and redraw the plot anew
-        self.axes.clear()        
-        self.axes.grid(True)
-        
-        #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
-        self.axes.hist(self.err , normed=False, align='mid')
-        self.axes.set_xlabel("Average Absolute Relative Differences")
-        self.axes.set_ylabel("Frequency")
-        self.canvas.draw()    
-    
+            #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
+            self.axes.hist(self.err , normed=False, align='mid')
+            self.axes.set_xlabel("Average Absolute Relative Differences")
+            self.axes.set_ylabel("Frequency")
+            self.canvas.draw()    
+
     def retrieveResults(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
@@ -41,11 +41,16 @@ class Absreldiff(Matplot):
         group = ""
         query = self.executeSelectQuery(projectDBC.dbc,aardvalvar, performancetable, filter, group)
         
-        while query.next():
-            aardval = query.value(0).toDouble()[0]
-            self.err.append(aardval)
+        if query:
+            while query.next():
+                aardval = query.value(0).toDouble()[0]
+                self.err.append(aardval)
+            projectDBC.dbc.close()
+            return True
+        else:
+            projectDBC.dbc.close()
+            return False
         
-        projectDBC.dbc.close()
 
 def main():
     app = QApplication(sys.argv)
