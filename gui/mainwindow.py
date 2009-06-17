@@ -1,3 +1,4 @@
+
 from __future__ import with_statement
 
 
@@ -29,8 +30,10 @@ from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
 from results_menu.coreplot import *
 
-
-qgis_prefix = "C:\qgis"
+if sys.platform.startswith('win'):
+    qgis_prefix = "C:/qgis"
+else:
+    qgis_prefix = "/usr"
 
 class MainWindow(QMainWindow):
     def __init__(self, parent=None):
@@ -124,7 +127,7 @@ class MainWindow(QMainWindow):
         #synthesizerControlVariablesAction = self.createAction("Control &Variables", self.synthesizerControlVariables,
         #                                                      icon="controlvariables",
         #                                                      tip="Select variables to control.")
-        setCorrespondenceAction = self.createAction("Set Correspondence", self.synthesizerSetCorrBetVariables, 
+        setCorrespondenceAction = self.createAction("Set Corresponding Variables", self.synthesizerSetCorrBetVariables, 
                                                     icon="varcorr",
                                                     tip="""Select the variables and """
                                                     """set the correspondence map between the variables """
@@ -199,7 +202,7 @@ class MainWindow(QMainWindow):
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
 
         self.addActions(self.resultsMenu, (resultsIndividualAction,))
-        self.addActions(self.resultsMenu, (resultsViewHHAction,))
+        #self.addActions(self.resultsMenu, (resultsViewHHAction,))
 # Adding actions to toolbar
 
         self.resultsToolBar = self.addToolBar("Results")
@@ -248,9 +251,9 @@ class MainWindow(QMainWindow):
     def windowDirty(self, value):
         print 'entering dirty %s' %value
         if value:
-            self.setWindowTitle("PopGen Version-0.50 %s*" %self.project.name)
+            self.setWindowTitle("PopGen: Version-0.50 %s*" %self.project.name)
         else:
-            self.setWindowTitle("PopGen Version-0.50 %s" %self.project.name)
+            self.setWindowTitle("PopGen: Version-0.50 %s" %self.project.name)
             
 
 
@@ -260,11 +263,11 @@ class MainWindow(QMainWindow):
         if not self.fileManager.isEnabled():
             self.runWizard()
         else:
-            reply = QMessageBox.question(None, "PopGen: New Project Wizard",
+            reply = QMessageBox.question(None, "Project Setup Wizard",
                                          QString("""A PopGen project already open. Do you wish to continue?"""),
                                          QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
-                save = QMessageBox.question(None, "PopGen: New Project Wizard",
+                save = QMessageBox.question(None, "Project Setup Wizard",
                                             QString("""Do you wish to save the project?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 self.fileManager.clear()
@@ -310,11 +313,11 @@ class MainWindow(QMainWindow):
 
         if not project.file.isEmpty():
             if self.fileManager.isEnabled():
-                reply = QMessageBox.warning(None, "PopGen: Open Existing Project",
+                reply = QMessageBox.warning(None, "Open Existing Project",
                                             QString("""A PopGen project already open. Do you wish to continue?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
-                    save = QMessageBox.warning(None, "PopGen: Save Existing Project",
+                    save = QMessageBox.warning(None, "Save Existing Project",
                                                QString("""Do you wish to save the project?"""),
                                                QMessageBox.Yes| QMessageBox.No)
                     if save == QMessageBox.Yes:
@@ -350,7 +353,7 @@ class MainWindow(QMainWindow):
         file = re.split("[/.]", file)
         filename = file[-2]
         if not filename.isEmpty():
-            reply = QMessageBox.warning(self, "PopGen: Save Existing Projec As...",
+            reply = QMessageBox.warning(self, "Save Existing Project As...",
                                         QString("""Do you wish to continue?"""), 
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
@@ -410,7 +413,7 @@ class MainWindow(QMainWindow):
                 self.project.save()
                 self.fileManager.populate()
         else:
-            QMessageBox.warning(self, "Synthesizer", "Please import tables before setting variable correspondence.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Synthesizer", "Please import and process tables before setting variable correspondence.", QMessageBox.Ok)
 
     def checkIfTablesExist(self):
         reqTables = ['hhld_sample', 'hhld_sample', 'person_marginals', 'person_sample']
