@@ -13,7 +13,7 @@ class DataDialog(QDialog):
         super(DataDialog, self).__init__(parent)
         self.project = project
         self.setFixedSize(QSize(600, 300))
-        self.setWindowTitle("PopGen: Processing Data")
+        self.setWindowTitle("Processing Data")
         self.setWindowIcon(QIcon("./images/popsyn"))
 
         self.move(100,100)
@@ -29,12 +29,12 @@ class DataDialog(QDialog):
 
         ok.setEnabled(False)
 
-        self.GeocorrHousingLayout = CheckLabel("1. Processing geographic Correspondence Data", "incomplete")
-        self.SampleHousingLayout = CheckLabel("2. Processing Housing PUMS Data", "incomplete")
-        self.SamplePersonLayout = CheckLabel("3. Processing Person PUMS Data", "incomplete")
-        self.ControlHousingLayout = CheckLabel("4. Processing Housing Summary Data", "incomplete")
-        self.ControlPersonLayout = CheckLabel("5. Processing Person Summary Data", "incomplete")
-        self.RegionShapeLayout = CheckLabel("6. Processing Region's Shape File", "incomplete")
+        self.GeocorrHousingLayout = CheckLabel("a. Processing geographic Correspondence Data", "incomplete")
+        self.SampleHousingLayout = CheckLabel("b. Processing Housing PUMS Data", "incomplete")
+        self.SamplePersonLayout = CheckLabel("c. Processing Person PUMS Data", "incomplete")
+        self.ControlHousingLayout = CheckLabel("d. Processing Housing Summary Data", "incomplete")
+        self.ControlPersonLayout = CheckLabel("e. Processing Person Summary Data", "incomplete")
+        self.RegionShapeLayout = CheckLabel("f. Processing Region's Shape File", "incomplete")
 
         #self.detailsTextEdit = QTextEdit()
         #self.detailsTextEdit.setMinimumHeight(250)

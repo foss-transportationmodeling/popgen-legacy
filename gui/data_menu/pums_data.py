@@ -276,7 +276,7 @@ class AutoImportPUMSData():
 
     def housingSelVars(self):
         housingVariablesDialog = VariableSelectionDialog(self.housingVariableDict, self.housingDefaultVariables,
-                                                         "PUMS Housing Variable Selection",
+                                                         "PUMS Housing Variable(s) Selection",
                                                          "controlvariables")
 
         # Launch a dialogbox to select the housing variables of interest
@@ -289,7 +289,7 @@ class AutoImportPUMSData():
 
     def personSelVars(self):
         personVariablesDialog = VariableSelectionDialog(self.personVariableDict, self.personDefaultVariables,
-                                                        "PUMS Person Variable Selection",
+                                                        "PUMS Person Variable(s) Selection",
                                                         "controlvariables")
 
         # Launch a dialogbox to select the person variables of interest
