@@ -2,7 +2,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from collections import defaultdict
 
-from zipfile import ZipFile
+from misc.zipfile import ZipFile
 import os
 
 class UnzipFile:
