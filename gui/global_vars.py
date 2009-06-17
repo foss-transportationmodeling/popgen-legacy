@@ -1,4 +1,9 @@
-DATA_DOWNLOAD_LOCATION = "C:/PopGen/data"
+import sys
+
+if sys.platform.startswith('win'):
+    DATA_DOWNLOAD_LOCATION = "C:/PopGen/data"
+else:
+    DATA_DOWNLOAD_LOCATION = "../PopGen/data"
 IPF_TOLERANCE = 0.0001
 IPF_MAX_ITERATIONS = 250
 IPU_TOLERANCE = 0.0001
