@@ -42,7 +42,7 @@ class ResultsGen():
         if self.project.resolution == "Blockgroup":
             self.res_prefix = "bg"
 
-        self.generate()
+        #self.generate()
         #self.resultsloc = "C:/populationsynthesis/gui/results"
         #self.mapsloc = "C:/populationsynthesis/gui/data"
         #self.stateCode = "04"
@@ -50,16 +50,21 @@ class ResultsGen():
 
     
     def generate(self):
-        self.create_hhmap()
-        self.create_regstats()
-        self.create_indstats()
+        return self.create_hhmap()
+        #self.create_regstats()
+        #self.create_indstats()
     
     def create_hhmap(self):
         # create a new shapefile with selected counties
         newfilename = self.res_prefix+self.stateCode+"_selected" 
         newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
-        if not os.path.exists(newfile):
-            self.makesublayer()
+        basefile = os.path.realpath(self.mapsloc+os.path.sep+self.res_prefix+self.stateCode+"_d00.shp")
+        if os.path.exists(basefile):
+            if not os.path.exists(newfile):
+                self.makesublayer()
+            return True
+        else:
+             return False
         # Decide whether to show points or not
     
     def makesublayer(self):

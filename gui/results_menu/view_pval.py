@@ -9,28 +9,35 @@ class Pval(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
         self.project = project
-        self.setWindowTitle("P Value Distribution")
-        self.vbox.addWidget(self.canvas)
-        self.setLayout(self.vbox)
-        self.on_draw()
-
+        self.valid = False
+        if self.isValid():
+            self.valid = True
+            self.setWindowTitle("P Value Distribution")
+            self.vbox.addWidget(self.canvas)
+            self.setLayout(self.vbox)
+            self.on_draw()
+        else:
+            QMessageBox.warning(self, "Synthesizer", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
+       
+    def isValid(self):
+        return self.checkIfTableExists("performance_statistics")
 
     def on_draw(self):
         """ Redraws the figure
         """
         self.err = []
-        self.retrieveResults()
+        if self.retrieveResults():
         
-        # clear the axes and redraw the plot anew
-        self.axes.clear()        
-        self.axes.grid(True)
+            # clear the axes and redraw the plot anew
+            self.axes.clear()        
+            self.axes.grid(True)
         
-        #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
-        self.axes.hist(self.err, normed=False, align='mid')
-        self.axes.set_xlabel("P Values")
-        self.axes.set_ylabel("Frequency")
-        self.axes.set_xbound(None,1)
-        self.canvas.draw()      
+            #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
+            self.axes.hist(self.err, normed=False, align='mid')
+            self.axes.set_xlabel("P Values")
+            self.axes.set_ylabel("Frequency")
+            self.axes.set_xbound(None,1)
+            self.canvas.draw()      
 
     def retrieveResults(self):
         projectDBC = createDBC(self.project.db, self.project.name)
@@ -47,8 +54,13 @@ class Pval(Matplot):
             while query.next():
                 pval = query.value(0).toDouble()[0]
                 self.err.append(pval)
+            projectDBC.dbc.close()
+            return True
+        else:
+            projectDBC.dbc.close()
+            return False
         
-        projectDBC.dbc.close()
+        
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)

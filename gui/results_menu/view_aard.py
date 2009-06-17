@@ -9,11 +9,19 @@ class Absreldiff(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
         self.project = project
-        self.setWindowTitle("Average Absolute Relative Difference Distribution")
-        self.vbox.addWidget(self.canvas)
-        self.setLayout(self.vbox)
-        self.on_draw()
-
+        self.valid = False
+        if self.isValid():
+            self.valid = True
+            self.setWindowTitle("Average Absolute Relative Difference Distribution")
+            self.vbox.addWidget(self.canvas)
+            self.setLayout(self.vbox)
+            self.on_draw()
+        else:
+            QMessageBox.warning(self, "Synthesizer", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
+        
+    def isValid(self):
+        return self.checkIfTableExists("performance_statistics")
+        
     def on_draw(self):
         """ Redraws the figure
         """

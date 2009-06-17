@@ -11,53 +11,56 @@ class Hhdist(Matplot):
         Matplot.__init__(self)
         self.setFixedSize(800,475)
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
-        self.projectDBC.dbc.open()
-        self.hhldvariables = self.project.selVariableDicts.hhld.keys()
-        self.gqvariables = self.project.selVariableDicts.gq.keys()
-        self.hhldvariables.sort()
-        self.gqvariables.sort()
+        self.valid = False
+        if self.isValid():
+            self.valid = True
+            self.projectDBC = createDBC(self.project.db, self.project.name)
+            self.projectDBC.dbc.open()
+            self.hhldvariables = self.project.selVariableDicts.hhld.keys()
+            self.gqvariables = self.project.selVariableDicts.gq.keys()
+            self.hhldvariables.sort()
+            self.gqvariables.sort()
         
-        self.setWindowTitle("Housing Attributes Distribution")
-        self.enableindgeo = True
-        self.makeComboBox()
-        self.vbox.addWidget(self.comboboxholder)
-        self.vbox.addWidget(self.canvas)
-        self.setLayout(self.vbox)
-        self.makeTempTables()
-
-        self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
-        self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
+            self.setWindowTitle("Housing Attributes Distribution")
+            self.enableindgeo = True
+            self.makeComboBox()
+            self.vbox.addWidget(self.comboboxholder)
+            self.vbox.addWidget(self.canvas)
+            self.setLayout(self.vbox)
+            self.makeTempTables()
+            self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
+            self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
+        else:
+            QMessageBox.warning(self, "Synthesizer", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
         
-
+    def isValid(self):
+        return self.checkIfTableExists("housing_synthetic_data")
+        
     def reject(self):
         self.projectDBC.dbc.close()
         QDialog.reject(self)
         
     def makeTempTables(self):
-
-        if self.checkIfTableExists('housing_synthetic_data'):
-            hhldvarstr = ""
-            gqvarstr = ""
-            for i in self.hhldvariables:
-                hhldvarstr = hhldvarstr + i + ','
-                hhldvarstr = hhldvarstr[:-1]
-            for i in self.gqvariables:
-                gqvarstr = gqvarstr + i + ','
-                gqvarstr = gqvarstr[:-1]
+        hhldvarstr = ""
+        gqvarstr = ""
+        for i in self.hhldvariables:
+            hhldvarstr = hhldvarstr + i + ','
+        hhldvarstr = hhldvarstr[:-1]
+        for i in self.gqvariables:
+            gqvarstr = gqvarstr + i + ','
+        gqvarstr = gqvarstr[:-1]
         
-            query = QSqlQuery(self.projectDBC.dbc)
-            query.exec_(""" DROP TABLE IF EXISTS temphhld""")
-            if not query.exec_("""CREATE TABLE temphhld SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
-                               """ LEFT JOIN hhld_sample using (serialno)""" %(hhldvarstr)):
-                raise FileError, query.lastError().text()    
-            query.exec_(""" DROP TABLE IF EXISTS tempgq""")            
-            if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
-                               """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
-                raise FileError, query.lastError().text()   
-            self.on_draw()            
-        else:
-            QMessageBox.warning(self, "Synthesizer", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
+        query = QSqlQuery(self.projectDBC.dbc)
+        query.exec_(""" DROP TABLE IF EXISTS temphhld""")
+        if not query.exec_("""CREATE TABLE temphhld SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
+                            """ LEFT JOIN hhld_sample using (serialno)""" %(hhldvarstr)):
+            raise FileError, query.lastError().text()    
+        query.exec_(""" DROP TABLE IF EXISTS tempgq""")            
+        if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
+                            """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
+            raise FileError, query.lastError().text()   
+        self.on_draw()            
+
     def on_draw(self):
         """ Redraws the figure
         """

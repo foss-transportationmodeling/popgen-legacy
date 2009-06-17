@@ -11,24 +11,32 @@ class Ppdist(Matplot):
         Matplot.__init__(self)
         self.setFixedSize(800,475)
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
-        self.projectDBC.dbc.open()
-        self.variables = self.project.selVariableDicts.person.keys()
-        self.variables.sort()
-        #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
+        self.valid = False
+        if self.isValid():
+            self.valid = True
+            self.projectDBC = createDBC(self.project.db, self.project.name)
+            self.projectDBC.dbc.open()
+            self.variables = self.project.selVariableDicts.person.keys()
+            self.variables.sort()
+            #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
-        self.setWindowTitle("Person Attributes Distribution")
-        self.enableindgeo = True
-        self.makeComboBox()
-        self.vbox.addWidget(self.comboboxholder)
-        self.vbox.addWidget(self.canvas)
-        self.setLayout(self.vbox)
+            self.setWindowTitle("Person Attributes Distribution")
+            self.enableindgeo = True
+            self.makeComboBox()
+            self.vbox.addWidget(self.comboboxholder)
+            self.vbox.addWidget(self.canvas)
+            self.setLayout(self.vbox)
         
-        self.makeTempTables()
-        self.on_draw()
-        self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
-        self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
-
+            self.makeTempTables()
+            self.on_draw()
+            self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
+            self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
+        else:
+            QMessageBox.warning(self, "Synthesizer", "A table with name - person_synthetic_data does not exist.", QMessageBox.Ok)
+        
+    def isValid(self):
+        return self.checkIfTableExists("person_synthetic_data")
+        
     def reject(self):
         self.projectDBC.dbc.close()
         QDialog.reject(self)

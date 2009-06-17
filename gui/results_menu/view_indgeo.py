@@ -14,70 +14,81 @@ resultmap = "bg04_selected.shp"
 
 class Indgeo(Matplot):
     def __init__(self, project, parent=None):
-        res = ResultsGen(project)
-        del res
         Matplot.__init__(self)
         self.setMinimumSize(QSize(1000,500))
         self.setWindowTitle("Individual Geography Statistics")
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
-        self.projectDBC.dbc.open()
-
-
-        if self.project.resolution == "County":
-            self.res_prefix = "co"
-        if self.project.resolution == "Tract":
-            self.res_prefix = "tr"
-        if self.project.resolution == "Blockgroup":
-            self.res_prefix = "bg"
-        self.stateCode = self.project.stateCode[self.project.state]
-        resultfilename = self.res_prefix+self.stateCode+"_selected"
-        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+        self.valid = False
         
-        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
-
+        if self.isResolutionValid() & self.isLayerValid():
+            self.valid = True
+            if self.project.resolution == "County":
+                self.res_prefix = "co"
+            if self.project.resolution == "Tract":
+                self.res_prefix = "tr"
+            if self.project.resolution == "Blockgroup":
+                self.res_prefix = "bg"
+            self.stateCode = self.project.stateCode[self.project.state]
+            resultfilename = self.res_prefix+self.stateCode+"_selected"
+            self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
         
-        #self.makeComboBox()
-        self.makeMapWidget()
-        #self.vbox.addWidget(self.geocombobox)
-        self.vbox.addWidget(self.mapwidget)
-        self.vboxwidget = QWidget()
-        self.vboxwidget.setLayout(self.vbox)
-        vbox2 = QVBoxLayout()
-        self.vboxwidget2 = QWidget()
-        self.vboxwidget2.setLayout(vbox2)
-        self.labelwidget = QWidget()
-        labellayout = QGridLayout(None)
-        self.labelwidget.setLayout(labellayout)
-        labellayout.addWidget(QLabel("Selected Geography: " ),1,1)
-        labellayout.addWidget(QLabel("AARD: " ),2,1)
-        labellayout.addWidget(QLabel("P Value: "),3,1)
-        self.aardval = QLabel("")
-        self.pval = QLabel("")
-        self.selgeog = QLabel("")
-        self.aardval.setAlignment(Qt.AlignLeft)
-        self.pval.setAlignment(Qt.AlignLeft)
-        self.selgeog.setAlignment(Qt.AlignLeft)
-        labellayout.addWidget(self.selgeog ,1,2)
-        labellayout.addWidget(self.aardval,2,2)
-        labellayout.addWidget(self.pval,3,2)
+            self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
 
-        vbox2.addWidget(self.labelwidget)
-        vbox2.addWidget(self.canvas)
+            self.projectDBC = createDBC(self.project.db, self.project.name)
+            self.projectDBC.dbc.open()
+            #self.makeComboBox()
+            self.makeMapWidget()
+            #self.vbox.addWidget(self.geocombobox)
+            self.vbox.addWidget(self.mapwidget)
+            self.vboxwidget = QWidget()
+            self.vboxwidget.setLayout(self.vbox)
+            vbox2 = QVBoxLayout()
+            self.vboxwidget2 = QWidget()
+            self.vboxwidget2.setLayout(vbox2)
+            self.labelwidget = QWidget()
+            labellayout = QGridLayout(None)
+            self.labelwidget.setLayout(labellayout)
+            labellayout.addWidget(QLabel("Selected Geography: " ),1,1)
+            labellayout.addWidget(QLabel("AARD: " ),2,1)
+            labellayout.addWidget(QLabel("P Value: "),3,1)
+            self.aardval = QLabel("")
+            self.pval = QLabel("")
+            self.selgeog = QLabel("")
+            self.aardval.setAlignment(Qt.AlignLeft)
+            self.pval.setAlignment(Qt.AlignLeft)
+            self.selgeog.setAlignment(Qt.AlignLeft)
+            labellayout.addWidget(self.selgeog ,1,2)
+            labellayout.addWidget(self.aardval,2,2)
+            labellayout.addWidget(self.pval,3,2)
 
-        self.hbox = QHBoxLayout()
-        self.hbox.addWidget(self.vboxwidget)
-        self.hbox.addWidget(self.vboxwidget2)
+            vbox2.addWidget(self.labelwidget)
+            vbox2.addWidget(self.canvas)
 
-        self.setLayout(self.hbox)
-        self.on_draw()
-        #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
-        self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)
+            self.hbox = QHBoxLayout()
+            self.hbox.addWidget(self.vboxwidget)
+            self.hbox.addWidget(self.vboxwidget2)
+
+            self.setLayout(self.hbox)
+            self.on_draw()
+            #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
+            self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)
         
-        self.selcounty = "0"
-        self.seltract = "0"
-        self.selblkgroup = "0"
-        self.pumano = -1
+            self.selcounty = "0"
+            self.seltract = "0"
+            self.selblkgroup = "0"
+            self.pumano = -1
+        else:
+            if not self.isResolutionValid():
+                QMessageBox.warning(self, "Synthesizer", "Individual Geography Statistics not available for TAZ resolution.", QMessageBox.Ok)
+            if not self.isLayerValid():
+                QMessageBox.warning(self, "Synthesizer", "Valid Shape File for geography not found.", QMessageBox.Ok)
+                
+    def isResolutionValid(self):
+        return self.project.resolution != "TAZ"
+
+    def isLayerValid(self):
+        res = ResultsGen(self.project)
+        return res.generate()
 
     def accept(self):
         self.projectDBC.dbc.close()
@@ -90,51 +101,47 @@ class Indgeo(Matplot):
 
 
     def on_draw(self, provider=None, selfeat=None ):
-
         if provider != None:
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
             tractidx = provider.indexFromFieldName("TRACT")
             countyidx = provider.indexFromFieldName("COUNTY")
             
+            
             attrMap = selfeat.attributeMap()
             try:
                 self.selcounty = attrMap[countyidx].toString().trimmed()
-            except Exception, e:
-                print "Exception: %s" %e
-                
-            if blkgroupidx == -1 & tractidx == -1:
-                self.selgeog.setText("County - " + self.selcounty)
-            if tractidx != -1:
-                self.seltract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
-                if blkgroupidx == -1:
-                    self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract)
+                if blkgroupidx == -1 & tractidx == -1:
+                    self.selgeog.setText("County - " + self.selcounty)
+                if tractidx != -1:
+                    self.seltract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
+                    if blkgroupidx == -1:
+                        self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract)
+                    else:
+                        self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
+                        self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
+                self.ids = []
+                self.act = []
+                self.syn = []
+                # clear the axes
+                self.axes.clear()
+                self.axes.grid(True)
+                self.axes.set_xlabel("Joint Frequency Distribution from IPF")
+                self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
+                self.axes.set_xbound(0)
+                self.axes.set_ybound(0)      
+                self.retrieveResults()
+                if len(self.ids) > 0:
+                    scat_plot = self.axes.scatter(self.act, self.syn)
+                    scat_plot.axes.set_xbound(0)
+                    scat_plot.axes.set_ybound(0)
                 else:
-                    self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
-                    self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
-            
-            self.ids = []
-            self.act = []
-            self.syn = []
-            # clear the axes
-            self.axes.clear()
-            self.axes.grid(True)
-            self.axes.set_xlabel("Joint Frequency Distribution from IPF")
-            self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
-            self.axes.set_xbound(0)
-            self.axes.set_ybound(0)
+                    pass
+                self.canvas.draw()                
+                
+            except Exception, e:
+                print "Exception: %s; Invalid Selection." %e
+                
 
-
-            
-            self.retrieveResults()
-
-            provider.fields()
-            if len(self.ids) > 0:
-                scat_plot = self.axes.scatter(self.act, self.syn)
-                scat_plot.axes.set_xbound(0)
-                scat_plot.axes.set_ybound(0)
-            else:
-                pass
-            self.canvas.draw()
 
     def makeComboBox(self):
         self.geocombobox = QComboBox(self)
@@ -200,20 +207,16 @@ class Indgeo(Matplot):
         filter = ""
         group = ""
 
-        if self.selcounty <> "0":
-            filter_act = "tract=0 and bg=0"
-            filter_syn = "county=" + str(self.selcounty) + " and tract=0 and bg=0"
-
+        if self.selblkgroup <> "0":
+            filter_act = "tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
+            filter_syn = "county=" + str(self.selcounty) + " and " +"tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
         elif self.seltract <> "0":
             filter_act = "tract=" + str(self.seltract) + " and " + "bg=0"
             filter_syn = "county=" + str(self.selcounty) + " and " +"tract=" + str(self.seltract) + " and " + "bg=0"
-
         else:
-            filter_act = "tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
-            filter_syn = "county=" + str(self.selcounty) + " and " +"tract=" + str(self.seltract) + " and " + "bg=" + str(self.selblkgroup)
+            filter_act = "tract=0 and bg=0"
+            filter_syn = "county=" + str(self.selcounty) + " and tract=0 and bg=0"
             
-
-
         query = self.executeSelectQuery(self.projectDBC.dbc,vars, performancetable, filter_syn, group)
         aardval = 0.0
         pval = 0.0

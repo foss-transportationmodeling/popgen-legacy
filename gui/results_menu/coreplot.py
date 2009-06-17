@@ -48,6 +48,8 @@ class Matplot(QDialog):
 
         self.vbox = QVBoxLayout()
 
+    def isValid(self):
+        pass
 
     def on_draw(self):
         pass
