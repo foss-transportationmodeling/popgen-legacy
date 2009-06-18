@@ -257,7 +257,7 @@ def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract =
     for i in range(attributes.shape[0]):
         values = ''
         for j in attributes[i,:]:
-            values = values + str(j) + '\t'
+            values = values + '%d'%j + ','
         #values = str(tuple(attributes[i,:]))
         f.write(values[:-1])
         f.write('\n')
@@ -268,18 +268,20 @@ def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract =
 
 def store(db, filePath, tablename):
     dbc = db.cursor()
-    dbc.execute("""load data local infile '%s' into table %s  fields terminated by '\t'""" %(filePath, tablename))
+    print ("""load data local infile '%s' into table %s  fields terminated by ','""" %(filePath, tablename))
+    dbc.execute("""load data local infile '%s' into table %s  fields terminated by ','""" %(filePath, tablename))
 
 
 def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
+    attributes = attributes.astype(int)
     dbc = db.cursor()
     dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
 
     values = tuple([tuple(i) for i in attributes])
    
     dbc.execute("""insert into %s_synthetic_data values %s;""" %(synthesis_type, str(values)[1:-1]))
-    dbc.close()
     db.commit()
+    dbc.close()
 
 
 def create_performance_table(db):
