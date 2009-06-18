@@ -48,7 +48,7 @@ class ParametersDialog(QDialog):
         synPopDrawsLabel = QLabel("Maximum number of draws to find a desirable Synthetic Population")
         self.synPopDrawsEdit = QSpinBox()
         synPopDrawsLabel.setBuddy(self.synPopDrawsEdit)
-        self.synPopDrawsEdit.setRange(0,  50)
+        self.synPopDrawsEdit.setRange(0,  250)
         self.synPopDrawsEdit.setValue(self.project.parameters.synPopDraws)
         #synPopDrawsEdit.setValue(SYNTHETIC_POP_MAX_DRAWS)
 
