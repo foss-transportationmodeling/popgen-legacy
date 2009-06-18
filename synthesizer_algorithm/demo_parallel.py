@@ -16,12 +16,17 @@ import pp
 import pickle
 import os
 
-#def configure_and_run(fileLoc, index_matrix=None, p_index_matrix=None, geo=None, varCorrDict=None):
-def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_matrix):
+#def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_matrix):
+def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
+    ti = time.time()
+    f = open('indexMatrix.pkl', 'rb')
+    index_matrix = cPickle.load(f)
+    f.close()
 
-    index_matrix = numpy.asarray(index_matrix)
-    p_index_matrix = numpy.asarray(p_index_matrix)
+    print 'indexMatrix - %.4f' %(time.time()-ti)
+    ti = time.time()
+
 
 
     f = open(fileLoc, 'rb')
@@ -75,11 +80,6 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
 
 
 #______________________________________________________________________
-# Creating the sparse array
-    dbc.execute('select * from sparse_matrix1_%s' %(0))
-    sp_matrix = numpy.asarray(dbc.fetchall())
-
-#______________________________________________________________________
 # Running IPF for Households
     print 'Step 1A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, hhld_dimensions, county, pumano, tract, bg, parameters)
@@ -108,6 +108,12 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     weights[result]=1
 
 #______________________________________________________________________
+# Reading the sparse matrix
+    dbc.execute('select * from sparse_matrix1_%s' %(0))
+    sp_matrix = numpy.asarray(dbc.fetchall())
+
+
+#______________________________________________________________________
 # Creating the control array
     total_constraint = numpy.hstack((hhld_estimated_constraint[:,0], gq_estimated_constraint[:,0], person_estimated_constraint[:,0]))
 
@@ -132,6 +138,13 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
 #______________________________________________________________________
 # Sampling Households and choosing the draw with the best match with with the objective distribution
 
+    f = open('pIndexMatrix.pkl', 'rb')
+    p_index_matrix = cPickle.load(f)
+
+    f.close()
+
+    print 'pIndexMatrix in - %.4f' %(time.time()-ti)
+
     hhidRowDict = synthesizer_algorithm.drawing_households.hhid_row_dictionary(housing_sample) # row in the master matrix - hhid
     rowHhidDict = synthesizer_algorithm.drawing_households.row_hhid_dictionary(p_index_matrix) # hhid - row in the person index matrix
 
@@ -143,6 +156,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
     while(p_value < parameters.synPopPTol and draw_count < parameters.synPopDraws):
         draw_count = draw_count + 1
         synthetic_housing_units = synthesizer_algorithm.drawing_households.drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, 0)
+
 
 # Creating synthetic hhld, and person attribute tables
 
@@ -163,6 +177,8 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
             max_p_person_attributes = synthetic_person_attributes
             min_chi = stat
 
+    sp_matrix = None
+    
     if draw_count >= parameters.synPopDraws:
         print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f' 
                %(parameters.synPopDraws, max_p))
@@ -207,7 +223,8 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_m
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
+#def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
+def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
@@ -224,7 +241,7 @@ def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList,
                'synthesizer_algorithm.drawing_households',
                'synthesizer_algorithm.adjusting_sample_joint_distribution',
                'synthesizer_algorithm.ipf',
-               'pickle', 
+               'cPickle', 
                'scipy',
                'numpy',
                'pylab',
@@ -242,9 +259,9 @@ def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList,
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
                                                         varCorrDict,
-                                                        dbList, 
-                                                        indexMatrix, 
-                                                        pIndexMatrix), (), modules)) for geo in geoIds]
+                                                        dbList), (), modules)) for geo in geoIds] 
+                                                        #indexMatrix, 
+                                                        #pIndexMatrix), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         print job()
     job_server.print_stats()
@@ -260,9 +277,10 @@ def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList,
     filePerson = os.getcwd() + os.sep + 'persondata.txt'
     filePerson = filePerson.replace('\\', '/')
 
+    print 'Store data'
     synthesizer_algorithm.drawing_households.store(db, fileHousing, 'housing_synthetic_data')
     synthesizer_algorithm.drawing_households.store(db, filePerson, 'person_synthetic_data')    
-
+    print 'done storing data'
     os.remove(fileHousing)
     os.remove(filePerson)
     
