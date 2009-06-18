@@ -1,7 +1,7 @@
 import datetime, time, numpy, re, sys
 import MySQLdb
 import pp
-
+import cPickle as pickle
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -152,14 +152,18 @@ class RunDialog(QDialog):
                 from math import floor
 
                 geoCount = len(self.runGeoIds)
-                bins = int(floor(geoCount/100))
+                binsize = 50
+
+                bins = int(floor(geoCount/binsize))
+
                 
-                index = [(i*100, i*100+100) for i in range(bins)]
-                index.append((bins*100, geoCount))
+                
+                index = [(i*binsize, i*binsize+binsize) for i in range(bins)]
+                index.append((bins*binsize, geoCount))
 
                 for i in index:
-                    run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
-
+                    #run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
+                    run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
@@ -174,11 +178,13 @@ class RunDialog(QDialog):
                     
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-                    try:
-                        configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
-                    except Exception, e:
-                        self.outputWindow.append("\t- Error in the Syntheiss for geography")
-                        print ('Exception: %s' %e)
+                    #configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
+                    configure_and_run(self.project, geo, varCorrDict)
+                    #try:
+                    #    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
+                    #except Exception, e:
+                    #    self.outputWindow.append("\t- Error in the Syntheiss for geography")
+                    #    print ('Exception: %s' %e)
                 self.selGeographiesButton.setEnabled(False)
             else:
                 self.runGeoIds = []
@@ -332,14 +338,21 @@ class RunDialog(QDialog):
         dbc = db.cursor()
 
         dbc.execute("""select * from index_matrix_%s""" %(0))
-        self.indexMatrix = dbc.fetchall()
+        indexMatrix = numpy.asarray(dbc.fetchall())
         
         import time
         ti = time.time()
 
-        self.pIndexMatrix = person_index_matrix(db)
+        f = open('indexMatrix.pkl', 'wb')
+        pickle.dump(indexMatrix, f)
+        f.close()
+        print 'indexmatrix stored in %.4f' %(time.time()-ti)
+        ti = time.time()
 
-        print 'Person Index Matrix in %.4f s' %(time.time()-ti)
+        pIndexMatrix = person_index_matrix(db)
+        f = open('pIndexMatrix.pkl', 'wb')
+        pickle.dump(pIndexMatrix, f)
+        f.close()
 
         dbc.close()
         db.close()
