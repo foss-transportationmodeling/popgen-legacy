@@ -12,11 +12,21 @@ import scipy.stats
 import numpy
 import MySQLdb
 import time
+import cPickle
+#def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
+def configure_and_run(project, geo, varCorrDict):
 
-def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
+    ti = time.time()
+    f = open('indexMatrix.pkl', 'rb')
+    index_matrix = cPickle.load(f)
+    f.close()
 
-    index_matrix = numpy.asarray(index_matrix)
-    p_index_matrix = numpy.asarray(p_index_matrix)
+    print 'indexMatrix - %.4f' %(time.time()-ti)
+    ti = time.time()
+    
+
+    #index_matrix = numpy.asarray(index_matrix)
+    #p_index_matrix = numpy.asarray(p_index_matrix)
 
     state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
     
@@ -65,11 +75,6 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
     parameters = project.parameters
 
 #______________________________________________________________________
-# Creating the sparse array
-    dbc.execute('select * from sparse_matrix1_%s' %(0))
-    sp_matrix = numpy.asarray(dbc.fetchall())
-
-#______________________________________________________________________
 # Running IPF for Households
     print 'Step 1A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, hhld_dimensions, county, pumano, tract, bg, parameters)
@@ -101,6 +106,12 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
     total_constraint = numpy.hstack((hhld_estimated_constraint[:,0], gq_estimated_constraint[:,0], person_estimated_constraint[:,0]))
 
 #______________________________________________________________________
+# Creating the sparse array
+    dbc.execute('select * from sparse_matrix1_%s' %(0))
+    sp_matrix = numpy.asarray(dbc.fetchall())
+
+
+#______________________________________________________________________
 # Running the heuristic algorithm for the required geography
     iteration, weights, conv_crit_array, wts_array = heuristic_algorithm.heuristic_adjustment(db, 0, index_matrix, weights, total_constraint, sp_matrix, parameters)
 
@@ -118,6 +129,16 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
     frequencies = numpy.hstack((hhld_frequencies[:,0], gq_frequencies[:,0]))
 #______________________________________________________________________
 # Sampling Households and choosing the draw with the best match with with the objective distribution
+
+    ti = time.time() 
+
+    f = open('pIndexMatrix.pkl', 'rb')
+    p_index_matrix = cPickle.load(f)
+
+    f.close()
+
+    print 'pIndexMatrix in - %.4f' %(time.time()-ti)
+    
 
     hhidRowDict = drawing_households.hhid_row_dictionary(housing_sample) # row in the master matrix - hhid
     rowHhidDict = drawing_households.row_hhid_dictionary(p_index_matrix) # hhid - row in the person index matrix
@@ -149,6 +170,8 @@ def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
             max_p_housing_attributes = synthetic_housing_attributes
             max_p_person_attributes = synthetic_person_attributes
             min_chi = stat
+
+    sp_matrix = None
 
     if draw_count >= parameters.synPopDraws:
         print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f' 
