@@ -20,7 +20,7 @@ class Ppdist(Matplot):
             self.variables.sort()
             #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
-            self.setWindowTitle("Person Attributes Distribution")
+            self.setWindowTitle("Distribution of Person Variables")
             self.setWindowIcon(QIcon("./images/region.png"))
             ppdistWarning = QLabel("""<font color = blue>The above chart compares the actual marginal distribution with """
                                    """ the marginal distributions from the synthetic population generated for the person"""
