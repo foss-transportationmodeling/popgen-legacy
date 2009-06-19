@@ -13,8 +13,8 @@ class DataDialog(QDialog):
         super(DataDialog, self).__init__(parent)
         self.project = project
         self.setFixedSize(QSize(600, 300))
-        self.setWindowTitle("Processing Data")
-        self.setWindowIcon(QIcon("./images/popsyn"))
+        self.setWindowTitle("Import")
+        self.setWindowIcon(QIcon("./images/fileimport.png"))
 
         self.move(100,100)
 
@@ -36,6 +36,9 @@ class DataDialog(QDialog):
         self.ControlPersonLayout = CheckLabel("e. Processing Person Summary Data", "incomplete")
         self.RegionShapeLayout = CheckLabel("f. Processing Region's Shape File", "incomplete")
 
+        importWarning = QLabel("""<font color = blue> Please hit <b>Start</b> to begin importing data."""
+                               """</font>""")
+
         #self.detailsTextEdit = QTextEdit()
         #self.detailsTextEdit.setMinimumHeight(250)
 
@@ -46,6 +49,7 @@ class DataDialog(QDialog):
         layout.addLayout(self.ControlHousingLayout)
         layout.addLayout(self.ControlPersonLayout)
         layout.addLayout(self.RegionShapeLayout)
+        layout.addWidget(importWarning)
         #layout.addWidget(self.detailsTextEdit)
         layout.addWidget(self.dialogButtonBox)
 

@@ -9,7 +9,7 @@ from coreplot import *
 class Hhdist(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
-        self.setFixedSize(800,475)
+        self.setFixedSize(800,600)
         self.project = project
         self.valid = False
         if self.isValid():
@@ -22,10 +22,17 @@ class Hhdist(Matplot):
             self.gqvariables.sort()
         
             self.setWindowTitle("Housing Attributes Distribution")
+            self.setWindowIcon(QIcon("./images/region.png"))
+            hhdistWarning = QLabel("""<font color = blue>The above chart compares the actual marginal distribution with """
+                                   """ the marginal distributions from the synthetic population generated for the household/"""
+                                   """groupquarter variables of interest. </font>""")
+            hhdistWarning.setWordWrap(True)
             self.enableindgeo = True
             self.makeComboBox()
             self.vbox.addWidget(self.comboboxholder)
             self.vbox.addWidget(self.canvas)
+            self.vbox.addWidget(hhdistWarning)
+            self.vbox.addWidget(self.dialogButtonBox)            
             self.setLayout(self.vbox)
             self.makeTempTables()
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)

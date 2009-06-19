@@ -9,7 +9,7 @@ from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.display_data import DisplayTable
 from data_menu.sf_data import AutoImportSFData
-from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable
+from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable, NameDialog
 
 from misc.errors import *
 
@@ -35,9 +35,14 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         menuTableEdit = QMenu()
         displayTableAction = menuTableEdit.addAction("Display Table")
+        menuTableEdit.addSeparator()
         createVarAction = menuTableEdit.addAction("Create New Variable")
         recodeCatsAction = menuTableEdit.addAction("Recode Categories")
         deleteColAction = menuTableEdit.addAction("Delete Column(s)")
+        dropAction = menuTableEdit.addAction("Delete Table")
+        copyAction = menuTableEdit.addAction("Copy Table")
+        renameAction = menuTableEdit.addAction("Rename Table")
+        menuTableEdit.addSeparator()
         defaultTransforAction = menuTableEdit.addAction("Default Transformation")
 
         self.connect(importDataAction, SIGNAL("triggered()"), self.importData)
@@ -46,6 +51,9 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.connect(recodeCatsAction, SIGNAL("triggered()"), self.modifyCategories)
         self.connect(createVarAction, SIGNAL("triggered()"), self.createVariable)
         self.connect(deleteColAction, SIGNAL("triggered()"), self.deleteColumns)
+        self.connect(copyAction, SIGNAL("triggered()"), self.copyTable)
+        self.connect(renameAction, SIGNAL("triggered()"), self.renameTable)
+        self.connect(dropAction, SIGNAL("triggered()"), self.dropTable)
         self.connect(defaultTransforAction, SIGNAL("triggered()"), self.defaultTransformations)
         
         if self.item.parent() is None:
@@ -55,6 +63,53 @@ class QTreeWidgetCMenu(QTreeWidget):
                 menuTableEdit.exec_(event.globalPos())
 
 
+       
+    def copyTable(self):
+        tablename = self.item.text(0)
+        
+        copyNameDialog = NameDialog("Copy Table - %s" %tablename)
+        if copyNameDialog.exec_():
+            newTablename = copyNameDialog.nameLineEdit.text()
+            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC.dbc.open()
+
+            query = QSqlQuery(projectDBC.dbc)
+            if not query.exec_("""create table %s select * from %s""" %(newTablename, tablename)):
+                raise FileError, query.lastError().text()
+            self.populate()
+        projectDBC.dbc.close()
+
+    def renameTable(self):
+        tablename = self.item.text(0)
+        
+        renameNameDialog = NameDialog("Rename Table - %s" %tablename)
+        if renameNameDialog.exec_():
+            newTablename = renameNameDialog.nameLineEdit.text()
+            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC.dbc.open()
+
+            query = QSqlQuery(projectDBC.dbc)
+            if not query.exec_("""alter table %s rename to %s""" %(tablename, newTablename)):
+                raise FileError, query.lastError().text()
+            self.populate()
+        projectDBC.dbc.close()
+
+    def dropTable(self):
+        tablename = self.item.text(0)
+
+        reply = QMessageBox.question(None, "Delete Table - %s" %tablename, "Do you wish to continue?", 
+                                     QMessageBox.Yes| QMessageBox.Cancel)
+        if reply == QMessageBox.Yes:
+            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC.dbc.open()
+        
+            query = QSqlQuery(projectDBC.dbc)
+            if not query.exec_("""drop table %s""" %tablename):
+                raise FileError, query.lastError().text()
+            self.populate()
+            projectDBC.dbc.close()
+
+        
     def click(self, item, column):
         self.item = item
         
@@ -65,7 +120,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
 
-        create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "%s" %tablename)
+        create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
         if create.exec_():
             newVarName = create.newVarNameEdit.text()
             numericExpression = create.formulaEdit.toPlainText()
@@ -75,12 +130,12 @@ class QTreeWidgetCMenu(QTreeWidget):
             if len(numericExpression) <1:
                 QMessageBox.warning(self, "Data", QString("""Invalid numeric expression, enter again"""))
             else:
-                query = QSqlQuery(project.dbc)
+                query = QSqlQuery(projectDBC.dbc)
                 if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
                     raise FileError, query.lastError().text()
                 if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName, 
                                                                           numericExpression, whereExpression)):
-                    raise FileError, query.lasterror().text()
+                    raise FileError, query.lastError().text()
         
         projectDBC.dbc.close()
 
@@ -97,7 +152,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
-        modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename)
+        modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename, icon = "modifydata")
         modify.exec_()
         
         projectDBC.dbc.close()
@@ -110,7 +165,10 @@ class QTreeWidgetCMenu(QTreeWidget):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
 
-        deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = "Delete Dialog")
+        title = "Delete Dialog - %s" %tablename
+
+        deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = title, icon = "modifydata", 
+                                                     warning = "<font color = blue>Select variables to delete.</font>")
 
         query = QSqlQuery(projectDBC.dbc)
 
@@ -194,10 +252,13 @@ class QTreeWidgetCMenu(QTreeWidget):
     def editProject(self):
 
         editWidget = QWizard()
+        editWidget.setWindowTitle("Edit Project")
+        editWidget.setWindowIcon(QIcon("./images/editproject.png"))
         editWidget.setWizardStyle(QWizard.ClassicStyle)
         editWidget.setOption(QWizard.NoBackButtonOnStartPage)
 
         self.page = SummaryPage()
+        self.page.setTitle("Summary")
         self.page.projectLocationDummy = True
         self.page.projectDatabaseDummy = True
         self.page.fillPage(self.project)

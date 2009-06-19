@@ -17,6 +17,7 @@ class Indgeo(Matplot):
         Matplot.__init__(self)
         self.setMinimumSize(QSize(1000,500))
         self.setWindowTitle("Individual Geography Statistics")
+        self.setWindowIcon(QIcon("./images/individualgeo.png"))
         self.project = project
         self.valid = False
         
@@ -68,7 +69,16 @@ class Indgeo(Matplot):
             self.hbox.addWidget(self.vboxwidget)
             self.hbox.addWidget(self.vboxwidget2)
 
-            self.setLayout(self.hbox)
+            indGeoWarning = QLabel("""<font color = blue>Select a geography to show the  performance statistics and display a"""
+                                   """ scatter plot showing the comparison between the person weighted sum and the """
+                                   """composite person type constraints. </font>""")
+            indGeoWarning.setWordWrap(True)
+            self.vbox1 = QVBoxLayout()
+            self.vbox1.addLayout(self.hbox)
+            self.vbox1.addWidget(indGeoWarning)
+            self.vbox1.addWidget(self.dialogButtonBox)
+            self.setLayout(self.vbox1)
+
             self.on_draw()
             #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
             self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)

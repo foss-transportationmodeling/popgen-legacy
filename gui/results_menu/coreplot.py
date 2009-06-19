@@ -48,6 +48,12 @@ class Matplot(QDialog):
 
         self.vbox = QVBoxLayout()
 
+        self.dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+        
+        self.connect(self.dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+
+
     def isValid(self):
         pass
 

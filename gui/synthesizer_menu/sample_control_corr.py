@@ -17,13 +17,14 @@ class SetCorrDialog(QDialog):
         super(SetCorrDialog, self).__init__(parent)
 
         self.setWindowTitle("Corresponding Sample Categories with Marginal Variables")
-        self.setWindowIcon(QIcon("../images/varcorr.png"))
+        self.setWindowIcon(QIcon("./images/varcorr.png"))
         import copy
         self.project = copy.deepcopy(project)
         self.projectDBC = createDBC(self.project.db, self.project.filename)
         self.projectDBC.dbc.open()
 
         self.tabWidget = SetCorrTabWidget(self.project)
+
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
@@ -132,8 +133,8 @@ class SetCorrDialog(QDialog):
 
             return controlVariables, controlDimensions        
         else:
-            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Control Variables, and corresponding relations not defined appropriately. """
-                                """Please choose variables/ define relations and then run the synthesizer.""")
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Control Variables, and corresponding relations not defined appropriately. """
+                                """Please choose variables/ define relations and then run the synthesizer.""", QMessageBox.Ok)
 
     def reject(self):
         self.projectDBC.dbc.close()
@@ -327,9 +328,10 @@ class TabWidgetItems(QWidget):
 
     def checkSelectedVariables(self):
         if not (self.selSampleVarListWidget.count() > 0):
-            QMessageBox.warning(self, QString("PopGen: Synthesizer Inputs"),
-                                QString("""No variable was selected for %s control."""
-                                        """ Please select variables and define relations to continue.""" %self.controlType))
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
+                                """No variable was selected for %s control."""
+                                """ Please select variables and define relations to continue.""" %self.controlType, 
+                                QMessageBox.Ok)
             return False
         else:
             return True
@@ -337,8 +339,9 @@ class TabWidgetItems(QWidget):
 
     def checkNumRelationsDefined(self):
         if self.relationsListWidget.count() <> self.selSampleVarCatListWidget.count():
-            QMessageBox.warning(self, QString("PopGen: Synthesizer Inputs"), 
-                                QString("""Not enough relations defined for the %s control.""" %self.controlType))
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", 
+                                """Not enough relations defined for the %s control.""" %self.controlType,
+                                QMessageBox.Ok)
             return False
         else:
             return True
@@ -485,7 +488,7 @@ class TabWidgetItems(QWidget):
             itemAt = self.relationsListWidget.item(row)
 
             if row >= 0:
-                QMessageBox.warning(self, "PopGen: Run Synthesizer", """If you wish to change the control variable """
+                QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """If you wish to change the control variable """
                                     """corresponding to a category of the control variable, please delete the existing correspondence """
                                     """and define again.""", QMessageBox.Ok)
                 self.relationsListWidget.setCurrentItem(itemAt)
@@ -493,8 +496,8 @@ class TabWidgetItems(QWidget):
                 self.relationsListWidget.addItem(relation)
 
         except Exception, e:
-            QMessageBox.warning(self, "PopGen: Run Synthesizer", """Please select a variable category """
-                                """and a variable name to add a relation.""")
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Please select a variable category """
+                                """and a variable name to add a relation.""", QMessageBox.Ok)
             
 
 

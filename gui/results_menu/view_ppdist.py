@@ -9,7 +9,7 @@ from coreplot import *
 class Ppdist(Matplot):
     def __init__(self, project, parent=None):
         Matplot.__init__(self)
-        self.setFixedSize(800,475)
+        self.setFixedSize(800,600)
         self.project = project
         self.valid = False
         if self.isValid():
@@ -21,10 +21,17 @@ class Ppdist(Matplot):
             #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
             self.setWindowTitle("Person Attributes Distribution")
+            self.setWindowIcon(QIcon("./images/region.png"))
+            ppdistWarning = QLabel("""<font color = blue>The above chart compares the actual marginal distribution with """
+                                   """ the marginal distributions from the synthetic population generated for the person"""
+                                   """ variables of interest. </font>""")
+            ppdistWarning.setWordWrap(True)
             self.enableindgeo = True
             self.makeComboBox()
             self.vbox.addWidget(self.comboboxholder)
             self.vbox.addWidget(self.canvas)
+            self.vbox.addWidget(ppdistWarning)
+            self.vbox.addWidget(self.dialogButtonBox)            
             self.setLayout(self.vbox)
         
             self.makeTempTables()

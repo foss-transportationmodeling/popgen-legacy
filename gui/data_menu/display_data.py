@@ -19,6 +19,7 @@ class DisplayTable(QDialog):
         self.tablename = tablename
 
         self.setWindowTitle("Data Table - %s" %self.tablename)
+        self.setWindowIcon(QIcon("./images/modifydata.png"))
 
 
         self.variableTypeDictionary = {}
@@ -32,11 +33,15 @@ class DisplayTable(QDialog):
         self.view = QTableView()
         self.view.setModel(self.model)
         self.view.setMinimumSize(QSize(800, 500))
+        
+        outputLabel = QLabel("Output")
+
         self.output = QTextEdit()
         self.output.setMinimumSize(QSize(800, 100))
 
         layoutView = QVBoxLayout()
         layoutView.addWidget(self.view)
+        layoutView.addWidget(outputLabel)
         layoutView.addWidget(self.output)
 
         descButton = QPushButton("Decriptives")
@@ -70,7 +75,7 @@ class DisplayTable(QDialog):
         
     def descriptives(self):
         descriptivesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
-                                                        title = "Descriptives")
+                                                        title = "Descriptives", icon = "modifydata")
         if descriptivesVarDialog.exec_():
             self.descriptivesVariablesSelected = descriptivesVarDialog.selectedVariableListWidget.variables
             
@@ -99,7 +104,7 @@ class DisplayTable(QDialog):
     
     def frequencies(self):
         frequenciesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
-                                                        title = "Frequencies")
+                                                        title = "Frequencies", icon = "modifydata")
         if frequenciesVarDialog.exec_():
             self.frequenciesVariablesSelected = frequenciesVarDialog.selectedVariableListWidget.variables
 

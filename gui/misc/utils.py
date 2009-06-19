@@ -23,7 +23,7 @@ class UnzipFile:
             fileArchInfo = zipObject.getinfo(i)
             try:
                 fileExtrInfo = os.stat(os.path.join(self.mountpoint, i))
-                reply = QMessageBox.question(None, "PopGen: Extracting Data",
+                reply = QMessageBox.question(None, "Extracting Data",
                                              QString("""Do you like to replace the existing file %s (size %s)"""
                                                      """ with the file %s (size %s) from the zip folder?""" 
                                              %(i, fileExtrInfo.st_size, i, fileArchInfo.file_size)), 

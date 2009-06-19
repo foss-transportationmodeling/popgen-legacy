@@ -95,7 +95,7 @@ class UserImportSampleData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopGen: Processing Data",
+                reply = QMessageBox.question(None, "Import",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -157,7 +157,7 @@ class AutoImportPUMSData():
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopGen: Processing Data",
+                reply = QMessageBox.question(None, "Import",
                                              QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
@@ -180,13 +180,13 @@ class AutoImportPUMSData():
             os.makedirs(self.loc)
             self.retrieveAndStorePUMS()
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopGen: Processing Data",
+            reply = QMessageBox.question(None, "Import",
                                          QString("""Windows Error: %s.\n\n"""
                                                  """Do you wish to keep the existing files?"""
                                                  """\nPress No if you wish to download the files again."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopGen: Processing Data",
+                confirm = QMessageBox.question(None, "Import",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -277,7 +277,7 @@ class AutoImportPUMSData():
     def housingSelVars(self):
         housingVariablesDialog = VariableSelectionDialog(self.housingVariableDict, self.housingDefaultVariables,
                                                          "PUMS Housing Variable(s) Selection",
-                                                         "controlvariables")
+                                                         "controlvariables", warning="Select variables to import")
 
         # Launch a dialogbox to select the housing variables of interest
         if housingVariablesDialog.exec_():
@@ -287,10 +287,11 @@ class AutoImportPUMSData():
             self.housingVariablesSelectedDummy = False
 
 
+
     def personSelVars(self):
         personVariablesDialog = VariableSelectionDialog(self.personVariableDict, self.personDefaultVariables,
                                                         "PUMS Person Variable(s) Selection",
-                                                        "controlvariables")
+                                                        "controlvariables", warning="Select variables to import")
 
         # Launch a dialogbox to select the person variables of interest
         if personVariablesDialog.exec_():
@@ -300,11 +301,12 @@ class AutoImportPUMSData():
         else:
             self.personVariablesSelectedDummy = False
 
+
     def checkIfFileExists(self, file):
         try:
             fileInfo = os.stat(file)
 
-            reply = QMessageBox.question(None, "PopGen: Processing Data", 
+            reply = QMessageBox.question(None, "Import", 
                                          QString("""File %s exists. Do you wish to overwrite?""" %(file)),
                                          QMessageBox.Yes| QMessageBox.No)
 
@@ -328,10 +330,12 @@ class AutoImportPUMSData():
         housingVariablesSelected.insert(0, 'hhid')
         
         housingVariablesSelectedType = ['bigint'] * len(housingVariablesSelected)
-
-        housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
-                                                   housingVariablesSelected, housingVariablesSelectedType, False, False)
-
+        
+        try:
+            housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
+                                                       housingVariablesSelected, housingVariablesSelectedType, False, False)
+        except Exception, e:
+            raise FileError, e
         if not self.query.exec_(housingPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
         
@@ -358,8 +362,11 @@ class AutoImportPUMSData():
         
         personVariablesSelectedType = ['bigint'] * len(personVariablesSelected)
 
-        personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
-                                                   personVariablesSelected, personVariablesSelectedType, False, False)
+        try:
+            personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
+                                                      personVariablesSelected, personVariablesSelectedType, False, False)
+        except Exception, e:
+            raise FileError, e
 
         if not self.query.exec_(personPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
@@ -417,9 +424,10 @@ class AutoImportPUMSData():
                             state = i[9:11]
                             nhousing = nhousing + 1
                 else:
-                    QMessageBox.warning(None, "PopGen: Processing Data", QString("""Empty person PUMS File and empty person PUMS"""
-                                                                                 """ table will be created since no"""
-                                                                                 """ variables were selected for extraction."""))
+                    QMessageBox.warning(None, "Import", QString("""Empty person PUMS File and empty person PUMS"""
+                                                                """ table will be created since no"""
+                                                                """ variables were selected for extraction."""), 
+                                        QMessageBox.Ok)
         #print 'Person Records Parsed - %s' %nperson
         
 
@@ -439,9 +447,10 @@ class AutoImportPUMSData():
                             fhousing.write(housingRec)
 
                 else:
-                    QMessageBox.warning(None, "PopGen: Processing Data", QString("""Empty housing PUMS File and empty housing PUMS"""
-                                                                                 """ table will be created since no"""
-                                                                                 """ variables were selected for extraction."""))
+                    QMessageBox.warning(None, "Import", QString("""Empty housing PUMS File and empty housing PUMS"""
+                                                                """ table will be created since no"""
+                                                                """ variables were selected for extraction."""),
+                                        QMessageBox.Ok)
         #print 'Housing Records Parsed - %s' %nhousing        
 
 

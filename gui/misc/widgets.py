@@ -93,9 +93,9 @@ class LineEdit(QLineEdit):
             for i in text[1:]:
                 if not re.match("[A-Za-z_0-9]", i):
                     text.replace(i, '')
-                    raise TextError, "Project name can only comprise of alphabets and an underscore (_)"
+                    raise TextError, "Name can only comprise of alphabets and an underscore (_)"
         except TextError, e:
-            QMessageBox.information(self, "PopGen: New Project Wizard", 
+            QMessageBox.information(self, "Warning", 
                                     "%s" %e, 
                                     QMessageBox.Ok)
             self.setText(text)
@@ -110,8 +110,53 @@ class Separator(QFrame):
         self.setFrameShadow(QFrame.Sunken)
 
 
+class NameDialog(QDialog):
+    def __init__(self,  title, parent=None):
+        super(NameDialog, self).__init__(parent)
+        
+        self.setMinimumSize(200, 100)
+        self.setWindowTitle(title)
+        self.setWindowIcon(QIcon("./images/modifydata.png"))
+
+        nameLabel = QLabel("Name of the table")
+        self.nameLineEdit = LineEdit()
+        nameLabel.setBuddy(self.nameLineEdit)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(nameLabel)
+        hLayout.addWidget(self.nameLineEdit)
+        
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        
+        copyWarning = QLabel("""<font color = blue>Enter a name for the table</font> """)
+
+        vLayout = QVBoxLayout()
+        vLayout.addLayout(hLayout)
+        vLayout.addWidget(copyWarning)
+        vLayout.addWidget(dialogButtonBox)
+
+        self.setLayout(vLayout)
+        
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
+        self.connect(self.nameLineEdit, SIGNAL("textChanged(const QString&)"), self.checkName)        
+
+    def checkName(self, text):
+        try:
+            self.nameLineEdit.check(text)
+            self.check = True
+        except TextError, e:
+            QMessageBox.warning(self, "Table Name", "TextError: %s" %e, QMessageBox.Ok)
+            self.check = False
+
+    def accept(self):
+        if self.check:
+            QDialog.accept(self)
+        else:
+            QMessageBox.warning(self, "Table Name", "Enter a valid table name", QMessageBox.Ok)
+
+
 class VariableSelectionDialog(QDialog):
-    def __init__(self, variableDict, defaultVariables=[], title="", icon="", parent=None):
+    def __init__(self, variableDict, defaultVariables=[], title="", icon="", warning="", parent=None):
         super(VariableSelectionDialog, self).__init__(parent)
 
         self.defaultVariables = defaultVariables
@@ -136,7 +181,7 @@ class VariableSelectionDialog(QDialog):
         buttonLayout.addWidget(unselectButton)
 
         self.setWindowTitle(title)
-        self.setWindowIcon(QIcon("../images/%s.png"%(icon)))
+        self.setWindowIcon(QIcon("./images/%s.png"%(icon)))
 
         self.oriVariables = self.variables
 
@@ -146,7 +191,7 @@ class VariableSelectionDialog(QDialog):
         self.selectedVariableListWidget.setSelectionMode(QAbstractItemView.ExtendedSelection)
 
         self.variableDescLabel = QLabel("Description of the variables")
-
+        warning = QLabel("<font color = blue>%s</font>" %warning)
 
         hLayout = QHBoxLayout()
         hLayout.addWidget(self.variableListWidget)
@@ -155,6 +200,7 @@ class VariableSelectionDialog(QDialog):
 
         layout.addLayout(hLayout)
         layout.addWidget(self.variableDescLabel)
+        layout.addWidget(warning)
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)
@@ -275,7 +321,10 @@ class RecodeDialog(QDialog):
     def __init__(self, project, tablename, title="", icon="", parent=None):
         super(RecodeDialog, self).__init__(parent)
 
-        self.setWindowTitle(title)
+        self.icon = icon
+
+        self.setWindowTitle(title + ' - %s' %tablename)
+        self.setWindowIcon(QIcon("./images/%s.png" %icon))
 
         self.tablename = tablename
         self.variableDict = {}
@@ -304,6 +353,12 @@ class RecodeDialog(QDialog):
         self.oldNewButton = QPushButton("Old and New Values")
         self.oldNewButton.setEnabled(False)
 
+        recodeWarning = QLabel("""<font color = blue>Select the variable whose categories will be transformed by clicking on the variable. """
+                               """ Enter a new variable name for the variable that will contain the transformed categories """
+                               """in the <b>New variable name after recoding:</b> line edit box. Then click on """
+                               """<b>Old and New Values </b> to define the transformations.</font>""")
+
+        recodeWarning.setWordWrap(True)
         vlayout1 = QVBoxLayout()
         vlayout1.addWidget(self.variableList)
         
@@ -323,6 +378,7 @@ class RecodeDialog(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(hlayout)
+        layout.addWidget(recodeWarning)
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)
@@ -366,7 +422,7 @@ class RecodeDialog(QDialog):
         newvariablename = self.variableNewEdit.text()
         self.variables.append(newvariablename)
 
-        dia = OldNewRelation(variablename, varcats)
+        dia = OldNewRelation(variablename, varcats, icon = self.icon)
         if dia.exec_():
             self.runRecodeCrit(variablename, newvariablename, dia.recodeCrit)
             self.resetDialog()
@@ -453,8 +509,11 @@ class RecodeDialog(QDialog):
         return cats
 
 class OldNewRelation(QDialog):
-    def __init__(self, variablename, varcats, parent=None):
+    def __init__(self, variablename, varcats, icon, parent=None):
         super(OldNewRelation, self).__init__(parent)
+
+        self.setWindowTitle("Old and New Values")
+        self.setWindowIcon(QIcon("./images/%s.png" %icon))
 
         self.variablename = variablename
         self.varcats = varcats
@@ -479,6 +538,12 @@ class OldNewRelation(QDialog):
         self.copyOldCrit = QPushButton("Copy Old Values")
         self.copyOldCrit.setEnabled(False)
 
+        oldnewWarning = QLabel("""<font color = blue>Highlight the old category from the <b>Categories in the variable</b>"""
+                               """ list box and enter a new category value in the <b>Value of the new category</b> """
+                               """ line edit box. Press <b>Add</b> to add a transformation, <b>Remove</b> """
+                               """to remove a transformation and <b>Copy Old Values</b> to copy old categories</font>""")
+        oldnewWarning.setWordWrap(True)
+
         vLayout2 = self.vLayout([varCatsLabel, self.varCatsList, newCatLabel, self.newCatEdit])
 
         vLayout3 = self.vLayout([self.addRecCrit, self.removeRecCrit, self.copyOldCrit])
@@ -493,6 +558,7 @@ class OldNewRelation(QDialog):
         
         layout = QVBoxLayout()
         layout.addLayout(hLayout)
+        layout.addWidget(oldnewWarning)
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)
@@ -629,7 +695,8 @@ class CreateVariable(QDialog):
     def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
         super(CreateVariable, self).__init__(parent)
 
-        self.setWindowTitle(title)
+        self.setWindowTitle(title + " - %s" %tablename)
+        self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
         self.projectDBC = createDBC(self.project.db, self.project.filename)
@@ -646,13 +713,23 @@ class CreateVariable(QDialog):
 
         formulaLabel = QLabel("Expression")
         self.formulaEdit = QPlainTextEdit()
+        formulaEgLabel = QLabel("<font color = brown>Eg. Var1 + Var2 or 11 </font>")
         self.formulaEdit.setEnabled(False)
         whereLabel = QLabel("Filter Expression")
         self.whereEdit = QPlainTextEdit()
+        dummy = "Eg. Var1 > 10"
+        whereEgLabel = QLabel("<font color = brown>%s</font>" %dummy)
         self.whereEdit.setEnabled(False)
         
+        createVarWarning = QLabel("""<font color = blue> Enter the name of the new variable in <b>New Variable Name</b> """
+                                  """line edit box, type the mathematical expression that defines the new variable in the """
+                                  """<b>Expression</b> text edit box, and add any mathematical filter expression in the """
+                                  """<b>Filter Expression</b> text edit box to create a new variable. """
+                                  """The dialog also allows users to check the """
+                                  """categories under any variable by clicking the variable in the """
+                                  """<b>Variables in Table</b> listbox.</font>""")
         
-
+        createVarWarning.setWordWrap(True)
         vLayout2 = QVBoxLayout()
         vLayout2.addWidget(newVarLabel)
         vLayout2.addWidget(self.newVarNameEdit)
@@ -670,9 +747,13 @@ class CreateVariable(QDialog):
 
         vLayout1 = QVBoxLayout()
         vLayout1.addWidget(formulaLabel)
+        vLayout1.addWidget(formulaEgLabel)
         vLayout1.addWidget(self.formulaEdit)
+
         vLayout1.addWidget(whereLabel)
+        vLayout1.addWidget(whereEgLabel)
         vLayout1.addWidget(self.whereEdit)
+
 
         hLayout = QHBoxLayout()
         hLayout.addLayout(vLayout2)
@@ -682,6 +763,7 @@ class CreateVariable(QDialog):
 
         layout = QVBoxLayout()
         layout.addLayout(hLayout)
+        layout.addWidget(createVarWarning)
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)

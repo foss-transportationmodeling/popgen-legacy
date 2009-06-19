@@ -21,8 +21,11 @@ class Wizard(QWizard):
         super(Wizard, self).__init__(parent)
         self.project = newproject.NewProject()
         self.project.countyCode, self.project.stateCode, self.project.stateAbb = self.countyDicts()
-        self.setFixedSize(QSize(800,500))
+        self.setFixedSize(QSize(950,500))
         self.setWizardStyle(QWizard.ClassicStyle)
+        
+        self.setPixmap(QWizard.WatermarkPixmap, QPixmap("./images/banner.png"))
+
 
         self.selectedCounties = None
         self.page1 = IntroPage()

@@ -147,13 +147,15 @@ class ImportUserProvData():
                 raise FileError, "Enter a valid variable type definition"
 
         if len(self.varNames) <> len(firstrow):
-            pass #raise FileError, "Please enter the same number of variable names as columns in the data file."
+            raise FileError, "Please enter the same number of variable names as columns in the data file."
+
         if self.varNamesDummy == False and self.varNamesFileDummy == False:
             for i in range(len(firstrow)):
                 self.varNames.append('Var%s'%(i+1))
 
         if len(self.varTypes) <> len(firstrow):
-            pass #raise FileError, "Please enter the same number of variable type definitions as columns in the data file."
+            raise FileError, "Please enter the same number of variable type definitions as columns in the data file."
+
         if self.varTypesDummy == False and self.varTypesFileDummy == False:
             for i in range(len(firstrow)):
                 self.varTypes.append('text')

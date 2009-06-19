@@ -13,7 +13,17 @@ class Absreldiff(Matplot):
         if self.isValid():
             self.valid = True
             self.setWindowTitle("Average Absolute Relative Difference Distribution")
+            self.setWindowIcon(QIcon("./images/region.png"))
+            aardWarning = QLabel("""<font color = blue>The above chart shows the distribution of the """
+                                 """Average Absolute Relative Difference (AARD)"""
+                                 """ across all the geographies for which synthetic population was generated. """
+                                 """AARD is a measure used to monitor convergence in the Iterative Proportional Updating (IPU)"""
+                                 """ algorithm. AARD also gives the average deviation of the person weighted sums """
+                                 """with respect to composite person type constraints. </font>""")
+            aardWarning.setWordWrap(True)
             self.vbox.addWidget(self.canvas)
+            self.vbox.addWidget(aardWarning)
+            self.vbox.addWidget(self.dialogButtonBox)
             self.setLayout(self.vbox)
             self.on_draw()
         else:

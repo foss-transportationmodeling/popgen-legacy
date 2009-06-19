@@ -11,6 +11,9 @@ class DBConnectionDialog(QWizard):
         super(DBConnectionDialog, self).__init__(parent)
 
         self.project = project
+        
+        self.setWindowTitle("Data Source Connection")
+        self.setWindowIcon(QIcon("./images/datasource.png"))
 
         self.setWizardStyle(QWizard.ClassicStyle)
         self.setOption(QWizard.NoBackButtonOnStartPage)
