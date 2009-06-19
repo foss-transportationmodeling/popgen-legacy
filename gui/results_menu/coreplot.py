@@ -94,7 +94,7 @@ class Matplot(QDialog):
                     raise FileError, query.lastError().text()
             return query
         else:
-            QMessageBox.warning(self, "Synthesizer", "A table with name - %s does not exist." %(tablename), QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", "A table with name - %s does not exist." %(tablename), QMessageBox.Ok)
             return False
 
 

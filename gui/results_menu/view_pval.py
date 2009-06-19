@@ -25,7 +25,7 @@ class Pval(Matplot):
             self.setLayout(self.vbox)
             self.on_draw()
         else:
-            QMessageBox.warning(self, "Synthesizer", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
        
     def isValid(self):
         return self.checkIfTableExists("performance_statistics")
