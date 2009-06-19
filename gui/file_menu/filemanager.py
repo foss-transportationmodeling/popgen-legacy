@@ -77,7 +77,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if not query.exec_("""create table %s select * from %s""" %(newTablename, tablename)):
                 raise FileError, query.lastError().text()
             self.populate()
-        projectDBC.dbc.close()
+            projectDBC.dbc.close()
 
     def renameTable(self):
         tablename = self.item.text(0)
@@ -92,7 +92,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if not query.exec_("""alter table %s rename to %s""" %(tablename, newTablename)):
                 raise FileError, query.lastError().text()
             self.populate()
-        projectDBC.dbc.close()
+            projectDBC.dbc.close()
 
     def dropTable(self):
         tablename = self.item.text(0)

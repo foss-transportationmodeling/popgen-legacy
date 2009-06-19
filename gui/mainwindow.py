@@ -170,10 +170,10 @@ class MainWindow(QMainWindow):
                                                         self.resultsRegionalPValue, 
                                                         tip="""Display the distribution of P-value"""
                                                         """for the synthetic population across all individual geographies.""")
-        resultsRegionalHousDistAction = self.createAction("Housing Attribute Distribution", 
+        resultsRegionalHousDistAction = self.createAction("Distribution of Housing Variables", 
                                                           self.resultsRegionalHousDist, 
                                                           tip="Comparison of Housing Attributes.")
-        resultsRegionalPersDistAction = self.createAction("Person Attribute Distribution", 
+        resultsRegionalPersDistAction = self.createAction("Distribution of Person Varoables", 
                                                           self.resultsRegionalPersDist, 
                                                           tip="Comparison of Person Attributes.")
 
