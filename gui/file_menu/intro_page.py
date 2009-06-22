@@ -92,16 +92,23 @@ class IntroPage(QWizardPage):
         vLayout1.addLayout(projectVLayout)
         vLayout1.addLayout(countyVLayout)
         # Vertical layout of map elements
-        vLayout2 = QVBoxLayout()
+        self.vLayout2 = QVBoxLayout()
         self.toolbar = Toolbar(self.canvas, self.layer)
         self.toolbar.hideDragTool()
-        vLayout2.addWidget(self.toolbar)
-        vLayout2.addWidget(self.canvas)        
+        self.vLayout2.addWidget(self.toolbar)
+        self.vLayout2.addWidget(self.canvas) 
+        self.toolbar.setHidden(True)
+        self.canvas.setHidden(True)
+        self.mapwidget = QLabel()
+        pixmap = QPixmap()
+        pixmap.load("./images/Globe.jpg")
+        self.mapwidget.setPixmap(pixmap)
+        self.vLayout2.addWidget(self.mapwidget)  
         # Horizontal layout of all elements
-        hLayout = QHBoxLayout()
-        hLayout.addLayout(vLayout1)
-        hLayout.addLayout(vLayout2)
-        self.setLayout(hLayout)
+        self.hLayout = QHBoxLayout()
+        self.hLayout.addLayout(vLayout1)
+        self.hLayout.addLayout(self.vLayout2)
+        self.setLayout(self.hLayout)
 
         self.counties = countydata.CountyContainer(QString("./data/counties.csv"))
         self.populateCountySelectTree()
@@ -146,8 +153,12 @@ class IntroPage(QWizardPage):
         
         for i in self.countySelectTree.selectedItems():
             self.selectedCounties[i.text(0)] = i.parent().text(0)
-
-
+        
+        if self.canvas.isHidden():
+            self.mapwidget.clear()
+            self.mapwidget.setHidden(True)
+            self.toolbar.setHidden(False)
+            self.canvas.setHidden(False)
         self.highlightSelectedCounties()
         
     def highlightSelectedCounties(self):
