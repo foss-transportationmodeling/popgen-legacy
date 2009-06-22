@@ -38,7 +38,7 @@ class Hhdist(Matplot):
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
             self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         else:
-            QMessageBox.warning(self, "Synthesizer", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
         
     def isValid(self):
         return self.checkIfTableExists("housing_synthetic_data")
@@ -149,8 +149,8 @@ class Hhdist(Matplot):
         
         rects1 = self.axes.bar(ind, actTotal, width, color='r')
         rects2 = self.axes.bar(ind+width, estTotal, width, color='y')
-        self.axes.set_xlabel("Housing Attributes")
-        self.axes.set_ylabel("Frequencies")
+        self.axes.set_xlabel("Housing Variables")
+        self.axes.set_ylabel("Frequency")
         self.axes.set_xticks(ind+width)
         self.axes.set_xticklabels(self.catlabels)
         self.axes.legend((rects1[0], rects2[0]), ('Actual', 'Synthetic'))
@@ -160,7 +160,7 @@ class Hhdist(Matplot):
         self.comboboxholder = QWidget(self)
         self.hbox = QHBoxLayout()
         self.comboboxholder.setLayout(self.hbox)
-        self.attrbox = LabComboBox("Attribute:",self.hhldvariables+self.gqvariables)
+        self.attrbox = LabComboBox("Variable:",self.hhldvariables+self.gqvariables)
         self.geobox = LabComboBox("Geography:",["All"] +self.getGeographies())
         self.hbox.addWidget(self.attrbox)
         if self.enableindgeo:
@@ -177,12 +177,6 @@ class Hhdist(Matplot):
             str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
         return str
     
-    def getGeographies(self):
-        geolist = []
-        for geo in self.project.synGeoIds.keys():
-            geostr = str(geo[0]) + "," + str(geo[1]) + "," + str(geo[3]) + "," + str(geo[4])
-            geolist.append(geostr)
-        return geolist
 
 def main():
     app = QApplication(sys.argv)

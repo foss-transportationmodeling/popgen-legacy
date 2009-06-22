@@ -39,7 +39,7 @@ class Ppdist(Matplot):
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
             self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         else:
-            QMessageBox.warning(self, "Synthesizer", "A table with name - person_synthetic_data does not exist.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", "A table with name - person_synthetic_data does not exist.", QMessageBox.Ok)
         
     def isValid(self):
         return self.checkIfTableExists("person_synthetic_data")
@@ -132,8 +132,8 @@ class Ppdist(Matplot):
         
         rects1 = self.axes.bar(ind, actTotal, width, color='r')
         rects2 = self.axes.bar(ind+width, estTotal, width, color='y')
-        self.axes.set_xlabel("Person Attributes")
-        self.axes.set_ylabel("Frequencies")
+        self.axes.set_xlabel("Person Variables")
+        self.axes.set_ylabel("Frequency")
         self.axes.set_xticks(ind+width)
         # generic labels should be created
         self.axes.set_xticklabels(self.catlabels)
@@ -144,7 +144,7 @@ class Ppdist(Matplot):
         self.comboboxholder = QWidget()
         self.hbox = QHBoxLayout()
         self.comboboxholder.setLayout(self.hbox)
-        self.attrbox = LabComboBox("Attribute:",self.variables)
+        self.attrbox = LabComboBox("Variable:",self.variables)
         self.geobox = LabComboBox("Geography:",["All"] +self.getGeographies())
         self.hbox.addWidget(self.attrbox)
         if self.enableindgeo:
@@ -160,13 +160,6 @@ class Ppdist(Matplot):
         if self.project.resolution == "Blockgroup":
             str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
         return str
-        
-    def getGeographies(self):
-        geolist = []
-        for geo in self.project.synGeoIds.keys():
-            geostr = str(geo[0]) + "," + str(geo[1]) + "," + str(geo[3]) + "," + str(geo[4])
-            geolist.append(geostr)
-        return geolist
         
 def main():
     app = QApplication(sys.argv)

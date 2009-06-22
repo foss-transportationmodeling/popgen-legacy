@@ -20,8 +20,8 @@ class Indgeo(Matplot):
         self.setWindowIcon(QIcon("./images/individualgeo.png"))
         self.project = project
         self.valid = False
-        
-        if self.isResolutionValid() & self.isLayerValid():
+        check = self.isValid()
+        if check < 0:
             self.valid = True
             if self.project.resolution == "County":
                 self.res_prefix = "co"
@@ -37,9 +37,9 @@ class Indgeo(Matplot):
 
             self.projectDBC = createDBC(self.project.db, self.project.name)
             self.projectDBC.dbc.open()
-            #self.makeComboBox()
+            self.makeComboBox()
             self.makeMapWidget()
-            #self.vbox.addWidget(self.geocombobox)
+            self.vbox.addWidget(self.geocombobox)
             self.vbox.addWidget(self.mapwidget)
             self.vboxwidget = QWidget()
             self.vboxwidget.setLayout(self.vbox)
@@ -50,8 +50,8 @@ class Indgeo(Matplot):
             labellayout = QGridLayout(None)
             self.labelwidget.setLayout(labellayout)
             labellayout.addWidget(QLabel("Selected Geography: " ),1,1)
-            labellayout.addWidget(QLabel("AARD: " ),2,1)
-            labellayout.addWidget(QLabel("P Value: "),3,1)
+            labellayout.addWidget(QLabel("Average Absolute Relative Error(AARD): " ),2,1)
+            labellayout.addWidget(QLabel("p-value: "),3,1)
             self.aardval = QLabel("")
             self.pval = QLabel("")
             self.selgeog = QLabel("")
@@ -79,37 +79,139 @@ class Indgeo(Matplot):
             self.vbox1.addWidget(self.dialogButtonBox)
             self.setLayout(self.vbox1)
 
-            self.on_draw()
-            #self.connect(self.geocombobox, SIGNAL("currentIndexChanged(const QString&)"), self.on_draw)
-            self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.on_draw)
+            self.draw_boxselect()
+            self.connect(self.geocombobox, SIGNAL("currSelChanged"), self.draw_boxselect)
+            self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.draw_mapselect)
         
             self.selcounty = "0"
             self.seltract = "0"
             self.selblkgroup = "0"
             self.pumano = -1
         else:
-            if not self.isResolutionValid():
-                QMessageBox.warning(self, "Synthesizer", "Individual Geography Statistics not available for TAZ resolution.", QMessageBox.Ok)
-            if not self.isLayerValid():
-                QMessageBox.warning(self, "Synthesizer", "Valid Shape File for geography not found.", QMessageBox.Ok)
+            if check == 1:
+                QMessageBox.warning(self, "Results", "Individual Geography Statistics not available for TAZ resolution.", QMessageBox.Ok)
+            elif check == 2:
+                QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
                 
+    def isValid(self):
+        retval = -1
+        if not self.isResolutionValid():
+            retval = 1
+            return retval
+        elif not self.isLayerValid():
+            retval = 2
+            return retval
+        else:
+            return retval
+            
     def isResolutionValid(self):
         return self.project.resolution != "TAZ"
 
     def isLayerValid(self):
         res = ResultsGen(self.project)
-        return res.generate()
+        return res.create_hhmap()
 
     def accept(self):
         self.projectDBC.dbc.close()
+        self.mapcanvas.clear()
         QDialog.accept(self)
 
     def reject(self):
         self.projectDBC.dbc.close()
-        f = open(self.resultfileloc)
+        self.mapcanvas.clear()
         QDialog.reject(self)
+        
+    def draw_boxselect(self):
+        currgeo = (self.geocombobox.getCurrentText()).split(',')
+        
+        provider = self.layer.getDataProvider()
+        allAttrs = provider.allAttributesList()
+        #self.layer.select(QgsRect(), True)
+        provider.select(allAttrs,QgsRect())
+        blkgroupidx = provider.indexFromFieldName("BLKGROUP")
+        tractidx = provider.indexFromFieldName("TRACT")
+        countyidx = provider.indexFromFieldName("COUNTY")
+        
+        selfeatid = 0
+        feat = QgsFeature()        
+        while provider.getNextFeature(feat):
+            attrMap = feat.attributeMap()
+            featcounty = attrMap[countyidx].toString().trimmed()
+            if self.res_prefix == "co":
+                compid = '%s' %int(featcounty)
+                baseid = currgeo[1]
+            elif self.res_prefix == "tr":
+                feattract = attrMap[tractidx].toString().trimmed()
+                compid = '%s' %int(featcounty) + ',' + '%s' %int(feattract)
+                baseid = currgeo[1] + ',' + currgeo[2]
+            elif self.res_prefix == "bg":
+                feattract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
+                featbg = attrMap[blkgroupidx].toString().trimmed()
+                compid = '%s' %int(featcounty) + ',' + '%s' %int(feattract) + ',' + '%s' %int(featbg)
+                baseid = currgeo[1] + ',' + currgeo[2] + ',' + currgeo[3]
+            if (compid == baseid):
+                selfeatid = feat.featureId()
+                self.layer.setSelectedFeatures([selfeatid])
+                boundingBox = self.layer.boundingBoxOfSelected()
+                boundingBox.scale(4)
+                self.mapcanvas.setExtent(boundingBox)
+                self.mapcanvas.refresh()
+                break
+        self.selcounty = currgeo[1]
+        self.seltract = currgeo[2]
+        self.selblkgroup =currgeo[3]
+        self.draw_stat()
 
-
+    def draw_mapselect(self, provider=None, selfeat=None ):
+        if provider != None:
+            blkgroupidx = provider.indexFromFieldName("BLKGROUP")
+            tractidx = provider.indexFromFieldName("TRACT")
+            countyidx = provider.indexFromFieldName("COUNTY")
+            
+            
+            attrMap = selfeat.attributeMap()
+            try:
+                self.selcounty = attrMap[countyidx].toString().trimmed()
+                if blkgroupidx == -1 & tractidx == -1:
+                    self.selgeog.setText("County - " + self.selcounty)
+                if tractidx != -1:
+                    self.seltract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
+                    if blkgroupidx == -1:
+                        self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract)
+                    else:
+                        self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
+                        self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
+                
+                geog = '%s' %int(self.stateCode) + "," + '%s' %int(self.selcounty) + "," + '%s' %int(self.seltract) + "," + '%s' %int(self.selblkgroup)
+                if geog in self.geolist:
+                    self.geocombobox.setCurrentText(geog)
+                    #self.draw_boxselect()
+                else:
+                    self.draw_stat()
+            except Exception, e:
+                print "Exception: %s; Invalid Selection." %e                    
+                    
+    def draw_stat(self):
+        self.ids = []
+        self.act = []
+        self.syn = []
+        # clear the axes
+        self.axes.clear()
+        self.axes.grid(True)
+        self.axes.set_xlabel("Joint Frequency Distribution from IPF")
+        self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
+        self.axes.set_xbound(0)
+        self.axes.set_ybound(0) 
+        self.retrieveResults()
+        if len(self.ids) > 0:
+            scat_plot = self.axes.scatter(self.act, self.syn)
+            scat_plot.axes.set_xbound(0)
+            scat_plot.axes.set_ybound(0)
+        else:
+            pass
+        self.canvas.draw()
+        
+        
     def on_draw(self, provider=None, selfeat=None ):
         if provider != None:
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
@@ -129,6 +231,9 @@ class Indgeo(Matplot):
                     else:
                         self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
                         self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
+                
+                geog = '%s' %int(self.stateCode) + "," + '%s' %int(self.selcounty) + "," + '%s' %int(self.seltract) + "," + '%s' %int(self.selblkgroup)
+                
                 self.ids = []
                 self.act = []
                 self.syn = []
@@ -147,17 +252,13 @@ class Indgeo(Matplot):
                 else:
                     pass
                 self.canvas.draw()                
-                
             except Exception, e:
                 print "Exception: %s; Invalid Selection." %e
                 
-
-
     def makeComboBox(self):
-        self.geocombobox = QComboBox(self)
-        self.geocombobox.addItems(["tract: 4002, bg: 1", "tract: 4002, bg: 2"])
-        self.geocombobox.setFixedWidth(400)
-        self.current = self.geocombobox.currentText()
+        self.getGeographies()
+        self.geocombobox = LabComboBox("Geography:",self.geolist)
+        self.current = self.geocombobox.getCurrentText()
 
     def makeMapWidget(self):
         self.mapcanvas = QgsMapCanvas()
@@ -268,8 +369,6 @@ class Indgeo(Matplot):
                     if id in self.ids:
                         idx = self.ids.index(id)
                         self.syn[idx] = freq
-
-
 
         
 def main():

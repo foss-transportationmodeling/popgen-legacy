@@ -50,21 +50,22 @@ class ResultsGen():
 
     
     def generate(self):
-        return self.create_hhmap()
+        pass
+        #return self.create_hhmap()
         #self.create_regstats()
         #self.create_indstats()
     
     def create_hhmap(self):
         # create a new shapefile with selected counties
-        newfilename = self.res_prefix+self.stateCode+"_selected" 
-        newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
+        newfilename = self.res_prefix+self.stateCode+"_selected"  
+        newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")        
         basefile = os.path.realpath(self.mapsloc+os.path.sep+self.res_prefix+self.stateCode+"_d00.shp")
         if os.path.exists(basefile):
             if not os.path.exists(newfile):
                 self.makesublayer()
             return True
         else:
-             return False
+            return False
         # Decide whether to show points or not
     
     def makesublayer(self):
@@ -123,7 +124,7 @@ class ResultsGen():
                baselayer.getFeatureAtId(featid, selfeat)
                newlayer.addFeature(selfeat)
         newlayer.commitChanges()
-        newlayer = None
+        del newlayer
        
         f = open(newdbf, 'rb')
         db = list(dbfreader(f))
@@ -146,9 +147,7 @@ class ResultsGen():
         
         #f = open(newdbf, 'wb')
         #dbfwriter(f, fieldnames, fieldspecs, records)
-        #f.close()
-        
-        
+        #f.close() 
 
     def create_regstats(self):
         pass

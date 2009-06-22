@@ -121,7 +121,12 @@ class Matplot(QDialog):
         while self.query.next():
             tables.append('%s' %self.query.value(0).toString())
         return tables
-    
+
+    def getGeographies(self):
+        self.geolist = []
+        for geo in self.project.synGeoIds.keys():
+            geostr = str(geo[0]) + "," + str(geo[1]) + "," + str(geo[3]) + "," + str(geo[4])
+            self.geolist.append(geostr)
 
 class LabComboBox(QWidget):
     def __init__(self, label, list, parent=None):
@@ -131,7 +136,8 @@ class LabComboBox(QWidget):
         
         self.label = QLabel(label)
         self.combobox = QComboBox()
-        self.combobox.addItems(list)
+        self.list = list
+        self.combobox.addItems(self.list)
         
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.combobox)
@@ -144,7 +150,9 @@ class LabComboBox(QWidget):
         
     def getCurrentText(self):
         return self.combobox.currentText()
-
+        
+    def setCurrentText(self,txt):
+        self.combobox.setCurrentIndex(self.list.index(txt))
 
 def main():
     app = QApplication(sys.argv)
