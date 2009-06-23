@@ -102,7 +102,7 @@ class IntroPage(QWizardPage):
         self.canvas.setHidden(True)
         self.mapwidget = QLabel()
         pixmap = QPixmap()
-        pixmap.load("./images/Globe.jpg")
+        pixmap.load("./images/Globe.png")
         self.mapwidget.setPixmap(pixmap)
         self.vLayout2.addWidget(self.mapwidget)  
         # Horizontal layout of all elements
