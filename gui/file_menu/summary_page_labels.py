@@ -15,7 +15,7 @@ class SummaryPage(QWizardPage):
         self.projectLocationDummy = False
         self.projectDatabaseDummy = False
 
-        self.setTitle("Step 6: Summary")
+        self.setTitle("Step 6: Project Summary")
         vlayoutCol1 = QVBoxLayout()
         
         vlayoutCol1.addWidget(QLabel(self.leftPad("Project name")))
@@ -32,10 +32,10 @@ class SummaryPage(QWizardPage):
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the groupquarter sample file")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the person sample file")))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Control data provided by the user")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the household control data file")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the groupquarter control data file")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the person control data file")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Marginals data provided by the user")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the household marginals data file")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the groupquarter marginals data file")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the person marginals data file")))
 
 
         vlayoutCol2 = QVBoxLayout()

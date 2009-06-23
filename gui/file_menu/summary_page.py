@@ -15,26 +15,26 @@ class SummaryPage(QWizardPage):
         self.projectLocationDummy = False
         self.projectDatabaseDummy = False
 
-        self.setTitle("Step 6: Summary")
+        self.setTitle("Step 6: Project Summary")
         vlayoutCol1 = QVBoxLayout()
-        vlayoutCol1.addWidget(QLabel("Project name:"))
-        vlayoutCol1.addWidget(QLabel("Project location:"))
+        vlayoutCol1.addWidget(QLabel("Project name"))
+        vlayoutCol1.addWidget(QLabel("Project location"))
         vlayoutCol1.addWidget(QLabel("Project description"))
-        vlayoutCol1.addWidget(QLabel("Selected counties:"))
+        vlayoutCol1.addWidget(QLabel("Selected counties"))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel("Geographic resolution of population synthesis:"))
-        vlayoutCol1.addWidget(QLabel("Geographic correspondence data provided by the user:"))
-        vlayoutCol1.addWidget(QLabel("Location of the geographic correspondence file:"))
+        vlayoutCol1.addWidget(QLabel("Geographic resolution of population synthesis"))
+        vlayoutCol1.addWidget(QLabel("Geographic correspondence data provided by the user"))
+        vlayoutCol1.addWidget(QLabel("Location of the geographic correspondence file"))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel("Location data provided by the user:"))
-        vlayoutCol1.addWidget(QLabel("Location of the household sample file:"))
-        vlayoutCol1.addWidget(QLabel("Location of the group quarter sample file:"))
-        vlayoutCol1.addWidget(QLabel("Location of the person sample file:"))
+        vlayoutCol1.addWidget(QLabel("Location data provided by the user"))
+        vlayoutCol1.addWidget(QLabel("Location of the household sample file"))
+        vlayoutCol1.addWidget(QLabel("Location of the group quarter sample file"))
+        vlayoutCol1.addWidget(QLabel("Location of the person sample file"))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel("Control data provided by the user:"))
-        vlayoutCol1.addWidget(QLabel("Location of the household control data file:"))
-        vlayoutCol1.addWidget(QLabel("Location of the group quarter control data file:"))
-        vlayoutCol1.addWidget(QLabel("Location of the person control data file:"))
+        vlayoutCol1.addWidget(QLabel("Marginals data provided by the user"))
+        vlayoutCol1.addWidget(QLabel("Location of the household marginals data file"))
+        vlayoutCol1.addWidget(QLabel("Location of the group quarter marginals data file"))
+        vlayoutCol1.addWidget(QLabel("Location of the person marginals data file"))
 
 
         vlayoutCol2 = QVBoxLayout()
@@ -114,17 +114,30 @@ class SummaryPage(QWizardPage):
         #self.projectResolutionLineEdit.setText(self.project.resolution)
         self.projectResolutionComboBox.findAndSet(self.project.resolution)
 
-        self.geocorrUserProvLineEdit.setText("%s" %self.project.geocorrUserProv.userProv)
+        geocorrUserProv = self.convertBoolToString(self.project.geocorrUserProv.userProv)
+        self.geocorrUserProvLineEdit.setText("%s" %geocorrUserProv)
         self.geocorrUserProvLocationLineEdit.setText(self.project.geocorrUserProv.location)
-        self.sampleUserProvLineEdit.setText("%s" %self.project.sampleUserProv.userProv)
+
+        sampleUserProv = self.convertBoolToString(self.project.sampleUserProv.userProv)
+        self.sampleUserProvLineEdit.setText("%s" %sampleUserProv)
         self.sampleHHLocationLineEdit.setText(self.project.sampleUserProv.hhLocation)
         self.sampleGQLocationLineEdit.setText(self.project.sampleUserProv.gqLocation)
         self.samplePersonLocationLineEdit.setText(self.project.sampleUserProv.personLocation)
-        self.controlUserProvLineEdit.setText("%s" %self.project.controlUserProv.userProv)
+
+        controlUserProv = self.convertBoolToString(self.project.controlUserProv.userProv)
+        self.controlUserProvLineEdit.setText("%s" %controlUserProv)
         self.controlHHLocationLineEdit.setText(self.project.controlUserProv.hhLocation)
         self.controlGQLocationLineEdit.setText(self.project.controlUserProv.gqLocation)
         self.controlPersonLocationLineEdit.setText(self.project.controlUserProv.personLocation)
 
+
+    def convertBoolToString(self, value):
+        if value:
+            text = 'Yes'
+        else:
+            text = 'No, default data will be used'
+        return text
+    
 
     def enableEditableWidgets(self):
         self.projectDescLineEdit.setEnabled(True)
