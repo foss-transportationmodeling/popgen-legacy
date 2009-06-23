@@ -131,7 +131,10 @@ class Toolbar(QToolBar):
     
     def hideDragTool(self):
         self.mpActionSelect.setVisible(False)
-    
+        
+    def hideSelectTool(self):
+        self.mpActionClickSelect.setVisible(False)
+        
     def activateClickSelectTool(self):
         pass
         
