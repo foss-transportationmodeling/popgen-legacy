@@ -205,7 +205,7 @@ class SummaryPage(QWizardPage):
             reply = QMessageBox.question(self, "Project Setup Wizard",
                                          QString("""Cannot create a project folder when the folder already exists. \n\nDo you wish"""
                                                  """ to keep the previous data?"""
-                                                 """\n    If Yes then re-scpecify the project location. """
+                                                 """\n    If Yes then re-specify the project location. """
                                                  """\n    If you wish to delete the previous data select No."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
