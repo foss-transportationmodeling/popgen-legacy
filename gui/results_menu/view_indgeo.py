@@ -140,15 +140,18 @@ class Indgeo(Matplot):
             if self.res_prefix == "co":
                 compid = '%s' %int(featcounty)
                 baseid = currgeo[1]
+                self.selgeog.setText("County - " + currgeo[1])
             elif self.res_prefix == "tr":
                 feattract = attrMap[tractidx].toString().trimmed()
                 compid = '%s' %int(featcounty) + ',' + '%s' %int(feattract)
                 baseid = currgeo[1] + ',' + currgeo[2]
+                self.selgeog.setText("County - " + currgeo[1] + "; Tract - " + currgeo[2])
             elif self.res_prefix == "bg":
                 feattract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
                 featbg = attrMap[blkgroupidx].toString().trimmed()
                 compid = '%s' %int(featcounty) + ',' + '%s' %int(feattract) + ',' + '%s' %int(featbg)
                 baseid = currgeo[1] + ',' + currgeo[2] + ',' + currgeo[3]
+                self.selgeog.setText("County - " + currgeo[1] + "; Tract - " + currgeo[2] + "; BlockGroup - " + currgeo[3])
             if (compid == baseid):
                 selfeatid = feat.featureId()
                 self.layer.setSelectedFeatures([selfeatid])
@@ -257,8 +260,8 @@ class Indgeo(Matplot):
                 
     def makeComboBox(self):
         self.getGeographies()
-        self.geocombobox = LabComboBox("Geography:",self.geolist)
         self.geolist.sort()
+        self.geocombobox = LabComboBox("Geography:",self.geolist)
         self.current = self.geocombobox.getCurrentText()
 
     def makeMapWidget(self):
