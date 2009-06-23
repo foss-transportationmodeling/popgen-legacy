@@ -45,14 +45,14 @@ class ParametersDialog(QDialog):
         self.ipuMaxIterEdit.setValue(self.project.parameters.ipuIter)
         #ipuMaxIterEdit.setValue(IPU_MAX_ITERATIONS)
         
-        synPopDrawsLabel = QLabel("Maximum number of draws to find a desirable Synthetic Population")
+        synPopDrawsLabel = QLabel("Maximum number of draws to find a desirable synthetic population")
         self.synPopDrawsEdit = QSpinBox()
         synPopDrawsLabel.setBuddy(self.synPopDrawsEdit)
         self.synPopDrawsEdit.setRange(0,  250)
         self.synPopDrawsEdit.setValue(self.project.parameters.synPopDraws)
         #synPopDrawsEdit.setValue(SYNTHETIC_POP_MAX_DRAWS)
 
-        synPopPValTolLabel = QLabel("Tolerance level of the P-value for the desirable Synthetic Population")
+        synPopPValTolLabel = QLabel("Threshold level of the p-value for a desirable synthetic population")
         self.synPopPValTolEdit = QLineEdit()
         synPopPValTolLabel.setBuddy(self.synPopPValTolEdit)
         self.synPopPValTolEdit.setText('%s' %self.project.parameters.synPopPTol)
@@ -72,7 +72,7 @@ class ParametersDialog(QDialog):
         
         hLayout2 = self.hLayout(vLayout21, vLayout22)
 
-        synLabel = QLabel("Synthetic Population draws related parameters:")
+        synLabel = QLabel("Synthetic population draw-related parameters:")
         vLayout31 = self.vLayout(synPopDrawsLabel, synPopPValTolLabel)
         vLayout32 = self.vLayout(self.synPopDrawsEdit, self.synPopPValTolEdit)
         

@@ -44,10 +44,8 @@ class RunDialog(QDialog):
         self.runSynthesizerButton = QPushButton("Run Synthesizer")
         self.runSynthesizerButton.setEnabled(False)
 
-        runWarning = QLabel("""<font color = blue>Select geographies by clicking on the <b>Select Geographies</b> button."""
-                            """ The selected geographies will then appear in the <b>Selected Geographies</b> list box on the left."""
-                            """ Click on <b>Run Synthesizer</b> to start synthesizing population for the selected """
-                            """ geographies.</font>""")
+        runWarning = QLabel("""<font color = blue>Note: Select geographies by clicking on the <b>Select Geographies</b> button """
+                            """and then click on <b>Run Synthesizer</b> to start synthesizing population.</font>""")
         runWarning.setWordWrap(True)
         
         vLayout1 = QVBoxLayout()
@@ -66,6 +64,7 @@ class RunDialog(QDialog):
         
         vLayout3 = QVBoxLayout()
         vLayout3.addLayout(hLayout)
+        vLayout3.addWidget(runWarning)
         vLayout3.addWidget(dialogButtonBox)
 
         
@@ -133,14 +132,13 @@ class RunDialog(QDialog):
                 missingTables.append(i)
 
         if len(missingTables) > 0:
-            QMessageBox.warning(self, "Prepare Data", "The following tables are missing %s, "
-                                " the program will run the prepare data step." %(missingTablesString[1:-4]))
+            QMessageBox.warning(self, "Prepare Data", "The program will now prepare the data for population synthesis." )
             self.prepareData()
         # For now implement it without checking for each individual table that is created in this step
         # in a later implementation check for each table before you proceed with the creation of that particular table
         else:
-            reply = QMessageBox.warning(self, "Prepare Data", """Do you wish to prepare the data? """
-                                        """Please run this step if the control variables or their categories have changed.""",
+            reply = QMessageBox.warning(self, "Prepare Data", """Would you like to prepare the data? """
+                                        """Run this step if the control variables or their categories have changed.""",
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.prepareData()
@@ -149,8 +147,8 @@ class RunDialog(QDialog):
 
         if len(self.runGeoIds) > 0:
 
-            reply = QMessageBox.question(self, "Run Synthesizer", """Do you wish to run the synthesizer in parallel """
-                                          """to take advantage of multiple cores on your processor""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
+            reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
+                                          """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
             if reply == QMessageBox.Yes:
                 dbList = ['%s' %self.project.db.hostname, '%s' %self.project.db.username, '%s' %self.project.db.password, '%s' %self.project.name]
                 # breaking down the whole list into lists of 100 geographies each
@@ -221,7 +219,7 @@ class RunDialog(QDialog):
     def selGeographies(self):
         self.runGeoIds=[]
         geoids = self.allGeographyids()
-        dia = VariableSelectionDialog(geoids, title = "Select Geographies", icon = "run", warning = "Select geographies to synthesize")
+        dia = VariableSelectionDialog(geoids, title = "Select Geographies", icon = "run", warning = "Note: Select geographies to synthesize")
         if dia.exec_():
             exists = True
             notoall = False
@@ -245,8 +243,8 @@ class RunDialog(QDialog):
 
                         if not notoall:
                             reply = QMessageBox.warning(self, "Run Synthesizer", """Synthetic population for """
-                                                        """State - %s, County - %s, PUMA5 - %s, Tract - %s, BG - %s exists. """
-                                                        """Do you wish to rerun the synthesizer for the geography(s)?""" 
+                                                        """<b>State - %s, County - %s, PUMA5 - %s, Tract - %s, BG - %s</b> exists. """
+                                                        """Would you like to re-run the synthesizer for the geography(s)?""" 
                                                         %(geo.state, geo.county, geo.puma5, geo.tract, geo.bg),
                                                         QMessageBox.Yes| QMessageBox.No| QMessageBox.YesToAll| QMessageBox.NoToAll)
                             if reply == QMessageBox.Yes:
@@ -369,8 +367,8 @@ class RunDialog(QDialog):
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
-                reply = QMessageBox.question(None, "PopGen: Processing Data",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                reply = QMessageBox.question(None, "Processing Data",
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):

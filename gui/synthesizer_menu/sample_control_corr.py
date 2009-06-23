@@ -33,7 +33,7 @@ class SetCorrDialog(QDialog):
                                        """create appropriate mapping between the categories of the selected variables and """
                                        """the columns in the marginal tables. To do this, highlight a category from the """
                                        """<b>'Selected Variable Categories'</b> and the corresponding column name under the """
-                                       """<b>'Marginal Variables'</b> and press <b>'Add Correspondence'</b> button.</font>""")
+                                       """<b>'Marginal Variables'</b> and click on <b>'Add Correspondence'</b>.</font>""")
         correspondenceWarning.setWordWrap(True)
 
         layout = QVBoxLayout()
@@ -133,8 +133,8 @@ class SetCorrDialog(QDialog):
 
             return controlVariables, controlDimensions        
         else:
-            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Control Variables, and corresponding relations not defined appropriately. """
-                                """Please choose variables/ define relations and then run the synthesizer.""", QMessageBox.Ok)
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Control variables, and variable correspondence not defined appropriately. """
+                                """Choose variables/ define relations and then run the synthesizer.""", QMessageBox.Ok)
 
     def reject(self):
         self.projectDBC.dbc.close()
@@ -153,13 +153,13 @@ class SetCorrTabWidget(QTabWidget):
         self.housingTab = TabWidgetItems(self.project, 'Household', 'hhld_marginals', 'hhld_sample')
         self.personTab = TabWidgetItems(self.project, 'Person', 'person_marginals', 'person_sample')
 
-        self.addTab(self.housingTab, 'Housing Variables')
+        self.addTab(self.housingTab, 'Household Variables')
         self.addTab(self.personTab, 'Person Variables')
         
 
         if self.isGqAnalyzed():
             self.gqTab = TabWidgetItems(self.project, 'Group Quarter', 'gq_marginals', 'gq_sample')
-            self.addTab(self.gqTab, 'Group Quarters Variables')
+            self.addTab(self.gqTab, 'Groupqarters Variables')
 
         self.setLayout(layout)
 
@@ -330,7 +330,7 @@ class TabWidgetItems(QWidget):
         if not (self.selSampleVarListWidget.count() > 0):
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
                                 """No variable was selected for %s control."""
-                                """ Please select variables and define relations to continue.""" %self.controlType, 
+                                """ Select variables and define relations to continue.""" %self.controlType, 
                                 QMessageBox.Ok)
             return False
         else:
@@ -340,7 +340,7 @@ class TabWidgetItems(QWidget):
     def checkNumRelationsDefined(self):
         if self.relationsListWidget.count() <> self.selSampleVarCatListWidget.count():
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", 
-                                """Not enough relations defined for the %s control.""" %self.controlType,
+                                """Insufficient correspondence defined for the selected <b>%s</b> control variable(s).""" %self.controlType,
                                 QMessageBox.Ok)
             return False
         else:
@@ -489,14 +489,14 @@ class TabWidgetItems(QWidget):
 
             if row >= 0:
                 QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """If you wish to change the control variable """
-                                    """corresponding to a category of the control variable, please delete the existing correspondence """
+                                    """corresponding to a category of the control variable, delete the existing correspondence """
                                     """and define again.""", QMessageBox.Ok)
                 self.relationsListWidget.setCurrentItem(itemAt)
             else:
                 self.relationsListWidget.addItem(relation)
 
         except Exception, e:
-            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Please select a variable category """
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Select a variable category """
                                 """and a variable name to add a relation.""", QMessageBox.Ok)
             
 
