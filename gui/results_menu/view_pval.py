@@ -12,11 +12,11 @@ class Pval(Matplot):
         self.valid = False
         if self.isValid():
             self.valid = True
-            self.setWindowTitle("P Value Distribution")
+            self.setWindowTitle("p-Value Distribution")
             self.setWindowIcon(QIcon("./images/region.png"))
             pvalWarning = QLabel("""<font color = blue>The above chart shows the distribution of the """
-                                 """P-value across all the geographies for which synthetic population was generated."""
-                                 """ The p-value gives the probability with which the chosen synthetic population matches the """
+                                 """p-value across all geographies for which a synthetic population was generated."""
+                                 """ The p-value gives the confidence level at which the chosen synthetic population matches the """
                                  """ composite person type constraints. </font>""")
             pvalWarning.setWordWrap(True)
             self.vbox.addWidget(self.canvas)

@@ -69,7 +69,7 @@ class Indgeo(Matplot):
             self.hbox.addWidget(self.vboxwidget)
             self.hbox.addWidget(self.vboxwidget2)
 
-            indGeoWarning = QLabel("""<font color = blue>Select a geography to show the  performance statistics and display a"""
+            indGeoWarning = QLabel("""<font color = blue>Note: Select a geography to show the  performance statistics and display a"""
                                    """ scatter plot showing the comparison between the person weighted sum and the """
                                    """composite person type constraints. </font>""")
             indGeoWarning.setWordWrap(True)

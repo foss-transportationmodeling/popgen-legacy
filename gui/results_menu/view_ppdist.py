@@ -22,8 +22,8 @@ class Ppdist(Matplot):
 
             self.setWindowTitle("Distribution of Person Variables")
             self.setWindowIcon(QIcon("./images/region.png"))
-            ppdistWarning = QLabel("""<font color = blue>The above chart compares the actual marginal distribution with """
-                                   """ the marginal distributions from the synthetic population generated for the person"""
+            ppdistWarning = QLabel("""<font color = blue>Note: The above chart compares the actual marginal distributions with """
+                                   """ marginal distributions from the synthetic population for the person"""
                                    """ variables of interest. </font>""")
             ppdistWarning.setWordWrap(True)
             self.enableindgeo = True

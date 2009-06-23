@@ -23,8 +23,8 @@ class Hhdist(Matplot):
         
             self.setWindowTitle("Distribution of Housing Variables")
             self.setWindowIcon(QIcon("./images/region.png"))
-            hhdistWarning = QLabel("""<font color = blue>The above chart compares the actual marginal distribution with """
-                                   """ the marginal distributions from the synthetic population generated for the household/"""
+            hhdistWarning = QLabel("""<font color = blue>Note: The above chart compares the actual marginal distributions with """
+                                   """ marginal distributions from the synthetic population for the household/"""
                                    """groupquarter variables of interest. </font>""")
             hhdistWarning.setWordWrap(True)
             self.enableindgeo = True
