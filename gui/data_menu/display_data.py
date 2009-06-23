@@ -44,7 +44,7 @@ class DisplayTable(QDialog):
         layoutView.addWidget(outputLabel)
         layoutView.addWidget(self.output)
 
-        descButton = QPushButton("Decriptives")
+        descButton = QPushButton("Descriptives")
         freqButton = QPushButton("Frequencies")
 
         layoutButton = QVBoxLayout()

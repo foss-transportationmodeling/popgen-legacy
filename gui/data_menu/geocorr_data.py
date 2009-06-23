@@ -39,7 +39,7 @@ class UserImportGeocorrData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):
@@ -81,7 +81,7 @@ class AutoImportGeocorrData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):

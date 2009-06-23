@@ -77,7 +77,7 @@ class UserImportControlData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):
@@ -124,13 +124,13 @@ class AutoImportSFData():
             self.retrieveAndStoreSF(self.state)
         except WindowsError, e:
             reply = QMessageBox.question(None, "Import",
-                                         QString("""Windows Error: %s.\n\n"""
-                                                 """Do you wish to keep existing files?"""
-                                                 """\nPress No if you wish to download the files again."""%e),
+                                         QString("""%s.\n\n"""
+                                                 """Would you like to keep the existing files?"""
+                                                 """\nPress No if you would like to download the files again."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(None, "Import",
-                                               QString("""Are you sure you want to continue?"""),
+                                               QString("""Would you like to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
                     self.retrieveAndStoreSF(self.state)
@@ -156,7 +156,7 @@ class AutoImportSFData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):

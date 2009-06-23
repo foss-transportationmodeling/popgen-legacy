@@ -96,7 +96,7 @@ class UserImportSampleData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):
@@ -158,7 +158,7 @@ class AutoImportPUMSData():
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
             if self.query.lastError().number() == 1050:
                 reply = QMessageBox.question(None, "Import",
-                                             QString("""A table with name %s already exists. Do you wish to overwrite?""" %tablename),
+                                             QString("""A table with name %s already exists. Would you like to overwrite?""" %tablename),
                                              QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     if not self.query.exec_("""drop table %s""" %tablename):
@@ -181,13 +181,13 @@ class AutoImportPUMSData():
             self.retrieveAndStorePUMS()
         except WindowsError, e:
             reply = QMessageBox.question(None, "Import",
-                                         QString("""Windows Error: %s.\n\n"""
-                                                 """Do you wish to keep the existing files?"""
-                                                 """\nPress No if you wish to download the files again."""%e),
+                                         QString("""%s.\n\n"""
+                                                 """Would you like to keep the existing files?"""
+                                                 """\nPress No if you would like to download the files again."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(None, "Import",
-                                               QString("""Are you sure you want to continue?"""),
+                                               QString("""Would you like to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
                     self.retrieveAndStorePUMS()
@@ -277,7 +277,7 @@ class AutoImportPUMSData():
     def housingSelVars(self):
         housingVariablesDialog = VariableSelectionDialog(self.housingVariableDict, self.housingDefaultVariables,
                                                          "PUMS Housing Variable(s) Selection",
-                                                         "controlvariables", warning="Select variables to import")
+                                                         "controlvariables", warning="Note: Select variables to import")
 
         # Launch a dialogbox to select the housing variables of interest
         if housingVariablesDialog.exec_():
@@ -291,7 +291,7 @@ class AutoImportPUMSData():
     def personSelVars(self):
         personVariablesDialog = VariableSelectionDialog(self.personVariableDict, self.personDefaultVariables,
                                                         "PUMS Person Variable(s) Selection",
-                                                        "controlvariables", warning="Select variables to import")
+                                                        "controlvariables", warning="Note: Select variables to import")
 
         # Launch a dialogbox to select the person variables of interest
         if personVariablesDialog.exec_():
@@ -307,7 +307,7 @@ class AutoImportPUMSData():
             fileInfo = os.stat(file)
 
             reply = QMessageBox.question(None, "Import", 
-                                         QString("""File %s exists. Do you wish to overwrite?""" %(file)),
+                                         QString("""File %s exists. Would you like to overwrite?""" %(file)),
                                          QMessageBox.Yes| QMessageBox.No)
 
             if reply == QMessageBox.Yes:

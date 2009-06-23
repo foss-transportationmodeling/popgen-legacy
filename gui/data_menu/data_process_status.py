@@ -29,14 +29,14 @@ class DataDialog(QDialog):
 
         ok.setEnabled(False)
 
-        self.GeocorrHousingLayout = CheckLabel("a. Processing geographic Correspondence Data", "incomplete")
-        self.SampleHousingLayout = CheckLabel("b. Processing Housing PUMS Data", "incomplete")
-        self.SamplePersonLayout = CheckLabel("c. Processing Person PUMS Data", "incomplete")
-        self.ControlHousingLayout = CheckLabel("d. Processing Housing Summary Data", "incomplete")
-        self.ControlPersonLayout = CheckLabel("e. Processing Person Summary Data", "incomplete")
-        self.RegionShapeLayout = CheckLabel("f. Processing Region's Shape File", "incomplete")
+        self.GeocorrHousingLayout = CheckLabel("a. Processing geographic correspondence data", "incomplete")
+        self.SampleHousingLayout = CheckLabel("b. Processing household sample data", "incomplete")
+        self.SamplePersonLayout = CheckLabel("c. Processing person sample data", "incomplete")
+        self.ControlHousingLayout = CheckLabel("d. Processing housing marginals data", "incomplete")
+        self.ControlPersonLayout = CheckLabel("e. Processing person marginals data", "incomplete")
+        self.RegionShapeLayout = CheckLabel("f. Processing regional shape files", "incomplete")
 
-        importWarning = QLabel("""<font color = blue> Please hit <b>Start</b> to begin importing data."""
+        importWarning = QLabel("""<font color = blue>Note: Please click on <b>Start</b> to begin importing data."""
                                """</font>""")
 
         #self.detailsTextEdit = QTextEdit()
