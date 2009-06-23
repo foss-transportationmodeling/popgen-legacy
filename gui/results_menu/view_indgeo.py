@@ -258,6 +258,7 @@ class Indgeo(Matplot):
     def makeComboBox(self):
         self.getGeographies()
         self.geocombobox = LabComboBox("Geography:",self.geolist)
+        self.geolist.sort()
         self.current = self.geocombobox.getCurrentText()
 
     def makeMapWidget(self):
