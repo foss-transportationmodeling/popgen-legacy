@@ -51,12 +51,15 @@ class MainWindow(QMainWindow):
         self.projectName = None
 
         
-        self.setWindowTitle("PopGen Version-0.50")
+        self.setWindowTitle("PopGen Version-1.00")
         self.setWindowIcon(QIcon("./images/popsyn.png"))
         self.workingWindow = QLabel()
         self.showMaximized()
         self.setMinimumSize(800,500)
         self.workingWindow.setAlignment(Qt.AlignCenter)
+        bkground = QPixmap("./images/background.png")
+        self.workingWindow.setPixmap(bkground)
+        self.workingWindow.setScaledContents(True)
         self.setCentralWidget(self.workingWindow)
         
         
@@ -99,7 +102,7 @@ class MainWindow(QMainWindow):
 # DATA MENU 
 # Defining menu/toolbar actions        
         dataSourceAction = self.createAction("Data Source &Connection", self.dataSource, 
-                                             icon="datasource", tip="Enter credentials for the MySQL data source.")
+                                             icon="datasource", tip="Enter MySQL connection settings.")
         dataImportAction = self.createAction("&Import", self.dataImport, icon="fileimport", 
                                              tip="Import data into MySQL database.")
         #dataStatisticsAction = self.createAction("&Statistics", self.dataStatistics,  
@@ -134,9 +137,9 @@ class MainWindow(QMainWindow):
                                                     """in the sample file and variables in the control file.""")
         synthesizerParameterAction = self.createAction("&Parameters/Settings", self.synthesizerParameter,
                                                        icon="parameters",
-                                                       tip="Define the different parameter values.")
+                                                       tip="Set parameter values.")
         synthesizerRunAction = self.createAction("Run", self.synthesizerRun, 
-                                                 icon="run", tip="Run the populaiton synthesis.")
+                                                 icon="run", tip="Run synthesizer.")
         synthesizerStopAction = self.createAction("Stop", self.synthesizerStop, 
                                                   icon="stop", tip="Stop the current population synthesis run.")
 # Adding actions to menu
@@ -162,38 +165,38 @@ class MainWindow(QMainWindow):
 
 # RESULTS MENU
 # Defining menu/toolbar actions
-        resultsRegionalAARDAction = self.createAction("Average Absolute Relative Difference", 
+        resultsRegionalAARDAction = self.createAction("Average Absolute Relative Difference (AARD)", 
                                                       self.resultsRegionalAARD, 
-                                                      tip="""Display the distribution of AARD"""
-                                                      """across all individual geographies.""")
-        resultsRegionalPValueAction = self.createAction("P-Value", 
+                                                      tip="""Display the distribution of Average Absolute Relative Difference (AARD) """
+                                                      """across individual geographies.""")
+        resultsRegionalPValueAction = self.createAction("p-Value", 
                                                         self.resultsRegionalPValue, 
-                                                        tip="""Display the distribution of P-value"""
-                                                        """for the synthetic population across all individual geographies.""")
+                                                        tip="""Display the distribution of p-value """
+                                                        """for the synthetic population across individual geographies.""")
         resultsRegionalHousDistAction = self.createAction("Distribution of Housing Variables", 
                                                           self.resultsRegionalHousDist, 
-                                                          tip="Comparison of Housing Attributes.")
-        resultsRegionalPersDistAction = self.createAction("Distribution of Person Varoables", 
+                                                          tip="Comparison of housing variables.")
+        resultsRegionalPersDistAction = self.createAction("Distribution of Person Variables", 
                                                           self.resultsRegionalPersDist, 
-                                                          tip="Comparison of Person Attributes.")
+                                                          tip="Comparison of person variables.")
 
 
         resultsRegionalAction = self.createAction("Regional Geography Statistics",
                                                   self.resultsRegional,
                                                   icon="region",
-                                                  tip = "Display performance statistics for the entire region")
+                                                  tip = "Display performance statistics for the entire region.")
 
 
 
         resultsIndividualAction = self.createAction("&Individual Geography Statistics",
                                                     self.resultsIndividual,
                                                     icon="individualgeo",
-                                                    tip = "Display performance statistics for individual geographies")
+                                                    tip = "Display performance statistics for individual geographies.")
 
         resultsViewHHAction = self.createAction("&View Households",
                                                     self.resultsViewHH,
                                                     icon="viewhh",
-                                                    tip = "Display synthesized households for the entire region")
+                                                    tip = "Display synthesized households for the entire region.")
 
 # Adding actions to menu
         self.resultsMenu = self.menuBar().addMenu("&Results")
@@ -264,11 +267,11 @@ class MainWindow(QMainWindow):
             self.runWizard()
         else:
             reply = QMessageBox.question(None, "Project Setup Wizard",
-                                         QString("""A PopGen project already open. Do you wish to continue?"""),
+                                         QString("""A PopGen project already open. Would you like to continue?"""),
                                          QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
                 save = QMessageBox.question(None, "Project Setup Wizard",
-                                            QString("""Do you wish to save the project?"""),
+                                            QString("""Would you like to save the project?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 self.fileManager.clear()
                 self.fileManager.setEnabled(False)
@@ -314,11 +317,11 @@ class MainWindow(QMainWindow):
         if not project.file.isEmpty():
             if self.fileManager.isEnabled():
                 reply = QMessageBox.warning(None, "Open Existing Project",
-                                            QString("""A PopGen project already open. Do you wish to continue?"""),
+                                            QString("""A PopGen project already open. Would you like to continue?"""),
                                             QMessageBox.Yes| QMessageBox.No)
                 if reply == QMessageBox.Yes:
                     save = QMessageBox.warning(None, "Save Existing Project",
-                                               QString("""Do you wish to save the project?"""),
+                                               QString("""Would you like to save the project?"""),
                                                QMessageBox.Yes| QMessageBox.No)
                     if save == QMessageBox.Yes:
                         SaveProject(self.project)
@@ -354,7 +357,7 @@ class MainWindow(QMainWindow):
         filename = file[-2]
         if not filename.isEmpty():
             reply = QMessageBox.warning(self, "Save Existing Project As...",
-                                        QString("""Do you wish to continue?"""), 
+                                        QString("""Would you like to continue?"""), 
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.project.filename = filename
@@ -466,7 +469,7 @@ class MainWindow(QMainWindow):
 
         
     def synthesizerStop(self):
-        QMessageBox.information(self, "Synthesizer", "Stop the current run of the population synthesizer", QMessageBox.Ok)
+        QMessageBox.information(self, "Synthesizer", "Stop the synthesizer", QMessageBox.Ok)
 
     def resultsRegionalAARD(self):
         aard = Absreldiff(self.project)
@@ -536,12 +539,21 @@ class MainWindow(QMainWindow):
     
 def main():
     app = QApplication(sys.argv)
+    pixmap = QPixmap("./images/splashscreen.png")
+    splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
+    splash.show()
+    splash.showMessage("Starting PopGen 1.0...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
+    app.processEvents()
     QgsApplication.setPrefixPath(qgis_prefix, True)
     QgsApplication.initQgis()
-    app.setApplicationName("Synthetic Population Simulator (HIPGen)")
+    app.setApplicationName("Population Generator (PopGen)")
     form = MainWindow()
     form.show()
+    
+    splash.finish(form)
+
     app.exec_()
+
 
 
 if __name__=="__main__":
