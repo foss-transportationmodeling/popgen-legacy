@@ -95,6 +95,7 @@ class IntroPage(QWizardPage):
         self.vLayout2 = QVBoxLayout()
         self.toolbar = Toolbar(self.canvas, self.layer)
         self.toolbar.hideDragTool()
+        self.toolbar.hideSelectTool()
         self.vLayout2.addWidget(self.toolbar)
         self.vLayout2.addWidget(self.canvas) 
         self.toolbar.setHidden(True)
