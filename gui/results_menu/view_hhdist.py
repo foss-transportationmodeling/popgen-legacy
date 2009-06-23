@@ -161,7 +161,9 @@ class Hhdist(Matplot):
         self.hbox = QHBoxLayout()
         self.comboboxholder.setLayout(self.hbox)
         self.attrbox = LabComboBox("Variable:",self.hhldvariables+self.gqvariables)
-        self.geobox = LabComboBox("Geography:",["All"] +self.getGeographies())
+        self.getGeographies()
+        self.geolist.sort()
+        self.geobox = LabComboBox("Geography:",["All"] + self.geolist)
         self.hbox.addWidget(self.attrbox)
         if self.enableindgeo:
             self.hbox.addWidget(self.geobox)
