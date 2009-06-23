@@ -24,8 +24,10 @@ class UnzipFile:
             try:
                 fileExtrInfo = os.stat(os.path.join(self.mountpoint, i))
                 reply = QMessageBox.question(None, "Extracting Data",
-                                             QString("""Do you like to replace the existing file %s (size %s)"""
-                                                     """ with the file %s (size %s) from the zip folder?""" 
+                                             QString("""Would you like to replace the existing file <font color = brown>"""
+                                                     """%s (size %s) </font>"""
+                                                     """ with the file <font color = blue>%s (size %s)</font>"""
+                                                     """ from the zip folder?""" 
                                              %(i, fileExtrInfo.st_size, i, fileArchInfo.file_size)), 
                                              QMessageBox.Yes| QMessageBox.YesToAll|
                                              QMessageBox.No| QMessageBox.NoToAll)

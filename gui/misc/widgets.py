@@ -175,7 +175,7 @@ class VariableSelectionDialog(QDialog):
         layout = QVBoxLayout()
 
         selectButton = QPushButton('Select>>')
-        unselectButton = QPushButton('<<Unselect')
+        unselectButton = QPushButton('<<Deselect')
         buttonLayout = QVBoxLayout()
         buttonLayout.addWidget(selectButton)
         buttonLayout.addWidget(unselectButton)
@@ -353,7 +353,8 @@ class RecodeDialog(QDialog):
         self.oldNewButton = QPushButton("Old and New Values")
         self.oldNewButton.setEnabled(False)
 
-        recodeWarning = QLabel("""<font color = blue>Select the variable whose categories will be transformed by clicking on the variable. """
+        recodeWarning = QLabel("""<font color = blue>Note: Select the variable whose categories will be """
+                               """transformed by clicking on the variable. """
                                """ Enter a new variable name for the variable that will contain the transformed categories """
                                """in the <b>New variable name after recoding:</b> line edit box. Then click on """
                                """<b>Old and New Values </b> to define the transformations.</font>""")
@@ -420,14 +421,13 @@ class RecodeDialog(QDialog):
         variablename = self.variableOldEdit.text()
         varcats = self.variableDict['%s' %variablename]
         newvariablename = self.variableNewEdit.text()
-        self.variables.append(newvariablename)
+
 
         dia = OldNewRelation(variablename, varcats, icon = self.icon)
         if dia.exec_():
+            self.variables.append(newvariablename)
             self.runRecodeCrit(variablename, newvariablename, dia.recodeCrit)
             self.resetDialog()
-
-
 
     def runRecodeCrit(self, variablename, newvariablename, recodeCrit):
         query = QSqlQuery(self.projectDBC.dbc)
@@ -526,7 +526,7 @@ class OldNewRelation(QDialog):
         newCatLabel = QLabel("Value of the new category:")
         self.newCatEdit = QLineEdit()
 
-        recodeCritLabel = QLabel("Recode critera")
+        recodeCritLabel = QLabel("Transformation(s)")
         self.recodeCritList = ListWidget()
 
         self.addRecCrit = QPushButton("Add")
@@ -538,10 +538,10 @@ class OldNewRelation(QDialog):
         self.copyOldCrit = QPushButton("Copy Old Values")
         self.copyOldCrit.setEnabled(False)
 
-        oldnewWarning = QLabel("""<font color = blue>Highlight the old category from the <b>Categories in the variable</b>"""
+        oldnewWarning = QLabel("""<font color = blue>Note: Highlight the old category from the <b>Categories in the variable</b>"""
                                """ list box and enter a new category value in the <b>Value of the new category</b> """
-                               """ line edit box. Press <b>Add</b> to add a transformation, <b>Remove</b> """
-                               """to remove a transformation and <b>Copy Old Values</b> to copy old categories</font>""")
+                               """ line edit box. Click on <b>Add</b> to add a transformation, <b>Remove</b> """
+                               """to remove a transformation and <b>Copy Old Values</b> to copy old categories.</font>""")
         oldnewWarning.setWordWrap(True)
 
         vLayout2 = self.vLayout([varCatsLabel, self.varCatsList, newCatLabel, self.newCatEdit])
@@ -721,13 +721,13 @@ class CreateVariable(QDialog):
         whereEgLabel = QLabel("<font color = brown>%s</font>" %dummy)
         self.whereEdit.setEnabled(False)
         
-        createVarWarning = QLabel("""<font color = blue> Enter the name of the new variable in <b>New Variable Name</b> """
+        createVarWarning = QLabel("""<font color = blue>Note: Enter the name of the new variable in <b>New Variable Name</b> """
                                   """line edit box, type the mathematical expression that defines the new variable in the """
                                   """<b>Expression</b> text edit box, and add any mathematical filter expression in the """
                                   """<b>Filter Expression</b> text edit box to create a new variable. """
                                   """The dialog also allows users to check the """
                                   """categories under any variable by clicking the variable in the """
-                                  """<b>Variables in Table</b> listbox.</font>""")
+                                  """<b>Variables in Table</b> list box.</font>""")
         
         createVarWarning.setWordWrap(True)
         vLayout2 = QVBoxLayout()
@@ -840,6 +840,101 @@ class CreateVariable(QDialog):
             cats.append(cat)
                    
 
+        return cats
+
+class DeleteRows(QDialog):
+    def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
+        super(DeleteRows, self).__init__(parent)
+
+        self.setWindowTitle(title + " - %s" %tablename)
+        self.setWindowIcon(QIcon("./images/%s.png" %icon))
+        self.tablename = tablename
+        self.project = project
+        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC.dbc.open()
+        self.variableDict = {}
+        self.variables = variableTypeDict.keys()
+
+        variableListLabel = QLabel("Variables in Table")
+        self.variableListWidget = ListWidget()
+        variableCatsListLabel = QLabel("Categories")
+        self.variableCatsListWidget = ListWidget()
+
+        dummy = "Eg. Var1 > 10"
+        whereLabel = QLabel("Filter Expression    " + "<font color = brown>%s</font>" %dummy)
+        self.whereEdit = QPlainTextEdit()
+
+        createVarWarning = QLabel("""<font color = blue>Note: Enter a mathematical filter expression in the """
+                                  """<b>Filter Expression</b> text edit box to delete rows. """
+                                  """The dialog also allows users to check the """
+                                  """categories under any variable by selecting the variable in the """
+                                  """<b>Variables in Table</b> list box.</font>""")
+        
+        createVarWarning.setWordWrap(True)
+        vLayout2 = QVBoxLayout()
+        
+        hLayout1 = QHBoxLayout()
+        vLayout3 = QVBoxLayout()
+        vLayout3.addWidget(variableListLabel)
+        vLayout3.addWidget(self.variableListWidget)
+        vLayout4 = QVBoxLayout()
+        vLayout4.addWidget(variableCatsListLabel)
+        vLayout4.addWidget(self.variableCatsListWidget)
+        hLayout1.addLayout(vLayout3)
+        hLayout1.addLayout(vLayout4)
+        vLayout2.addLayout(hLayout1)
+
+        vLayout1 = QVBoxLayout()
+        vLayout1.addWidget(whereLabel)
+        vLayout1.addWidget(self.whereEdit)
+
+
+        hLayout = QHBoxLayout()
+        hLayout.addLayout(vLayout2)
+        hLayout.addLayout(vLayout1)
+
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addWidget(createVarWarning)
+        layout.addWidget(dialogButtonBox)
+
+        self.setLayout(layout)
+        self.populate()
+
+        self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+
+
+    def displayCats(self):
+        varname = self.variableListWidget.currentItem().text()
+        varCats = self.categories(varname)
+        self.variableDict['%s' %varname] = varCats
+
+        cats = ['%s' %i for i in self.variableDict['%s' %varname]]
+
+        self.variableCatsListWidget.clear()
+        self.variableCatsListWidget.addItems(cats)
+        
+
+        
+    def populate(self):
+        self.variableListWidget.addItems(self.variables)
+
+
+    def categories(self, varname):
+        cats = []
+
+        query = QSqlQuery(self.projectDBC.dbc)
+        query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname))
+
+        CATEGORY = 0
+
+        while query.next():
+            cat = unicode(query.value(CATEGORY).toString())
+            cats.append(cat)
         return cats
 
 
