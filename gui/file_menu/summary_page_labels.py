@@ -18,23 +18,23 @@ class SummaryPage(QWizardPage):
         self.setTitle("Step 6: Summary")
         vlayoutCol1 = QVBoxLayout()
         
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Project Name")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Project Location")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Project Description")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Selected Counties")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Project name")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Project location")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Project description")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Selected counties")))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Resolution of population Synthesis")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Geographic resolution of population synthesis")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Geographic correspondence data provided by the user")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the geographic correspondence file")))
         vlayoutCol1.addWidget(Separator())
         vlayoutCol1.addWidget(QLabel(self.leftPad("Sample data provided by the user")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the household sample file")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the group quarter sample file")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the groupquarter sample file")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the person sample file")))
         vlayoutCol1.addWidget(Separator())
         vlayoutCol1.addWidget(QLabel(self.leftPad("Control data provided by the user")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the household control data file")))
-        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the group quarter control data file")))
+        vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the groupquarter control data file")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Location of the person control data file")))
 
 
@@ -116,7 +116,20 @@ class SummaryPage(QWizardPage):
             for i in self.project.region.keys():
                 dummy = dummy + i + ", "+ self.project.region[i]+ "; "
         self.projectRegion.setText(self.formatText("%s"%dummy[:-2]))
-        self.projectResolution.setText(self.formatText(self.project.resolution))
+
+        resolutionText = self.project.resolution
+
+        if resolutionText == "Tract":
+            resolution = 'Census Tract'
+        elif resolutionText == "Blockgroup":
+            resolution = 'Census Blockgroup'
+        elif resolutionText == 'TAZ':
+            resolution = 'Traffic Analysis Zone (TAZ)'
+        else:
+            resolution = 'County'
+                
+
+        self.projectResolution.setText(self.formatText(resolution))
         #self.projectResolutionComboBox.findAndSet(self.project.resolution)
         
         text = self.convertBoolToString(self.project.geocorrUserProv.userProv)
@@ -188,14 +201,15 @@ class SummaryPage(QWizardPage):
             os.makedirs("%s/%s/results" %(projectLocation, projectName))
             self.projectLocationDummy = True
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopGen: New Project Wizard",
-                                         QString("""Database Error: %s. \n\nDo you wish"""
+            print e
+            reply = QMessageBox.question(self, "Project Setup Wizard",
+                                         QString("""Cannot create a project folder when the folder already exists. \n\nDo you wish"""
                                                  """ to keep the previous data?"""
-                                                 """\n    If Yes then rescpecify project location. """
-                                                 """\n    If you wish to delete the previous data press No."""%e),
+                                                 """\n    If Yes then re-scpecify the project location. """
+                                                 """\n    If you wish to delete the previous data select No."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopGen: New Project Wizard",
+                confirm = QMessageBox.question(self, "Project Setup Wizard",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -214,14 +228,15 @@ class SummaryPage(QWizardPage):
 
         query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""Create Database %s""" %(projectName)):
-            reply = QMessageBox.question(None, "PopGen: Processing Data",
-                                         QString("""QueryError: %s. \n\n"""
+            print query.lastError().text()
+            reply = QMessageBox.question(self, "Project Setup Wizard",
+                                         QString("""Cannot create a MySQL database when the database already exists. \n\n"""
                                                  """Do you wish to keep the old MySQL database?"""
-                                                 """\n    If Yes then respecify the project name."""
-                                                 """\n    If you wish to delete press No."""%query.lastError().text()),
+                                                 """\n    If Yes then re-specify the project name."""
+                                                 """\n    If you wish to delete select No."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopGen: Processing Data",
+                confirm = QMessageBox.question(self, "Project Setup Wizard",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:

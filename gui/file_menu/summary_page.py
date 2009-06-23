@@ -17,16 +17,16 @@ class SummaryPage(QWizardPage):
 
         self.setTitle("Step 6: Summary")
         vlayoutCol1 = QVBoxLayout()
-        vlayoutCol1.addWidget(QLabel("Project Name:"))
-        vlayoutCol1.addWidget(QLabel("Project Location:"))
-        vlayoutCol1.addWidget(QLabel("Project Description"))
-        vlayoutCol1.addWidget(QLabel("Selected Counties:"))
+        vlayoutCol1.addWidget(QLabel("Project name:"))
+        vlayoutCol1.addWidget(QLabel("Project location:"))
+        vlayoutCol1.addWidget(QLabel("Project description"))
+        vlayoutCol1.addWidget(QLabel("Selected counties:"))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel("Resolution of population Synthesis:"))
+        vlayoutCol1.addWidget(QLabel("Geographic resolution of population synthesis:"))
         vlayoutCol1.addWidget(QLabel("Geographic correspondence data provided by the user:"))
         vlayoutCol1.addWidget(QLabel("Location of the geographic correspondence file:"))
         vlayoutCol1.addWidget(Separator())
-        vlayoutCol1.addWidget(QLabel(" data provided by the user:"))
+        vlayoutCol1.addWidget(QLabel("Location data provided by the user:"))
         vlayoutCol1.addWidget(QLabel("Location of the household sample file:"))
         vlayoutCol1.addWidget(QLabel("Location of the group quarter sample file:"))
         vlayoutCol1.addWidget(QLabel("Location of the person sample file:"))
@@ -56,7 +56,7 @@ class SummaryPage(QWizardPage):
         #self.projectResolutionLineEdit = DisplayLineEdit()
         self.projectResolutionComboBox = ComboBoxFile()
         self.projectResolutionComboBox.setEnabled(False)
-        self.projectResolutionComboBox.addItems(['County', 'Tract', 'Blockgroup'])
+        self.projectResolutionComboBox.addItems(['County', 'Census Tract', 'Census Blockgroup'])
         vlayoutCol2.addWidget(self.projectResolutionComboBox)
 
         self.geocorrUserProvLineEdit = DisplayLineEdit()
@@ -144,7 +144,17 @@ class SummaryPage(QWizardPage):
 
     def updateProject(self):
         self.project.description = self.projectDescLineEdit.text()
-        self.project.resolution = self.projectResolutionComboBox.currentText()
+        resolutionText = self.projectResolutionComboBox.currentText()
+        if resolutionText == "Census Tract":
+            resolution = 'Tract'
+        elif resolutionText == "Census Blockgroup":
+            resolution = 'Blockgroup'
+        elif resolutionText == 'Traffic Analysis Zone (TAZ)':
+            resolution = 'TAZ'
+        else:
+            resolution = 'County'
+
+        self.project.resolution = resolution
 
 
     def isComplete(self):
@@ -164,14 +174,14 @@ class SummaryPage(QWizardPage):
             os.makedirs("%s/%s/results" %(projectLocation, projectName))
             self.projectLocationDummy = True
         except WindowsError, e:
-            reply = QMessageBox.question(None, "PopGen: New Project Wizard",
-                                         QString("""Database Error: %s. \n\nDo you wish"""
+            reply = QMessageBox.question(None, "Project Setup Wizard",
+                                         QString("""%s. \n\nDo you wish"""
                                                  """ to keep the previous data?"""
-                                                 """\n    If Yes then rescpecify project location. """
-                                                 """\n    If you wish to delete the previous data press No."""%e),
+                                                 """\n    If Yes then re-scpecify the project location. """
+                                                 """\n    If you wish to delete the previous data select No."""%e),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopGen: New Project Wizard",
+                confirm = QMessageBox.question(None, "Project Setup Wizard",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:
@@ -190,14 +200,14 @@ class SummaryPage(QWizardPage):
 
         query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""Create Database %s""" %(projectName)):
-            reply = QMessageBox.question(None, "PopGen: Processing Data",
-                                         QString("""QueryError: %s. \n\n"""
+            reply = QMessageBox.question(None, "Project Setup Wizard",
+                                         QString("""%s. \n\n"""
                                                  """Do you wish to keep the old MySQL database?"""
-                                                 """\n    If Yes then respecify the project name."""
-                                                 """\n    If you wish to delete press No."""%query.lastError().text()),
+                                                 """\n    If Yes then re-specify the project name."""
+                                                 """\n    If you wish to delete select No."""%query.lastError().text()),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "PopGen: Processing Data",
+                confirm = QMessageBox.question(None, "Project Setup Wizard",
                                                QString("""Are you sure you want to continue?"""),
                                                QMessageBox.Yes|QMessageBox.No)
                 if confirm == QMessageBox.Yes:

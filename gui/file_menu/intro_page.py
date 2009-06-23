@@ -18,17 +18,17 @@ class IntroPage(QWizardPage):
         self.setTitle("Step 1: Region")
 
         # Project Description
-        nameLabel = QLabel("a. Enter Project Name")
+        nameLabel = QLabel("a. Enter project name")
         self.nameLineEdit = LineEdit()
         self.nameLineEdit.setText("Project_Name")
         self.nameLineEdit.selectAll()
         nameLabel.setBuddy(self.nameLineEdit)
-        locationLabel = QLabel("b. Select a Project Location")
+        locationLabel = QLabel("b. Select a project file location")
         self.locationComboBox = ComboBoxFolder()
         #self.locationComboBox.addItems([QString("C:/"), QString("Browse to select folder...")])
         self.locationComboBox.addItems([QString("C:/SynTest"), QString("Browse to select folder...")])
         locationLabel.setBuddy(self.locationComboBox)
-        descLabel = QLabel("c. Enter Project Description")
+        descLabel = QLabel("c. Enter project description (Optional)")
         self.descTextEdit = QTextEdit()
         descLabel.setBuddy(self.descTextEdit)
 
@@ -42,7 +42,7 @@ class IntroPage(QWizardPage):
         projectVLayout.addWidget(self.descTextEdit)
 
         # Selecting Counties using the tree widget
-        countySelectLabel = QLabel("d. Select County(ies)")
+        countySelectLabel = QLabel("d. Select one or more counties")
         self.countySelectTree = QTreeWidget()
         self.countySelectTree.setColumnCount(1)
         self.countySelectTree.setHeaderLabels(["State/County"])
@@ -51,7 +51,7 @@ class IntroPage(QWizardPage):
         county = QTreeWidgetItem(state, [QString("County")])
         state = QTreeWidgetItem(self.countySelectTree, [QString("State1")])
         county = QTreeWidgetItem(state, [QString("County1")])
-        countySelectWarningLabel = QLabel("<font color = blue>Note: Counties cannot be chosen accross multiple states.</font>")
+        countySelectWarningLabel = QLabel("<font color = blue>Note: Counties cannot be chosen across multiple states.</font>")
 
 
         # County Selection Layout

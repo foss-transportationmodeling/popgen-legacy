@@ -9,7 +9,7 @@ from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.display_data import DisplayTable
 from data_menu.sf_data import AutoImportSFData
-from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable, NameDialog
+from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable, NameDialog, DeleteRows
 
 from misc.errors import *
 
@@ -39,6 +39,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         createVarAction = menuTableEdit.addAction("Create New Variable")
         recodeCatsAction = menuTableEdit.addAction("Recode Categories")
         deleteColAction = menuTableEdit.addAction("Delete Column(s)")
+        deleteRowsAction = menuTableEdit.addAction("Delete Record(s)")
         dropAction = menuTableEdit.addAction("Delete Table")
         copyAction = menuTableEdit.addAction("Copy Table")
         renameAction = menuTableEdit.addAction("Rename Table")
@@ -51,6 +52,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.connect(recodeCatsAction, SIGNAL("triggered()"), self.modifyCategories)
         self.connect(createVarAction, SIGNAL("triggered()"), self.createVariable)
         self.connect(deleteColAction, SIGNAL("triggered()"), self.deleteColumns)
+        self.connect(deleteRowsAction, SIGNAL("triggered()"), self.deleteRows)
         self.connect(copyAction, SIGNAL("triggered()"), self.copyTable)
         self.connect(renameAction, SIGNAL("triggered()"), self.renameTable)
         self.connect(dropAction, SIGNAL("triggered()"), self.dropTable)
@@ -62,6 +64,33 @@ class QTreeWidgetCMenu(QTreeWidget):
             if self.item.parent().text(0) == 'Data Tables':
                 menuTableEdit.exec_(event.globalPos())
 
+
+    def deleteRows(self):
+        tablename = self.item.text(0)
+        self.populateVariableDictionary(tablename)
+        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC.dbc.open()        
+
+        deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
+        if deleteRows.exec_():
+
+            reply = QMessageBox.question(self, "Delete Records", "Would you like to continue?", 
+                                         QMessageBox.Yes| QMessageBox.Cancel)
+            if reply == QMessageBox.Yes:
+
+                query = QSqlQuery(projectDBC.dbc)
+
+                whereExpression = deleteRows.whereEdit.toPlainText()
+                print whereExpression, 'is the text'
+                if not whereExpression == "":
+                    
+                    if not query.exec_("""delete from %s where %s""" %(tablename, whereExpression)):
+                        raise FileError, query.lastError().text()
+                else:
+                    QMessageBox.warning(self, "Delete Records", """No filter expression selected, 0 records deleted.""", 
+                                        QMessageBox.Ok)
+                                       
+        projectDBC.dbc.close()
 
        
     def copyTable(self):
@@ -97,7 +126,7 @@ class QTreeWidgetCMenu(QTreeWidget):
     def dropTable(self):
         tablename = self.item.text(0)
 
-        reply = QMessageBox.question(None, "Delete Table - %s" %tablename, "Do you wish to continue?", 
+        reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?", 
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
             projectDBC = createDBC(self.project.db, self.project.filename)
@@ -159,24 +188,22 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def deleteColumns(self):
+
         projectDBC = createDBC(self.project.db, self.project.filename)
-        projectDBC.dbc.open()
-        
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
+        projectDBC.dbc.open()
+        query = QSqlQuery(projectDBC.dbc)
 
         title = "Delete Dialog - %s" %tablename
-
         deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = title, icon = "modifydata", 
-                                                     warning = "<font color = blue>Select variables to delete.</font>")
-
-        query = QSqlQuery(projectDBC.dbc)
+                                                     warning = "Note: Select variables to delete.")
 
         if deleteVariablesdia.exec_():
             deleteVariablesSelected = deleteVariablesdia.selectedVariableListWidget.variables
 
             for i in deleteVariablesSelected:
-                if not query.exec_("""alter table %s drop column %s""" %(tablename, i)):
+                if not query.exec_("""alter table %s drop %s""" %(tablename, i)):
                     raise FileError, query.lastError().text()
 
         projectDBC.dbc.close()
@@ -313,22 +340,38 @@ class QTreeWidgetCMenu(QTreeWidget):
             for i in self.project.region.keys():
                 dummy = dummy + i + ", "+ self.project.region[i]+ "; "
 
+
+        resolutionText = self.project.resolution
+
+        if resolutionText == "Tract":
+            resolution = 'Census Tract'
+        elif resolutionText == "Blockgroup":
+            resolution = 'Census Blockgroup'
+        elif resolutionText == 'TAZ':
+            resolution = 'Traffic Analysis Zone (TAZ)'
+        else:
+            resolution = 'County'
+
+
+
         informationItems = {"Location":self.project.location, 
                             "Description":self.project.description,
                             "Region":dummy,
-                            "Resolution":self.project.resolution}
+                            "Resolution":resolution}
         for i,j in informationItems.items():
             child = QTreeWidgetItem(informationParent, [i, QString(j)])
         
         geocorrParent = QTreeWidgetItem(projectAncestor, [QString("Geographic Correspondence")])
-        geocorrItems = {"User Provided":self.project.geocorrUserProv.userProv, 
+        geocorrUserProvText = self.userProvText(self.project.geocorrUserProv.userProv)
+        geocorrItems = {"User Provided":geocorrUserProvText, 
                         "Location":self.project.geocorrUserProv.location}
         
         for i,j in geocorrItems.items():
             child = QTreeWidgetItem(geocorrParent, [i, QString("%s"%j)])
 
         sampleParent = QTreeWidgetItem(projectAncestor, [QString("Sample")])
-        sampleItems = {"User Provided":self.project.sampleUserProv.userProv,
+        sampleUserProvText = self.userProvText(self.project.sampleUserProv.userProv)
+        sampleItems = {"User Provided":sampleUserProvText,
                        "Household Data Location": self.project.sampleUserProv.hhLocation,
                        "GQ Data Location": self.project.sampleUserProv.gqLocation,
                        "Person Data Location": self.project.sampleUserProv.personLocation}
@@ -337,7 +380,8 @@ class QTreeWidgetCMenu(QTreeWidget):
             child = QTreeWidgetItem(sampleParent, [i, QString("%s"%j)])
 
         controlParent = QTreeWidgetItem(projectAncestor, [QString("Control")])
-        controlItems = {"User Provided":self.project.controlUserProv.userProv,
+        controlUserProvText = self.userProvText(self.project.controlUserProv.userProv)
+        controlItems = {"User Provided":controlUserProvText,
                        "Household Data Location": self.project.controlUserProv.hhLocation,
                        "GQ Data Location": self.project.controlUserProv.gqLocation,
                        "Person Data Location": self.project.controlUserProv.personLocation}
@@ -347,8 +391,8 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         dbParent = QTreeWidgetItem(projectAncestor, [QString("Database")])
         dbItems = {"Hostname":self.project.db.hostname,
-                   "Username":self.project.db.username,
-                   "Password":self.project.db.password}
+                   "Username":self.project.db.username}
+        #"Password":self.project.db.password}
 
         for i,j in dbItems.items():
             child = QTreeWidgetItem(dbParent, [QString(i), QString(j)])
@@ -364,6 +408,13 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.expandSort(controlParent, 0)
         self.expandSort(dbParent, 0)
         self.expandSort(self.tableParent, 0)
+
+
+    def userProvText(self, text):
+        if text:
+            return "Yes"
+        else:
+            return "No, default data will be used"
 
 
 

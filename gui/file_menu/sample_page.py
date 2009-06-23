@@ -14,8 +14,8 @@ class SampleDataPage(QWizardPage):
         self.setTitle("Step 3: Population Sample")
 
         self.sampleGroupBox = QGroupBox("""a. Will you provide sample data?""")
-        sampleWarning = QLabel("""<font color = blue>Note: If no is chosen, US Census Public Use """
-                               """Microdata Sample for year 2000 will be used. </font>""")
+        sampleWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, US Census Public Use """
+                               """Microdata Sample (PUMS) for year 2000 will be used. </font>""")
         self.sampleUserProvRadio = QRadioButton("Yes")
         self.sampleAutoRadio = QRadioButton("No")
         self.sampleAutoRadio.setChecked(True)
@@ -24,9 +24,9 @@ class SampleDataPage(QWizardPage):
         sampleHLayout.addWidget(self.sampleAutoRadio)
         self.sampleGroupBox.setLayout(sampleHLayout)
 
-        sampleHHLocationLabel = QLabel("Select the Household Sample file")
-        sampleGQLocationLabel = QLabel("Select the Groupquarter Sample file")
-        samplePersonLocationLabel = QLabel("Select the Population Sample file")
+        sampleHHLocationLabel = QLabel("Select the household sample file")
+        sampleGQLocationLabel = QLabel("Select the groupquarter sample file")
+        samplePersonLocationLabel = QLabel("Select the person sample file")
 
         self.sampleHHLocationComboBox = ComboBoxFile()
         self.sampleHHLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
@@ -40,8 +40,8 @@ class SampleDataPage(QWizardPage):
         self.samplePersonLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
         samplePersonLocationLabel.setBuddy(self.samplePersonLocationComboBox)
 
-        sampleUserProvWarning = QLabel("""<font color = blue> Note: Groupquarter data is optional but if the person control"""
-                                       """ totals include residents of groupquarters then provide groupquarter information as well"""
+        sampleUserProvWarning = QLabel("""<font color = blue> Note: Groupquarter data is optional; but if the person control"""
+                                       """ totals include residents of groupquarters, then provide groupquarter information as well"""
                                        """ to generate a representative synthetic population. </font>""")
         sampleUserProvWarning.setWordWrap(True)
 

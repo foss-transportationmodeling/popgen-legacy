@@ -12,7 +12,8 @@ class ResolutionPage(QWizardPage):
         self.setTitle("Step 2: Geographic Resolution")
 
         self.resolutionComboBox = QComboBox()
-        self.resolutionComboBox.addItems([QString("County"), QString("Tract"), QString("Blockgroup"), QString("TAZ")])
+        self.resolutionComboBox.addItems([QString("County"), QString("Census Tract"), 
+                                          QString("Census Blockgroup"), QString("Traffic Analysis Zone (TAZ)")])
         self.resolutionComboBox.setFixedSize(QSize(250,20))
 
         resolutionVLayout = QVBoxLayout()
@@ -22,13 +23,13 @@ class ResolutionPage(QWizardPage):
                                         """ synthesize the population""")
         resolutionGroupBox.setLayout(resolutionVLayout)
 
-        resolutionWarning = QLabel("""<font color = blue> Note: If TAZ is chosen, all information including geographic correspondence, sample, """
-                                   """and control data  must be provided by the user.</font>""")
-        self.geocorrGroupBox = QGroupBox("""b. Will you provide Geographic Correspondence between the Geography and PUMA?""")
+        resolutionWarning = QLabel("""<font color = blue> Note: If <b>TAZ</b> is chosen, all information including geographic correspondence, sample data, """
+                                   """and marginal totals  must be provided by the user.</font>""")
+        self.geocorrGroupBox = QGroupBox("""b. Will you provide Geographic Correspondence between the chosen geography and PUMA boundaries?""")
         self.geocorrUserProvRadio = QRadioButton("Yes")
         self.geocorrAutoRadio = QRadioButton("No")
         self.geocorrAutoRadio.setChecked(True)
-        geocorrWarning = QLabel("<font color = blue> Note: If no is chosen, MABLE/Geocorr2K: Geographic Correspondence Engine will be used.</font>")
+        geocorrWarning = QLabel("<font color = blue> Note: If <b>No</b> is chosen, MABLE/Geocorr2K: Geographic Correspondence Engine will be used.</font>")
         geocorrHLayout = QHBoxLayout()
         geocorrHLayout.addWidget(self.geocorrUserProvRadio)
         geocorrHLayout.addWidget(self.geocorrAutoRadio)
@@ -61,7 +62,7 @@ class ResolutionPage(QWizardPage):
         self.connect(self.resolutionComboBox, SIGNAL("activated(int)"), self.resolutionAction)
 
     def resolutionAction(self):
-        if self.resolutionComboBox.currentText() == 'TAZ':
+        if self.resolutionComboBox.currentText() == 'Traffic Analysis Zone (TAZ)':
             self.geocorrUserProvRadio.setChecked(True)
             self.geocorrUserProvRadio.emit(SIGNAL("clicked()"))
             self.geocorrAutoRadio.setEnabled(False)

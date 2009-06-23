@@ -15,7 +15,7 @@ class ControlDataPage(QWizardPage):
 
         self.controlGroupBox = QGroupBox("""a. Will you provide the marginal totals for """
                                          """population characteristics of interest?""")
-        controlWarning = QLabel("""<font color = blue>Note: If no is chosen, US Census Summary Files """
+        controlWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, US Census Summary Files (SF) """
                                """for year 2000 will be used. </font>""")
         self.controlUserProvRadio = QRadioButton("Yes")
         self.controlAutoRadio = QRadioButton("No")
@@ -25,9 +25,9 @@ class ControlDataPage(QWizardPage):
         controlHLayout.addWidget(self.controlAutoRadio)
         self.controlGroupBox.setLayout(controlHLayout)
 
-        controlHHLocationLabel = QLabel("Select the Household Marginal Total file")
-        controlGQLocationLabel = QLabel("Select the Groupquarter Marginal Total file")
-        controlPersonLocationLabel = QLabel("Select the Population Marginal Total file")
+        controlHHLocationLabel = QLabel("Select the household marginal total file")
+        controlGQLocationLabel = QLabel("Select the groupquarter marginal total file")
+        controlPersonLocationLabel = QLabel("Select the person marginal total file")
 
         self.controlHHLocationComboBox = ComboBoxFile()
         self.controlHHLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
@@ -41,8 +41,8 @@ class ControlDataPage(QWizardPage):
         self.controlPersonLocationComboBox.addItems([QString(""), QString("Browse to select file...")])
         controlPersonLocationLabel.setBuddy(self.controlPersonLocationComboBox)
 
-        controlUserProvWarning = QLabel("""<font color = blue> Note: Groupquarter data is optional but if the person marginal"""
-                                       """ totals include residents of groupquarters then provide groupquarter information as well"""
+        controlUserProvWarning = QLabel("""<font color = blue> Note: Groupquarter data is optional; but if the person marginal"""
+                                       """ totals include residents of groupquarters, then provide groupquarter information as well"""
                                        """ to generate a representative synthetic population. </font>""")
         controlUserProvWarning.setWordWrap(True)
 

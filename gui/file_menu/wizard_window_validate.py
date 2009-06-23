@@ -74,19 +74,32 @@ class Wizard(QWizard):
 
     def reject(self):
         reply = QMessageBox.warning(None, "Project Setup Wizard",
-                                    QString("Do you wish to continue?"),
+                                    QString("Would you like to continue?"),
                                     QMessageBox.Yes| QMessageBox.No)
         if reply == QMessageBox.Yes:
             QWizard.reject(self)
 
 
     def update(self, id):
+        
+
+        if id > 1:
+            resolutionText = self.page2.resolutionComboBox.currentText()
+            if resolutionText == "Census Tract":
+                resolution = 'Tract'
+            elif resolutionText == "Census Blockgroup":
+                resolution = 'Blockgroup'
+            elif resolutionText == 'Traffic Analysis Zone (TAZ)':
+                resolution = 'TAZ'
+            else:
+                resolution = 'County'
+            
         if id == 2:
-            self.page3.emit(SIGNAL("resolutionChanged"), self.page2.resolutionComboBox.currentText())
+            self.page3.emit(SIGNAL("resolutionChanged"), resolution)
 
 
         if id == 3:
-            self.page4.emit(SIGNAL("resolutionChanged"), self.page2.resolutionComboBox.currentText())
+            self.page4.emit(SIGNAL("resolutionChanged"), resolution)
 
         if id == 4:
             print 'emit dbc connection signal'
@@ -125,7 +138,9 @@ class Wizard(QWizard):
             self.project.description = self.page1.descTextEdit.toPlainText()
             self.project.region = self.page1.selectedCounties
             self.project.state = self.page1.selectedCounties.values()[0]
-            self.project.resolution = self.page2.resolutionComboBox.currentText()
+            
+
+            self.project.resolution = resolution
             self.project.geocorrUserProv = geocorrUserProv
             self.project.sampleUserProv = sampleUserProv
             self.project.controlUserProv = controlUserProv
