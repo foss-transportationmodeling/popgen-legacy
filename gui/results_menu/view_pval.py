@@ -16,7 +16,8 @@ class Pval(Matplot):
             self.setWindowIcon(QIcon("./images/region.png"))
             pvalWarning = QLabel("""<font color = blue>The above chart shows the distribution of the """
                                  """p-value across all geographies for which a synthetic population was generated."""
-                                 """ The p-value gives the confidence level at which the chosen synthetic population matches the """
+                                 """ The p-value gives the confidence level at which the chosen synthetic population """
+                                 """statistically matches the """
                                  """ composite person type constraints. </font>""")
             pvalWarning.setWordWrap(True)
             self.vbox.addWidget(self.canvas)
@@ -42,7 +43,7 @@ class Pval(Matplot):
         
             #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
             self.axes.hist(self.err, normed=False, align='mid')
-            self.axes.set_xlabel("P Values")
+            self.axes.set_xlabel("p-values")
             self.axes.set_ylabel("Frequency")
             self.axes.set_xbound(None,1)
             self.canvas.draw()      

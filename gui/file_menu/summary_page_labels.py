@@ -206,7 +206,7 @@ class SummaryPage(QWizardPage):
                                          QString("""Cannot create a project folder when the folder already exists. \n\nDo you wish"""
                                                  """ to keep the previous data?"""
                                                  """\n    If Yes then re-specify the project location. """
-                                                 """\n    If you wish to delete the previous data select No."""),
+                                                 """\n    If you wish to delete the previous data, select No."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(self, "Project Setup Wizard",
@@ -233,7 +233,7 @@ class SummaryPage(QWizardPage):
                                          QString("""Cannot create a MySQL database when the database already exists. \n\n"""
                                                  """Do you wish to keep the old MySQL database?"""
                                                  """\n    If Yes then re-specify the project name."""
-                                                 """\n    If you wish to delete select No."""),
+                                                 """\n    If you wish to delete the previous MySQL data, select No."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(self, "Project Setup Wizard",

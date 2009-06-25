@@ -51,7 +51,7 @@ class MainWindow(QMainWindow):
         self.projectName = None
 
         
-        self.setWindowTitle("PopGen Version-1.00")
+        self.setWindowTitle("PopGen Version-1.0")
         self.setWindowIcon(QIcon("./images/popsyn.png"))
         self.workingWindow = QLabel()
         self.showMaximized()
@@ -254,9 +254,9 @@ class MainWindow(QMainWindow):
     def windowDirty(self, value):
         print 'entering dirty %s' %value
         if value:
-            self.setWindowTitle("PopGen: Version-0.50 %s*" %self.project.name)
+            self.setWindowTitle("PopGen: Version-1.0 %s*" %self.project.name)
         else:
-            self.setWindowTitle("PopGen: Version-0.50 %s" %self.project.name)
+            self.setWindowTitle("PopGen: Version-1.0 %s" %self.project.name)
             
 
 
@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
         if self.wizard.exec_():
             #print "complete"
             self.project = self.wizard.project
-            self.setWindowTitle("PopGen: Version-0.50 (%s)" %(self.project.filename))
+            self.setWindowTitle("PopGen: Version-1.0 (%s)" %(self.project.filename))
             self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
@@ -327,7 +327,7 @@ class MainWindow(QMainWindow):
                         SaveProject(self.project)
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
-                        self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
+                        self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         self.enableFunctions(True)
@@ -336,7 +336,7 @@ class MainWindow(QMainWindow):
             else:
                 with open(project.file, 'rb') as f:
                     self.project = pickle.load(f)
-                    self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
+                    self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     self.enableFunctions(True)
@@ -362,7 +362,7 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes:
                 self.project.filename = filename
                 self.project.save()
-                self.setWindowTitle("PopGen: Version-0.50 (%s)" %self.project.filename)
+                self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
 
     
     def projectClose(self):
@@ -542,7 +542,7 @@ def main():
     pixmap = QPixmap("./images/splashscreen.png")
     splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
     splash.show()
-    splash.showMessage("Starting PopGen 1.0...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
+    splash.showMessage("Starting PopGen 1.0 ...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
     app.processEvents()
     QgsApplication.setPrefixPath(qgis_prefix, True)
     QgsApplication.initQgis()

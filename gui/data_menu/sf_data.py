@@ -124,9 +124,9 @@ class AutoImportSFData():
             self.retrieveAndStoreSF(self.state)
         except WindowsError, e:
             reply = QMessageBox.question(None, "Import",
-                                         QString("""%s.\n\n"""
+                                         QString("""Cannot download data when the data already exists.\n\n"""
                                                  """Would you like to keep the existing files?"""
-                                                 """\nPress No if you would like to download the files again."""%e),
+                                                 """\nHit No if you would like to download the files again."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(None, "Import",

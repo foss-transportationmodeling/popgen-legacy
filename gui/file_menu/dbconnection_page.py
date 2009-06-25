@@ -52,7 +52,7 @@ class DBConnectionPage(QWizardPage):
         passwordHLayout.addWidget(self.passwordLineEdit)
         passwordHLayout.addItem(QSpacerItem(400,10))
 
-        connectionWarning = QLabel("""<font color = blue>Note: A MySQL connection needs to established before we proceed. """)
+        connectionWarning = QLabel("""<font color = blue>Note: A MySQL connection needs to be established before proceeding. """)
 
 
         vLayout = QVBoxLayout()

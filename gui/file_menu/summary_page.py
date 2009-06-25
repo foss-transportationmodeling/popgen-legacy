@@ -28,12 +28,12 @@ class SummaryPage(QWizardPage):
         vlayoutCol1.addWidget(Separator())
         vlayoutCol1.addWidget(QLabel("Location data provided by the user"))
         vlayoutCol1.addWidget(QLabel("Location of the household sample file"))
-        vlayoutCol1.addWidget(QLabel("Location of the group quarter sample file"))
+        vlayoutCol1.addWidget(QLabel("Location of the groupquarter sample file"))
         vlayoutCol1.addWidget(QLabel("Location of the person sample file"))
         vlayoutCol1.addWidget(Separator())
         vlayoutCol1.addWidget(QLabel("Marginals data provided by the user"))
         vlayoutCol1.addWidget(QLabel("Location of the household marginals data file"))
-        vlayoutCol1.addWidget(QLabel("Location of the group quarter marginals data file"))
+        vlayoutCol1.addWidget(QLabel("Location of the groupquarter marginals data file"))
         vlayoutCol1.addWidget(QLabel("Location of the person marginals data file"))
 
 

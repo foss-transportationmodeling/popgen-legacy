@@ -354,7 +354,7 @@ class RecodeDialog(QDialog):
         self.oldNewButton.setEnabled(False)
 
         recodeWarning = QLabel("""<font color = blue>Note: Select the variable whose categories will be """
-                               """transformed by clicking on the variable. """
+                               """transformed by double-clicking on the variable. """
                                """ Enter a new variable name for the variable that will contain the transformed categories """
                                """in the <b>New variable name after recoding:</b> line edit box. Then click on """
                                """<b>Old and New Values </b> to define the transformations.</font>""")
