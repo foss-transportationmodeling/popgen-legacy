@@ -159,7 +159,7 @@ class SetCorrTabWidget(QTabWidget):
 
         if self.isGqAnalyzed():
             self.gqTab = TabWidgetItems(self.project, 'Groupquarter', 'gq_marginals', 'gq_sample')
-            self.addTab(self.gqTab, 'Groupqarters Variables')
+            self.addTab(self.gqTab, 'Groupquarters Variables')
 
         self.setLayout(layout)
 
