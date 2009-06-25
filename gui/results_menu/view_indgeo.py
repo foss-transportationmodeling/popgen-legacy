@@ -92,7 +92,9 @@ class Indgeo(Matplot):
                 QMessageBox.warning(self, "Results", "Individual Geography Statistics not available for TAZ resolution.", QMessageBox.Ok)
             elif check == 2:
                 QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
-                
+            elif check == 3:
+                QMessageBox.warning(self, "Results", "Please run synthesizer before viewing results.", QMessageBox.Ok)
+
     def isValid(self):
         retval = -1
         if not self.isResolutionValid():
@@ -100,6 +102,9 @@ class Indgeo(Matplot):
             return retval
         elif not self.isLayerValid():
             retval = 2
+            return retval
+        elif not self.isPopSyn():
+            retval = 3
             return retval
         else:
             return retval
@@ -110,6 +115,10 @@ class Indgeo(Matplot):
     def isLayerValid(self):
         res = ResultsGen(self.project)
         return res.create_hhmap()
+
+    def isPopSyn(self):
+        self.getGeographies()
+        return len(self.geolist)>0
 
     def accept(self):
         self.projectDBC.dbc.close()
@@ -259,7 +268,6 @@ class Indgeo(Matplot):
                 print "Exception: %s; Invalid Selection." %e
                 
     def makeComboBox(self):
-        self.getGeographies()
         self.geolist.sort()
         self.geocombobox = LabComboBox("Geography:",self.geolist)
         self.current = self.geocombobox.getCurrentText()
