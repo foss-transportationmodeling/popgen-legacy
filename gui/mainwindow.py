@@ -30,6 +30,8 @@ from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
 from results_menu.coreplot import *
 
+from help.helpform import *
+
 if sys.platform.startswith('win'):
     qgis_prefix = "C:/qgis"
 else:
@@ -638,13 +640,26 @@ class MainWindow(QMainWindow):
 
     
     def showDocumentation(self):
-        QMessageBox.information(self, "Help", "Documentation", QMessageBox.Ok)
+        form = HelpForm("index.html", self)
+        form.show()
+        #QMessageBox.information(self, "Help", "Documentation", QMessageBox.Ok)
 
     def showHelp(self):
         QMessageBox.information(self, "Help", "Help", QMessageBox.Ok)
 
     def showAbout(self):
-        QMessageBox.information(self, "Help", "About", QMessageBox.Ok)
+        aboutdialog = QDialog()
+        aboutlabel = QLabel()
+        pixmap = QPixmap()
+        pixmap.load("./images/splashscreen.png")
+        aboutlabel.setPixmap(pixmap)
+        layout = QHBoxLayout()
+        layout.addWidget(aboutlabel)
+        aboutdialog.setLayout(layout)
+        aboutdialog.setWindowTitle("About")
+        aboutdialog.exec_()
+        
+        #QMessageBox.information(self, "Help", "About", QMessageBox.Ok)
 
     def createAction(self, text, slot=None, shortcut=None, icon=None, 
                      tip=None, checkable=False, disabled = None, signal="triggered()"):
