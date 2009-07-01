@@ -329,7 +329,7 @@ class RecodeDialog(QDialog):
         self.tablename = tablename
         self.variableDict = {}
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         
         self.setWindowTitle(title)
@@ -699,7 +699,7 @@ class CreateVariable(QDialog):
         self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.variableDict = {}
         self.variables = variableTypeDict.keys()
@@ -850,7 +850,7 @@ class DeleteRows(QDialog):
         self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.variableDict = {}
         self.variables = variableTypeDict.keys()
