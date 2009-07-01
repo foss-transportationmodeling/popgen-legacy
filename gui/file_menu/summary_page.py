@@ -2,7 +2,6 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 
-from database.createDBConnection import createDBC
 from misc.widgets import *
 
 import os, shutil
@@ -112,7 +111,21 @@ class SummaryPage(QWizardPage):
                 dummy = dummy + i + ", "+ self.project.region[i]+ "; "
         self.projectRegionLineEdit.setText("%s"%dummy[:-2])
         #self.projectResolutionLineEdit.setText(self.project.resolution)
-        self.projectResolutionComboBox.findAndSet(self.project.resolution)
+
+        resolutionText = self.project.resolution
+
+        if resolutionText == "Tract":
+            resolution = 'Census Tract'
+        elif resolutionText == "Blockgroup":
+            resolution = 'Census Blockgroup'
+        elif resolutionText == 'TAZ':
+            resolution = 'Traffic Analysis Zone (TAZ)'
+        else:
+            resolution = 'County'
+
+
+
+        self.projectResolutionComboBox.findAndSet(resolution)
 
         geocorrUserProv = self.convertBoolToString(self.project.geocorrUserProv.userProv)
         self.geocorrUserProvLineEdit.setText("%s" %geocorrUserProv)
@@ -169,81 +182,4 @@ class SummaryPage(QWizardPage):
 
         self.project.resolution = resolution
 
-
-    def isComplete(self):
-        if self.projectLocationDummy and self.projectDatabaseDummy:
-            return True
-        else:
-            return False
-
-    def checkFileLocation(self, filePath):
-        try:
-            open(filePath, 'r')
-        except IOError, e:
-            raise IOError, e
-
-    def checkProjectLocation(self, projectLocation, projectName):
-        try:
-            os.makedirs("%s/%s/results" %(projectLocation, projectName))
-            self.projectLocationDummy = True
-        except WindowsError, e:
-            reply = QMessageBox.question(None, "Project Setup Wizard",
-                                         QString("""%s. \n\nDo you wish"""
-                                                 """ to keep the previous data?"""
-                                                 """\n    If Yes then re-scpecify the project location. """
-                                                 """\n    If you wish to delete the previous data select No."""%e),
-                                         QMessageBox.Yes|QMessageBox.No)
-            if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "Project Setup Wizard",
-                                               QString("""Are you sure you want to continue?"""),
-                                               QMessageBox.Yes|QMessageBox.No)
-                if confirm == QMessageBox.Yes:
-                    shutil.rmtree("%s/%s" %(projectLocation, projectName))
-                    os.makedirs("%s/%s/results" %(projectLocation, projectName))
-                    self.projectLocationDummy = True
-                else:
-                    self.projectLocationDummy = False
-            else:
-                self.projectLocationDummy = False
-        self.emit(SIGNAL("completeChanged()"))
-
-    def checkProjectDatabase(self, db, projectName):
-        projectDBC = createDBC(db)
-        projectDBC.dbc.open()
-
-        query = QSqlQuery(projectDBC.dbc)
-        if not query.exec_("""Create Database %s""" %(projectName)):
-            reply = QMessageBox.question(None, "Project Setup Wizard",
-                                         QString("""%s. \n\n"""
-                                                 """Do you wish to keep the old MySQL database?"""
-                                                 """\n    If Yes then re-specify the project name."""
-                                                 """\n    If you wish to delete select No."""%query.lastError().text()),
-                                         QMessageBox.Yes|QMessageBox.No)
-            if reply == QMessageBox.No:
-                confirm = QMessageBox.question(None, "Project Setup Wizard",
-                                               QString("""Are you sure you want to continue?"""),
-                                               QMessageBox.Yes|QMessageBox.No)
-                if confirm == QMessageBox.Yes:
-                    if not query.exec_("""Drop Database %s""" %(projectName)):
-                        print "FileError: %s" %(query.lastError().text())
-                        projectDBC.dbc.close()
-                        self.projectDatabaseDummy = False
-                    if not query.exec_("""Create Database %s""" %(projectName)):
-                        print "FileError: %s" %(query.lastError().text())
-                        projectDBC.dbc.close()
-                        self.projectDatabaseDummy = False
-                    projectDBC.dbc.close()
-                    self.projectDatabaseDummy = True
-                else:
-                    projectDBC.dbc.close()
-                    self.projectDatabaseDummy = False
-            else:
-                projectDBC.dbc.close()
-                self.projectDatabaseDummy =  False
-        else:
-            projectDBC.dbc.close()
-            self.projectDatabaseDummy = True
-
-
-        self.emit(SIGNAL("completeChanged()"))
 

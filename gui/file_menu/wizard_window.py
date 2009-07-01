@@ -647,7 +647,7 @@ class Wizard(QWizard):
         self.currentPage().emit(SIGNAL("completeChanged()"))
 
     def checkProjectDatabase(self):
-        projectDBC = createDBC(self.project.db)
+        projectDBC = createDBC(self.project.db, self.project.name)
 
         if not projectDBC.dbc.open():
             QMessageBox.warning(None, "PopGen: Processing Data",

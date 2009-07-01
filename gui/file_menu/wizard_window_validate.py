@@ -133,6 +133,7 @@ class Wizard(QWizard):
                                    "QMYSQL")
 
             self.project.name = self.page1.nameLineEdit.text()
+            self.project.filename = self.page1.nameLineEdit.text()
             self.project.filename = self.project.name
             self.project.location = self.page1.locationComboBox.currentText()
             self.project.description = self.page1.descTextEdit.toPlainText()

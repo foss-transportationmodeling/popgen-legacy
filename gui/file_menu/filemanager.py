@@ -68,7 +68,7 @@ class QTreeWidgetCMenu(QTreeWidget):
     def deleteRows(self):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()        
 
         deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
@@ -99,7 +99,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         copyNameDialog = NameDialog("Copy Table - %s" %tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
-            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC = createDBC(self.project.db, self.project.name)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -114,7 +114,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         renameNameDialog = NameDialog("Rename Table - %s" %tablename)
         if renameNameDialog.exec_():
             newTablename = renameNameDialog.nameLineEdit.text()
-            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC = createDBC(self.project.db, self.project.name)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -129,7 +129,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?", 
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
-            projectDBC = createDBC(self.project.db, self.project.filename)
+            projectDBC = createDBC(self.project.db, self.project.name)
             projectDBC.dbc.open()
         
             query = QSqlQuery(projectDBC.dbc)
@@ -143,7 +143,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.item = item
         
     def createVariable(self):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
@@ -177,7 +177,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         disp.exec_()
 
     def modifyCategories(self):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
@@ -189,7 +189,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def deleteColumns(self):
 
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
         projectDBC.dbc.open()
@@ -210,7 +210,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         
         
     def defaultTransformations(self):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)
@@ -256,7 +256,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def populateVariableDictionary(self, tablename):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
 
         self.variableTypeDictionary = {}
@@ -420,7 +420,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def tableChildren(self):
                
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         
         projectDBC.dbc.open()
         

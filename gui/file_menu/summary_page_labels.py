@@ -163,26 +163,6 @@ class SummaryPage(QWizardPage):
         return ("<font color = brown>" + '%s' %text + "</font>")
 
 
-    def enableEditableWidgets(self):
-        self.projectDescLineEdit.setEnabled(True)
-        self.projectResolutionComboBox.setEnabled(True)
-        #self.geocorrUserProvLineEdit.setEnabled(True)
-        #self.geocorrUserProvLocationLineEdit.setEnabled(True)
-        #self.sampleUserProvLineEdit.setEnabled(True)
-        #self.sampleHHLocationLineEdit.setEnabled(True)
-        #self.sampleGQLocationLineEdit.setEnabled(True)
-        #self.samplePersonLocationLineEdit.setEnabled(True)
-        #self.controlUserProvLineEdit.setEnabled(True)
-        #self.controlHHLocationLineEdit.setEnabled(True)
-        #self.controlGQLocationLineEdit.setEnabled(True)
-        #self.controlPersonLocationLineEdit.setEnabled(True)
-        pass
-
-
-    def updateProject(self):
-        self.project.description = self.projectDescLineEdit.text()
-        self.project.resolution = self.projectResolutionComboBox.currentText()
-
 
     def isComplete(self):
         if self.projectLocationDummy and self.projectDatabaseDummy:
@@ -223,7 +203,7 @@ class SummaryPage(QWizardPage):
         self.emit(SIGNAL("completeChanged()"))
 
     def checkProjectDatabase(self, db, projectName):
-        projectDBC = createDBC(db)
+        projectDBC = createDBC(db, projectName)
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)

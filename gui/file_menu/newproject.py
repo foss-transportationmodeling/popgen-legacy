@@ -120,7 +120,8 @@ class Parameters(object):
                  ipuTol=IPU_TOLERANCE, 
                  ipuIter=IPU_MAX_ITERATIONS, 
                  synPopDraws=SYNTHETIC_POP_MAX_DRAWS, 
-                 synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE):
+                 synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE,
+                 roundingProcedure=ROUNDING_PROCEDURE):
 
         self.ipfTol = ipfTol
         self.ipfIter = ipfIter
@@ -128,6 +129,7 @@ class Parameters(object):
         self.ipuIter = ipuIter
         self.synPopDraws = synPopDraws
         self.synPopPTol = synPopPTol
+        self.roundingProcedure = roundingProcedure
 
 
 
