@@ -8,7 +8,7 @@ from import_data import ImportUserProvData, FileProperties
 class UserImportGeocorrData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
@@ -57,7 +57,7 @@ class UserImportGeocorrData():
 class AutoImportGeocorrData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 

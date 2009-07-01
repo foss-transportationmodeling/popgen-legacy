@@ -16,7 +16,7 @@ from global_vars import *
 class UserImportControlData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
@@ -104,7 +104,7 @@ class AutoImportSFData():
         
         self.countiesSelected = self.project.region.keys()
 
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
         self.query = QSqlQuery(self.projectDBC.dbc)

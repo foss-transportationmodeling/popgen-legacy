@@ -18,7 +18,7 @@ from global_vars import *
 class UserImportSampleData():
     def __init__(self, project):
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
@@ -122,7 +122,7 @@ class AutoImportPUMSData():
         self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS'
         self.loc = os.path.realpath(self.loc)
 
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
         self.query = QSqlQuery(self.projectDBC.dbc)

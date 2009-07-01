@@ -13,7 +13,7 @@ class DisplayTable(QDialog):
         super(DisplayTable, self).__init__(parent)
 
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
         self.tablename = tablename
@@ -153,3 +153,86 @@ class DisplayTable(QDialog):
     def reject(self):
         self.projectDBC.dbc.close()
         QDialog.reject(self)
+
+
+class DisplayTableStructure(QDialog): 
+    def __init__(self, tabledata, headers, title, parent=None): 
+        super(DisplayTableStructure, self).__init__(parent)
+
+        self.setWindowTitle("%s" %title)
+        self.setWindowIcon(QIcon("./images/structure.png"))
+
+        # create table
+        self.tabledata = tabledata
+        self.headers = headers
+        
+
+        table = self.createTable() 
+
+        buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
+
+        # layout
+        layout = QVBoxLayout()
+        layout.addWidget(table) 
+        layout.addWidget(buttonBox)
+        self.setLayout(layout) 
+
+        self.connect(buttonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+
+
+    def accept(self):
+        QDialog.accept(self)
+
+
+    def createTable(self):
+        # create the view
+        tableview = QTableView()
+
+        # set the table model
+        tablemodel = MyTableModel(self.tabledata, self.headers, self) 
+        tableview.setModel(tablemodel)
+
+        # set the minimum size
+        tableview.setMinimumSize(800, 300)
+
+        # hide vertical header
+        vertheader = tableview.verticalHeader()
+        vertheader.setVisible(False)
+
+        # set column width to fit contents
+        tableview.resizeColumnsToContents()
+
+        # set row height
+        nrows = len(self.tabledata)
+        for row in xrange(nrows):
+            tableview.setRowHeight(row, 18)
+
+        return tableview
+ 
+class MyTableModel(QAbstractTableModel): 
+    def __init__(self, datain, headerdata, parent=None, *args): 
+        """ datain: a list of lists
+            headerdata: a list of strings
+        """
+        QAbstractTableModel.__init__(self, parent, *args) 
+        self.arraydata = datain
+        self.headerdata = headerdata
+ 
+    def rowCount(self, parent): 
+        return len(self.arraydata) 
+ 
+    def columnCount(self, parent): 
+        return len(self.arraydata[0]) 
+ 
+    def data(self, index, role): 
+        if not index.isValid(): 
+            return QVariant() 
+        elif role != Qt.DisplayRole: 
+            return QVariant() 
+        return QVariant(self.arraydata[index.row()][index.column()]) 
+
+    def headerData(self, col, orientation, role):
+        if orientation == Qt.Horizontal and role == Qt.DisplayRole:
+            return QVariant(self.headerdata[col])
+        return QVariant()
+
