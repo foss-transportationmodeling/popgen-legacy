@@ -205,7 +205,7 @@ def configure_and_run(project, geo, varCorrDict):
     print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
     for i in range(len(person_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], sum(person_marginals[i]))
-    print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-tii)
+    print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-ti)
 
 
 
