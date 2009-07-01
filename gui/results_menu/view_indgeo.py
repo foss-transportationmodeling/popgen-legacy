@@ -305,13 +305,13 @@ class Indgeo(Matplot):
                 geo.puma5 = 0
 
             elif self.project.resolution == 'Tract':
-                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
                                    %(geo.state, geo.county, geo.tract)):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
             else:
-                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
                                    %(geo.state, geo.county, geo.tract, geo.bg)):
                     raise FileError, query.lastError().text()
                 while query.next():
