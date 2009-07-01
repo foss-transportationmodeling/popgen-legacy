@@ -20,7 +20,7 @@ class SetCorrDialog(QDialog):
         self.setWindowIcon(QIcon("./images/varcorr.png"))
         import copy
         self.project = copy.deepcopy(project)
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
         self.tabWidget = SetCorrTabWidget(self.project)
@@ -177,7 +177,7 @@ class SetCorrTabWidget(QTabWidget):
 
 
     def tables(self):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()        
 
         tables = []
@@ -364,7 +364,7 @@ class TabWidgetItems(QWidget):
         
 
     def variablesInTable(self, tablename):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
 
         variables = []
@@ -423,7 +423,7 @@ class TabWidgetItems(QWidget):
 
 
     def categories(self, varname):
-        projectDBC = createDBC(self.project.db, self.project.filename)
+        projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
         
         cats = []

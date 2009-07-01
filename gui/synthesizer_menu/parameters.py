@@ -58,21 +58,42 @@ class ParametersDialog(QDialog):
         self.synPopPValTolEdit.setText('%s' %self.project.parameters.synPopPTol)
         #synPopPValTolEdit.setText('%s' %SYNTHETIC_POP_PVALUE_TOLERANCE)
 
+        roundingGroupBox = QGroupBox("d. Rounding Procedure")
+        self.arithmeticRadio = QRadioButton("Arithmetic Rounding")
+        self.bucketRadio = QRadioButton("Bucket Rounding")
+        self.stochasticRadio = QRadioButton("Stochastic Rounding")
+
+        if self.project.parameters.roundingProcedure == 'arithmetic':
+            self.arithmeticRadio.setChecked(True)
+        if self.project.parameters.roundingProcedure == 'bucket':
+            self.bucketRadio.setChecked(True)
+        if self.project.parameters.roundingProcedure == 'stochastic':
+            self.stochasticRadio.setChecked(True)
+
+
+        roundingLayout = QVBoxLayout()
+        roundingLayout.addWidget(self.arithmeticRadio)
+        roundingLayout.addWidget(self.bucketRadio)
+        roundingLayout.addWidget(self.stochasticRadio)
+
+        roundingGroupBox.setLayout(roundingLayout)        
+
+
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
-        ipfLabel = QLabel("IPF related parameters:")
+        ipfLabel = QLabel("a. IPF related parameters:")
         vLayout11 = self.vLayout(ipfTolLabel, ipfMaxIterLabel)
         vLayout12 = self.vLayout(self.ipfTolEdit, self.ipfMaxIterEdit)
         
         hLayout1 = self.hLayout(vLayout11, vLayout12)
 
-        ipuLabel = QLabel("IPU related parameters:")
+        ipuLabel = QLabel("b. IPU related parameters:")
         vLayout21 = self.vLayout(ipuTolLabel, ipuMaxIterLabel)
         vLayout22 = self.vLayout(self.ipuTolEdit, self.ipuMaxIterEdit)
         
         hLayout2 = self.hLayout(vLayout21, vLayout22)
 
-        synLabel = QLabel("Synthetic population draw-related parameters:")
+        synLabel = QLabel("c. Synthetic population draw-related parameters:")
         vLayout31 = self.vLayout(synPopDrawsLabel, synPopPValTolLabel)
         vLayout32 = self.vLayout(self.synPopDrawsEdit, self.synPopPValTolEdit)
         
@@ -88,6 +109,8 @@ class ParametersDialog(QDialog):
         vLayout.addWidget(Separator())
         vLayout.addWidget(synLabel)
         vLayout.addLayout(hLayout3)
+        vLayout.addWidget(Separator())
+        vLayout.addWidget(roundingGroupBox)
 
         vLayout.addWidget(dialogButtonBox)
 
@@ -109,6 +132,15 @@ class ParametersDialog(QDialog):
         self.project.parameters.ipuIter = self.ipuMaxIterEdit.value()
         self.project.parameters.synPopDraws = self.synPopDrawsEdit.value()
         self.project.parameters.synPopPTol = QVariant(self.synPopPValTolEdit.text()).toDouble()[0]
+
+        if self.arithmeticRadio.isChecked():
+            self.project.parameters.roundingProcedure = 'arithmetic'
+        if self.bucketRadio.isChecked():
+            self.project.parameters.roundingProcedure = 'bucket'
+        if self.stochasticRadio.isChecked():
+            self.project.parameters.roundingProcedure = 'stochastic'
+
+        print 'rounding procedure', self.project.parameters.roundingProcedure
 
         QDialog.accept(self)
 

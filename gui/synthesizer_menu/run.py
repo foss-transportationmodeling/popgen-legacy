@@ -29,7 +29,7 @@ class RunDialog(QDialog):
 
         self.project = project
 
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
         self.runGeoIds = []
@@ -149,7 +149,24 @@ class RunDialog(QDialog):
 
             reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
                                           """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
+            
+            for i in self.runGeoIds:
+                ti = time.time()
+                if not query.exec_("""delete from housing_synthetic_data where state = %s and county = %s """
+                                   """ and tract = %s and bg = %s  """ %(i[0], i[1], i[3], i[4])):
+                    raise FileError, query.lastError().text()
+
+                if not query.exec_("""delete from person_synthetic_data where state = %s and county = %s """
+                                   """ and tract = %s and bg = %s  """ %(i[0], i[1], i[3], i[4])):
+                    raise FileError, query.lastError().text()
+                a = self.project.synGeoIds.pop(i, -99)
+
+
             if reply == QMessageBox.Yes:
+                print '------------------------------------------------------------------'
+                print 'Generating synthetic population in Parallel...' 
+
+
                 dbList = ['%s' %self.project.db.hostname, '%s' %self.project.db.username, '%s' %self.project.db.password, '%s' %self.project.name]
                 # breaking down the whole list into lists of 100 geographies each
                 
@@ -174,7 +191,14 @@ class RunDialog(QDialog):
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo[0], geo[1], geo[3], geo[4]))
+
+                print 'Completed generating synthetic population' 
+                print '------------------------------------------------------------------'
+
             elif reply == QMessageBox.No:
+                print '------------------------------------------------------------------'
+                print 'Generating synthetic population in Series...' 
+
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
                     
@@ -194,6 +218,9 @@ class RunDialog(QDialog):
                 self.runGeoIds = []
                 self.selGeographiesList.clear()
 
+                print 'Completed generating synthetic population' 
+                print '------------------------------------------------------------------'
+
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
         
@@ -202,13 +229,13 @@ class RunDialog(QDialog):
                 geo.puma5 = 0
 
             elif self.project.resolution == 'Tract':
-                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
                                    %(geo.state, geo.county, geo.tract)):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
             else:
-                if not query.exec_("""select puma5 from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
                                    %(geo.state, geo.county, geo.tract, geo.bg)):
                     raise FileError, query.lastError().text()
                 while query.next():
@@ -325,7 +352,6 @@ class RunDialog(QDialog):
     def prepareData(self):
         self.project.synGeoIds = {}
 
-        import MySQLdb
         db = MySQLdb.connect(user = '%s' %self.project.db.username, 
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
@@ -344,14 +370,9 @@ class RunDialog(QDialog):
         dbc.execute("""select * from index_matrix_%s""" %(0))
         indexMatrix = numpy.asarray(dbc.fetchall())
         
-        import time
-        ti = time.time()
-
         f = open('indexMatrix.pkl', 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
-        print 'indexmatrix stored in %.4f' %(time.time()-ti)
-        ti = time.time()
 
         pIndexMatrix = person_index_matrix(db)
         f = open('pIndexMatrix.pkl', 'wb')
