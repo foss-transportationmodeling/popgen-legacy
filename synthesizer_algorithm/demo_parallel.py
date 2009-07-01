@@ -16,18 +16,12 @@ import pp
 import pickle
 import os
 
-#def configure_and_run(fileLoc, geo, varCorrDict, dbList, index_matrix, p_index_matrix):
 def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
-    ti = time.time()
+
     f = open('indexMatrix.pkl', 'rb')
     index_matrix = cPickle.load(f)
     f.close()
-
-    print 'indexMatrix - %.4f' %(time.time()-ti)
-    ti = time.time()
-
-
 
     f = open(fileLoc, 'rb')
     project = pickle.load(f)
@@ -35,7 +29,6 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
 
     state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
-
     print '------------------------------------------------------------------'
     print 'Geography: PUMA ID- %s, Tract ID- %0.2f, BG ID- %s' \
                                                                          %(pumano, float(tract)/100, bg)
@@ -129,10 +122,10 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
     print 'Step 3: Creating the synthetic households and individuals...'
 # creating whole marginal values
     hhld_order_dummy = synthesizer_algorithm.adjusting_sample_joint_distribution.create_aggregation_string(hhld_control_variables)
-    hhld_frequencies = synthesizer_algorithm.drawing_households.create_whole_frequencies(db, 'hhld', hhld_order_dummy, pumano, tract, bg)
+    hhld_frequencies = synthesizer_algorithm.drawing_households.create_whole_frequencies(db, 'hhld', hhld_order_dummy, pumano, tract, bg, parameters)
 
     gq_order_dummy = synthesizer_algorithm.adjusting_sample_joint_distribution.create_aggregation_string(gq_control_variables)
-    gq_frequencies = synthesizer_algorithm.drawing_households.create_whole_frequencies(db, 'gq', gq_order_dummy, pumano, tract, bg)
+    gq_frequencies = synthesizer_algorithm.drawing_households.create_whole_frequencies(db, 'gq', gq_order_dummy, pumano, tract, bg, parameters)
 
     frequencies = numpy.hstack((hhld_frequencies[:,0], gq_frequencies[:,0]))
 #______________________________________________________________________
@@ -165,8 +158,8 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
 
         synth_person_stat, count_person, person_estimated_frequency = synthesizer_algorithm.drawing_households.checking_against_joint_distribution(person_objective_frequency,
-                                                                                                                                    synthetic_person_attributes, person_dimensions,
-                                                                                                                                     pumano, tract, bg)
+                                                                                                                                                   synthetic_person_attributes, person_dimensions,
+                                                                                                                                                   pumano, tract, bg)
         stat = synth_person_stat
         dof = count_person - 1
 
@@ -186,13 +179,9 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
 
-    st = time.time()
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
-    print 'Housing data stored in %.4f' %(time.time()-st)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
 
-    st = time.time()
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
-    print 'Person data stored in %.4f' %(time.time()-st)
 
 
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
@@ -229,12 +218,7 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
     start = time.time()
-    #ppservers = ()
-    #if len(sys.argv) > 1:
-    #    ncpus = int(sys.argv[1])
-    #    job_server = pp.Server(ncpus, ppservers = ppservers)
-    #else:
-    #    job_server = pp.Server(ppservers=ppservers)
+
 
     print 'Number of geographies is %s'%(len(geoIds))
     modules = ('synthesizer_algorithm.heuristic_algorithm',
@@ -263,7 +247,7 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
                                                         #indexMatrix, 
                                                         #pIndexMatrix), (), modules)) for geo in geoIds]
     for geo, job in jobs:
-        print job()
+        job()
     job_server.print_stats()
 
 
@@ -272,15 +256,14 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
                          passwd = dbList[2], db = dbList[3])
 
     import os
-    fileHousing = os.getcwd() + os.sep + 'housingdata.txt'
+    fileHousing = '%s/%s/results/housingdata.txt' %(project.location, project.name)
     fileHousing = fileHousing.replace('\\', '/')
-    filePerson = os.getcwd() + os.sep + 'persondata.txt'
+    filePerson = '%s/%s/results/persondata.txt' %(project.location, project.name)
     filePerson = filePerson.replace('\\', '/')
 
-    print 'Store data'
     synthesizer_algorithm.drawing_households.store(db, fileHousing, 'housing_synthetic_data')
     synthesizer_algorithm.drawing_households.store(db, filePerson, 'person_synthetic_data')    
-    print 'done storing data'
+
     os.remove(fileHousing)
     os.remove(filePerson)
     

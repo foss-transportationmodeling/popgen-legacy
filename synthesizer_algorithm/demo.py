@@ -13,24 +13,16 @@ import numpy
 import MySQLdb
 import time
 import cPickle
-#def configure_and_run(project, index_matrix, p_index_matrix, geo, varCorrDict):
+
 def configure_and_run(project, geo, varCorrDict):
 
-    ti = time.time()
+
     f = open('indexMatrix.pkl', 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
-    print 'indexMatrix - %.4f' %(time.time()-ti)
-    ti = time.time()
-    
-
-    #index_matrix = numpy.asarray(index_matrix)
-    #p_index_matrix = numpy.asarray(p_index_matrix)
 
     state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
-    
-
     print '------------------------------------------------------------------'
     print 'Geography: PUMA ID- %s, Tract ID- %0.2f, BG ID- %s' \
                                                                          %(pumano, float(tract)/100, bg)
@@ -121,10 +113,10 @@ def configure_and_run(project, geo, varCorrDict):
     print 'Step 3: Creating the synthetic households and individuals...'
 # creating whole marginal values
     hhld_order_dummy = adjusting_sample_joint_distribution.create_aggregation_string(hhld_control_variables)
-    hhld_frequencies = drawing_households.create_whole_frequencies(db, 'hhld', hhld_order_dummy, pumano, tract, bg)
+    hhld_frequencies = drawing_households.create_whole_frequencies(db, 'hhld', hhld_order_dummy, pumano, tract, bg, parameters)
 
     gq_order_dummy = adjusting_sample_joint_distribution.create_aggregation_string(gq_control_variables)
-    gq_frequencies = drawing_households.create_whole_frequencies(db, 'gq', gq_order_dummy, pumano, tract, bg)
+    gq_frequencies = drawing_households.create_whole_frequencies(db, 'gq', gq_order_dummy, pumano, tract, bg, parameters)
 
     frequencies = numpy.hstack((hhld_frequencies[:,0], gq_frequencies[:,0]))
 #______________________________________________________________________
@@ -154,13 +146,15 @@ def configure_and_run(project, geo, varCorrDict):
 
 # Creating synthetic hhld, and person attribute tables
 
-        synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix, housing_sample, person_sample, hhidRowDict, rowHhidDict)
+        synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix, 
+                                                                                                                       housing_sample, person_sample, hhidRowDict, 
+                                                                                                                       rowHhidDict)
 
 
 
         synth_person_stat, count_person, person_estimated_frequency = drawing_households.checking_against_joint_distribution(person_objective_frequency,
-                                                                                                                                    synthetic_person_attributes, person_dimensions,
-                                                                                                                                     pumano, tract, bg)
+                                                                                                                             synthetic_person_attributes, person_dimensions,
+                                                                                                                             pumano, tract, bg)
         stat = synth_person_stat
         dof = count_person - 1
 
@@ -179,13 +173,13 @@ def configure_and_run(project, geo, varCorrDict):
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
-    drawing_households.storing_synthetic_attributes(db, 'housing', max_p_housing_attributes, county, tract, bg)
-    drawing_households.storing_synthetic_attributes(db, 'person', max_p_person_attributes, county, tract, bg)
+    drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
+    drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
 
     import os
-    fileHousing = os.getcwd() + os.sep + 'housingdata.txt'
+    fileHousing = '%s/%s/results/housingdata.txt' %(project.location, project.name)
     fileHousing = fileHousing.replace('\\', '/')
-    filePerson = os.getcwd() + os.sep + 'persondata.txt'
+    filePerson = '%s/%s/results/persondata.txt' %(project.location, project.name)
     filePerson = filePerson.replace('\\', '/')
 
     drawing_households.store(db, fileHousing, 'housing_synthetic_data')
@@ -211,7 +205,7 @@ def configure_and_run(project, geo, varCorrDict):
     print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
     for i in range(len(person_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], sum(person_marginals[i]))
-    #print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-ti)
+    print 'Synthetic households created for the geography in %.2f\n' %(time.clock()-tii)
 
 
 

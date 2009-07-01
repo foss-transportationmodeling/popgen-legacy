@@ -3,6 +3,7 @@
 import MySQLdb
 import time
 import os
+import math
 from numpy import asarray as arr
 from numpy import random, histogram, zeros, arange
 
@@ -41,7 +42,7 @@ def person_index_matrix(db, pumano = 0):
     return result
 
 
-def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract = 0, bg = 0):
+def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract = 0, bg = 0, parameters=0):
     dbc = db.cursor()
     table_name = ('%s_%s_ipf'%(synthesis_type, pumano))
 
@@ -50,6 +51,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     try:
         dbc.execute('create table %s select pumano, tract, bg, frequency from hhld_%s_joint_dist where 0;' %(table_name, pumano))
         dbc.execute('alter table %s change frequency marginal float(27)'%(table_name))
+        dbc.execute('alter table %s add marginalact float(27) default 0'%(table_name))
         dbc.execute('alter table %s add prior bigint default 0' %(table_name))
         dbc.execute('alter table %s add r_marginal bigint default 0'%(table_name))
         dbc.execute('alter table %s add diff_marginals float(27) default 0'%(table_name))
@@ -58,21 +60,29 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     except:
         pass
     dbc.execute('select frequency from %s_%s_joint_dist where tract = %s and bg = %s order by %s;' %(synthesis_type, pumano, tract, bg, order_string))
-    frequency = arr(dbc.fetchall(), float)
+    frequency = arr(dbc.fetchall(), float)[:,0]
+    frequencyact = frequency
+    # Employing the selected rounding procedure
+    if parameters.roundingProcedure == 'bucket':
+        frequency = round_bucket(frequency)
+    if parameters.roundingProcedure == 'stochastic':
+        frequency = round_bucket(frequency)
+    
 
     dbc.execute('select frequency from %s_0_joint_dist order by %s' %(synthesis_type, order_string))
     prior = arr(dbc.fetchall(), float)
 
     rowcount = dbc.rowcount
-    dummy_table = zeros((rowcount, 6))
-    dummy_table[:,:-3] = [pumano, tract, bg]
-    dummy_table[:,-3] = frequency[:,0]
+    dummy_table = zeros((rowcount, 7))
+    dummy_table[:,:-4] = [pumano, tract, bg]
+    dummy_table[:,-4] = frequency
+    dummy_table[:,-3] = frequencyact
     dummy_table[:,-2] = prior[:,0]
     dummy_table[:,-1] = (arange(rowcount)+1)
 
     dbc.execute('delete from %s where tract = %s and bg = %s' %(table_name, tract, bg))
     dummy_table = str([tuple(i) for i in dummy_table])
-    dbc.execute('insert into %s (pumano, tract, bg, marginal, prior, %suniqueid) values %s;' %(table_name, synthesis_type, dummy_table[1:-1]))
+    dbc.execute('insert into %s (pumano, tract, bg, marginal, marginalact, prior, %suniqueid) values %s;' %(table_name, synthesis_type, dummy_table[1:-1]))
     dbc.execute('update %s set r_marginal = marginal where tract = %s and bg = %s'%(table_name, tract, bg))
     dbc.execute('update %s set diff_marginals = (marginal - r_marginal) * marginal where tract = %s and bg = %s'%(table_name, tract, bg))
     dbc.execute('select sum(marginal) - sum(r_marginal) from %s where tract = %s and bg = %s'%(table_name, tract, bg))
@@ -97,7 +107,6 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     dbc.close()
     db.commit()
     return marginals
-
 
 
 def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
@@ -246,42 +255,21 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
     #raw_input()
     return statistic, counter, estimated_frequency
 
-def storing_synthetic_attributes(db, synthesis_type, attributes, county, tract = 0, bg = 0):
-    dbc = db.cursor()
-    dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
-    #print ('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
-    db.commit()
-    filename = '%sdata.txt' %(synthesis_type)
+def storing_synthetic_attributes(synthesis_type, attributes, county, tract = 0, bg = 0, location=None, name=None):
+    filename = '%s/%s/results/%sdata.txt' %(location, name, synthesis_type)
     f = open(filename, 'a')
     
     for i in range(attributes.shape[0]):
         values = ''
         for j in attributes[i,:]:
             values = values + '%d'%j + ','
-        #values = str(tuple(attributes[i,:]))
         f.write(values[:-1])
         f.write('\n')
-        #dbc.execute('insert into %s_synthetic_data values %s;' %(synthesis_type, str(tuple(attributes[i,:]))))
-        #db.commit()
-    dbc.close()
     f.close()
 
 def store(db, filePath, tablename):
     dbc = db.cursor()
-    print ("""load data local infile '%s' into table %s  fields terminated by ','""" %(filePath, tablename))
     dbc.execute("""load data local infile '%s' into table %s  fields terminated by ','""" %(filePath, tablename))
-
-
-def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
-    attributes = attributes.astype(int)
-    dbc = db.cursor()
-    dbc.execute('delete from %s_synthetic_data where county = %s and tract = %s and bg = %s' %(synthesis_type, county, tract, bg))
-
-    values = tuple([tuple(i) for i in attributes])
-   
-    dbc.execute("""insert into %s_synthetic_data values %s;""" %(synthesis_type, str(values)[1:-1]))
-    db.commit()
-    dbc.close()
 
 
 def create_performance_table(db):
@@ -317,9 +305,78 @@ def create_synthetic_attribute_tables(db):
     dbc.close()
     db.commit()
 
+def round_numbers(numbers, method):
+    if method == 'arithmetic':
+        r_numbers = round_arithmetic(numbers)
+    if method == 'bucket':
+        r_numbers = round_bucket(numbers)
+    if method == 'stochastic':
+        r_numners = round_bucket(numbers)
+
+def round_arithmetic(numbers):
+    
+    pass
+
+def round_bucket(numbers):
+    size = len(numbers)
+    num_array = zeros((size, 5))
+    num_array[:,0] = numbers
+    
+    frac_of_numbers = [i - math.floor(i) for i in numbers]
+    int_of_numbers = [math.floor(i) for i in numbers]
+    num_array[:,1] = frac_of_numbers #fractional part
+    num_array[:,2] = int_of_numbers #integer part
+    num_array[:,3] = bucket_additions(frac_of_numbers) # additions
+    num_array[:,4] = num_array[:,2] + num_array[:,3]
+    
+    return num_array[:,-1]
+    
+def bucket_additions(fractions):
+    start = 0
+    sum = 0
+    additions = []
+    size = len(fractions)
+    for j in range(size):
+        i = fractions[j]
+        sum = sum + i
+        if sum >= 1:
+            additions.append(1)
+            sum = sum - 1
+        else:
+            if j == size - 1:
+                additions.append(round(sum))
+            else:
+                additions.append(0)
+            
+    return additions
+
+def round_stochastic(numbers):
+    size = len(numbers)
+    num_array = zeros((size, 6))
+    num_array[:,0] = numbers
+    
+    frac_of_numbers = [i - math.floor(i) for i in numbers]
+    int_of_numbers = [math.floor(i) for i in numbers]
+    num_array[:,1] = frac_of_numbers # fractional part
+    num_array[:,2] = int_of_numbers # integer part
+    num_array[:,3] = random.rand(size)
+    num_array[:,4] = num_array[:,3] < num_array[:,1] # checking if random num is < fractional part
+    num_array[:,5] = num_array[:,2] + num_array[:,4]
+
+    
+    return num_array[:,-1]
+
+
+
+
+
+
 
 if __name__ == '__main__':
-    pass
+    #print round(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
+    round_stochastic(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))    
+    round_bucket(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
+
 
 
 
