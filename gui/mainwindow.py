@@ -11,11 +11,11 @@ import qrc_resources
 from database.createDBConnection import createDBC
 from file_menu.wizard_window_validate import Wizard
 from file_menu.filemanager import QTreeWidgetCMenu
-from file_menu.open_project import OpenProject
+from file_menu.open_project import OpenProject, SaveFile
 from file_menu.summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.data_connection import DBConnectionDialog
-from data_menu.display_data import DisplayTable
+from data_menu.display_data import DisplayTable, DisplayTableStructure
 from results_menu.results_preprocessor import *
 from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
@@ -91,12 +91,15 @@ class MainWindow(QMainWindow):
 
 # Adding actions to menu
         self.fileMenu = self.menuBar().addMenu("&File")
+        #self.addActions(self.fileMenu, (projectNewAction, projectOpenAction, None, self.projectSaveAction, 
+        #                                   self.projectSaveAsAction, None, self.projectCloseAction, None, applicationQuitAction))
         self.addActions(self.fileMenu, (projectNewAction, projectOpenAction, None, self.projectSaveAction, 
-                                           self.projectSaveAsAction, None, self.projectCloseAction, None, applicationQuitAction))
+                                           None, self.projectCloseAction, None, applicationQuitAction))
 # Adding actions to toolbar
         self.fileToolBar = self.addToolBar("File")
         self.fileToolBar.setObjectName("FileToolBar")
-        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAction, self.projectSaveAsAction))
+        #self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAction, self.projectSaveAsAction))
+        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAsAction))
         
 
 # DATA MENU 
@@ -144,12 +147,12 @@ class MainWindow(QMainWindow):
                                                   icon="stop", tip="Stop the current population synthesis run.")
 # Adding actions to menu
         self.synthesizerMenu = self.menuBar().addMenu("&Synthesizer")
-        #self.addActions(self.synthesizerMenu, (synthesizerControlVariablesAction, setCorrespondenceAction, 
+        #self.addActions(self.synthesizerMenu, (setCorrespondenceAction, 
         #                                       synthesizerParameterAction, None, 
         #                                       synthesizerRunAction, synthesizerStopAction))
         self.addActions(self.synthesizerMenu, (setCorrespondenceAction, 
                                                synthesizerParameterAction, None, 
-                                               synthesizerRunAction, synthesizerStopAction))
+                                               synthesizerRunAction))
 # Adding actions to toolbar
         self.synthesizerToolBar = self.addToolBar("Synthesizer")
         #self.addActions(self.synthesizerToolBar, (synthesizerControlVariablesAction, synthesizerParameterAction, 
@@ -187,7 +190,6 @@ class MainWindow(QMainWindow):
                                                   tip = "Display performance statistics for the entire region.")
 
 
-
         resultsIndividualAction = self.createAction("&Individual Geography Statistics",
                                                     self.resultsIndividual,
                                                     icon="individualgeo",
@@ -198,41 +200,100 @@ class MainWindow(QMainWindow):
                                                     icon="viewhh",
                                                     tip = "Display synthesized households for the entire region.")
 
+
+        resultsExportCSVAction = self.createAction("Into &CSV Format", 
+                                                self.resultsCSVExport, 
+                                                tip = "Export results into a comma-seperated file")
+
+        resultsExportTabAction = self.createAction("Into &Tab-delimited Format", 
+                                                self.resultsTabExport, 
+                                                tip = "Export results into a tab-delimited file")
+
 # Adding actions to menu
         self.resultsMenu = self.menuBar().addMenu("&Results")
         self.regionwideSubMenu = self.resultsMenu.addMenu(QIcon("images/region.png"),"Regional Statistics")
         self.addActions(self.regionwideSubMenu, (resultsRegionalAARDAction, resultsRegionalPValueAction,
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
+        
+        self.addActions(self.resultsMenu, (resultsIndividualAction, None))
+        self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Results")
+        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction))
 
-        self.addActions(self.resultsMenu, (resultsIndividualAction,))
+
         #self.addActions(self.resultsMenu, (resultsViewHHAction,))
 # Adding actions to toolbar
 
-        self.resultsToolBar = self.addToolBar("Results")
+        #self.resultsToolBar = self.addToolBar("Results")
         #self.resultsToolBar.addToolBar(QIcon("Regional SubMenu"))
-        self.addActions(self.resultsToolBar, (resultsRegionalAction, resultsIndividualAction))
+        #self.addActions(self.resultsToolBar, (resultsRegionalAction, resultsIndividualAction))
 
         self.resultsMenu.setDisabled(True)
-        self.resultsToolBar.setDisabled(True)
+        #self.resultsToolBar.setDisabled(True)
 
 
 # HELP MENU
 # Defining menu/toolbar actions
+
+
         helpDocumentationAction = self.createAction("Documentation",
                                                     self.showDocumentation, 
                                                     tip="Display the documentation of PopGen.", 
                                                     icon = "documentation")
         helpHelpAction = self.createAction("Help",
                                            self.showHelp, 
-                                           tip="Quick reference for important parameters",
+                                           tip="Quick reference for important parameters.",
                                            icon="help")
 
         helpAboutAction = self.createAction("About PopGen",
                                             self.showAbout, 
                                             tip="Display software information")
 
+        dataHhldSample = self.createAction("Household Sample",
+                                           self.showHhldSampleStruct,
+                                           tip = "Data structure for the household sample file.")
+
+        dataGQSample = self.createAction("Groupquarter Sample",
+                                           self.showGQSampleStruct,
+                                           tip = "Data structure for the groupquarter sample file.")
+
+        dataPersonSample = self.createAction("Person Sample",
+                                           self.showPersonSampleStruct,
+                                           tip = "Data structure for the person sample file.")
+
+        dataHhldMarginals = self.createAction("Household Marginals",
+                                           self.showHhldMarginalsStruct,
+                                           tip = "Data structure for the household marginals file.")
+
+        dataGQMarginals = self.createAction("Groupquarter Marginals",
+                                           self.showGQMarginalsStruct,
+                                           tip = "Data structure for the groupquarter marginals file.")
+
+        dataPersonMarginals = self.createAction("Person Marginals",
+                                           self.showPersonMarginalsStruct,
+                                           tip = "Data structure for the person marginals file.")
+
+        dataGeocorr = self.createAction("Geographic Correspondence",
+                                           self.showGeocorrStruct,
+                                           tip = "Data structure for the geographic correspondence file.")
+
+
+
+
+
+
+
+
+
         self.helpMenu = self.menuBar().addMenu("&Help")
-        self.addActions(self.helpMenu, (helpDocumentationAction, helpHelpAction, None, helpAboutAction))
+
+        self.helpDataTemplateSubMenu = self.helpMenu.addMenu(QIcon("images/structure.png"), "&Data Structures")
+
+        self.addActions(self.helpDataTemplateSubMenu, (dataHhldSample, dataGQSample, dataPersonSample, None,
+                                                       dataHhldMarginals, dataGQMarginals, dataPersonMarginals,
+                                                       None, dataGeocorr))
+
+
+        self.addActions(self.helpMenu, (None, helpDocumentationAction, helpHelpAction, None, helpAboutAction))
 
 
 
@@ -309,7 +370,7 @@ class MainWindow(QMainWindow):
         self.synthesizerToolBar.setEnabled(option)
 
         self.resultsMenu.setEnabled(option)
-        self.resultsToolBar.setEnabled(option)
+        #self.resultsToolBar.setEnabled(option)
 
     def projectOpen(self):
         project = OpenProject()
@@ -409,17 +470,18 @@ class MainWindow(QMainWindow):
 
     def synthesizerSetCorrBetVariables(self):
         #Set the correspondence between variables
-        if self.checkIfTablesExist():
+        reqTables = ['hhld_sample', 'hhld_sample', 'person_marginals', 'person_sample']
+        if self.checkIfTablesExist(reqTables):
             vars = SetCorrDialog(self.project)
             if vars.exec_():
                 self.project = vars.project
                 self.project.save()
                 self.fileManager.populate()
         else:
-            QMessageBox.warning(self, "Synthesizer", "Please import and process tables before setting variable correspondence.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Synthesizer", "Import and process tables before setting variable correspondence.", QMessageBox.Ok)
 
-    def checkIfTablesExist(self):
-        reqTables = ['hhld_sample', 'hhld_sample', 'person_marginals', 'person_sample']
+    def checkIfTablesExist(self, reqTables):
+
         tables = self.tableList()
 
         #print tables
@@ -433,7 +495,7 @@ class MainWindow(QMainWindow):
          
             
     def tableList(self):
-        self.projectDBC = createDBC(self.project.db, self.project.filename)
+        self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 
@@ -461,7 +523,7 @@ class MainWindow(QMainWindow):
             self.fileManager.populate()
             self.project.save()
         else:
-            QMessageBox.warning(self, "Synthesizer", "Please define variable correspondence before synthesizing population.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Synthesizer", "Define variable correspondence before synthesizing population.", QMessageBox.Ok)
 
         #for i in self.project.synGeoIds:
         #    print i
@@ -500,7 +562,81 @@ class MainWindow(QMainWindow):
         res = Hhmap(self.project)
         res.exec_()
         
+    def resultsCSVExport(self):
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        if self.checkIfTablesExist(reqTables):
+            fileDlg = SaveFile(self.project, "csv")
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
+                                QMessageBox.Ok)
 
+    def resultsTabExport(self):
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        if self.checkIfTablesExist(reqTables):
+            fileDlg = SaveFile(self.project, "dat")
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
+                                QMessageBox.Ok)
+
+    def showHhldSampleStruct(self):
+        headers = ['state', 'pumano', 'hhid', 'serialno', 'hhtype', 'householdvariable1', 
+                   'householdvariabl2', '...']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for household sample file')
+        a.exec_()
+
+    def showGQSampleStruct(self):
+        headers = ['state', 'pumano', 'hhid', 'serialno', 'hhtype', 'groupquartervariable1', 
+                   'groupquartervariabl2', '...']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter sample file')
+        a.exec_()
+
+    def showPersonSampleStruct(self):
+        headers = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'personvariable1', 
+                   'personvariabl2', '...']
+
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for person sample file')
+        a.exec_()
+
+    def showHhldMarginalsStruct(self):
+        headers = ['state', 'county', 'tract', 'bg', 'householdvar1cat1', 'householdvar1cat2', 
+                   '...', 'householdvar2cat1', '...']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for household marginals file')
+        a.exec_()
+
+    def showGQMarginalsStruct(self):
+        headers = ['state', 'county', 'tract', 'bg', 'groupquartervar1cat1', 'groupquartervar1cat2', 
+                   '...', 'groupquartervar2cat1', '...']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter marginals file')
+        a.exec_()
+
+    def showPersonMarginalsStruct(self):
+        headers = ['state', 'county', 'tract', 'bg', 'personvar1cat1', 'personvar1cat2', 
+                   '...', 'personvar2cat1', '...']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file')
+        a.exec_()
+
+    def showGeocorrStruct(self):
+        headers = ['county', 'tract', 'bg','state', 'pumano', 'stateabb', 
+                   'countyname']
+        data = self.returnData(headers)
+        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file')
+        a.exec_()
+
+    
+    def returnData(self, headers):
+        data = []
+        data.append(['<variable type>']*len(headers))
+        for i in range(4):
+            data.append(['value']*len(headers))
+        return data
+
+    
     def showDocumentation(self):
         QMessageBox.information(self, "Help", "Documentation", QMessageBox.Ok)
 
