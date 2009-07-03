@@ -25,7 +25,6 @@ class SetCorrDialog(QDialog):
 
         self.tabWidget = SetCorrTabWidget(self.project)
 
-
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
         correspondenceWarning = QLabel("""<font color = blue>Note: Select household/person/groupquarter variables of interest """
@@ -46,8 +45,9 @@ class SetCorrDialog(QDialog):
         self.populate(hhldSelVariableDicts, self.tabWidget.housingTab)
         personSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.person)
         self.populate(personSelVariableDicts, self.tabWidget.personTab)
-        gqSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.gq)
-        self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
+        if self.tabWidget.gqAnalyzed:
+            gqSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.gq)
+            self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
@@ -156,8 +156,8 @@ class SetCorrTabWidget(QTabWidget):
         self.addTab(self.housingTab, 'Household Variables')
         self.addTab(self.personTab, 'Person Variables')
         
-
-        if self.isGqAnalyzed():
+        self.gqAnalyzed = self.isGqAnalyzed()
+        if self.gqAnalyzed:
             self.gqTab = TabWidgetItems(self.project, 'Groupquarter', 'gq_marginals', 'gq_sample')
             self.addTab(self.gqTab, 'Groupquarters Variables')
 
@@ -169,10 +169,12 @@ class SetCorrTabWidget(QTabWidget):
             return True
         
         if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
-            return False
+            return True
         
         if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
-            return False
+            return True
+        
+        return False
         
 
 
