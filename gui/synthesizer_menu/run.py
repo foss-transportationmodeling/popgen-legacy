@@ -178,9 +178,9 @@ class RunDialog(QDialog):
                 bins = int(floor(geoCount/binsize))
 
                 
-                
                 index = [(i*binsize, i*binsize+binsize) for i in range(bins)]
                 index.append((bins*binsize, geoCount))
+                
 
                 for i in index:
                     #run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
@@ -211,7 +211,7 @@ class RunDialog(QDialog):
                     #try:
                     #    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
                     #except Exception, e:
-                    #    self.outputWindow.append("\t- Error in the Syntheiss for geography")
+                    #    self.outputWindow.append("\t- Error in the Synthesis for geography")
                     #    print ('Exception: %s' %e)
                 self.selGeographiesButton.setEnabled(False)
             else:
