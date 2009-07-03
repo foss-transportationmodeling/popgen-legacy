@@ -120,7 +120,9 @@ class SummaryPage(QWizardPage):
             resolution = 'Census Blockgroup'
         elif resolutionText == 'TAZ':
             resolution = 'Traffic Analysis Zone (TAZ)'
+            self.projectResolutionComboBox.clear()
             self.projectResolutionComboBox.addItems(['Traffic Analysis Zone (TAZ)',])
+
         else:
             resolution = 'County'
 
@@ -155,7 +157,7 @@ class SummaryPage(QWizardPage):
 
     def enableEditableWidgets(self):
         self.projectDescLineEdit.setEnabled(True)
-        #self.projectResolutionComboBox.setEnabled(True)
+        self.projectResolutionComboBox.setEnabled(True)
         #self.geocorrUserProvLineEdit.setEnabled(True)
         #self.geocorrUserProvLocationLineEdit.setEnabled(True)
         #self.sampleUserProvLineEdit.setEnabled(True)
