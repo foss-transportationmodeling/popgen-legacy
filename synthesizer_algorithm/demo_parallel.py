@@ -212,14 +212,11 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-#def run_parallel(job_server, project, geoIds, indexMatrix, pIndexMatrix, dbList, varCorrDict):
 def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
     start = time.time()
-
-
     print 'Number of geographies is %s'%(len(geoIds))
     modules = ('synthesizer_algorithm.heuristic_algorithm',
                'synthesizer_algorithm.drawing_households',
@@ -232,30 +229,21 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
                'MySQLdb',
                'time',
                'scipy.stats')
+
     print 'Using %d cores on the processor' %(job_server.get_ncpus())
     
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
-
-
-    
-
-
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
                                                         varCorrDict,
                                                         dbList), (), modules)) for geo in geoIds] 
-                                                        #indexMatrix, 
-                                                        #pIndexMatrix), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         job()
     job_server.print_stats()
 
-
-
     db = MySQLdb.connect(host = dbList[0], user = dbList[1],
                          passwd = dbList[2], db = dbList[3])
 
-    import os
     fileHousing = '%s/%s/results/housingdata.txt' %(project.location, project.name)
     fileHousing = fileHousing.replace('\\', '/')
     filePerson = '%s/%s/results/persondata.txt' %(project.location, project.name)
