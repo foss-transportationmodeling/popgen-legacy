@@ -336,9 +336,9 @@ class RunDialog(QDialog):
                 state = query.value(STATE).toInt()[0]
                 county = query.value(COUNTY).toInt()[0]
                 
-                if self.project.resolution == 'Tract' or self.project.resolution == 'Blockgroup':
+                if self.project.resolution == 'Tract' or self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
                     tract = query.value(TRACT).toInt()[0]
-                if self.project.resolution == 'Blockgroup':
+                if self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
                     bg = query.value(BG).toInt()[0]
                 
                 id = '%s,%s,%s,%s' %(state, county, tract, bg)
