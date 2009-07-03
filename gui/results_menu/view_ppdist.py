@@ -159,7 +159,7 @@ class Ppdist(Matplot):
             str = "county=%s" %(county)
         if self.project.resolution == "Tract":
             str = "county=%s and tract=%s" %(county,tract)
-        if self.project.resolution == "Blockgroup":
+        if self.project.resolution == "Blockgroup" or self.project.resolution == "TAZ" :
             str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
         return str
         
