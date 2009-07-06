@@ -203,7 +203,7 @@ class SummaryPage(QWizardPage):
         self.emit(SIGNAL("completeChanged()"))
 
     def checkProjectDatabase(self, db, projectName):
-        projectDBC = createDBC(db, projectName)
+        projectDBC = createDBC(db)
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)
