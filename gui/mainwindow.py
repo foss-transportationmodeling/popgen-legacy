@@ -30,7 +30,7 @@ from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
 from results_menu.coreplot import *
 
-from help.helpform import *
+from help_menu.helpform import *
 
 if sys.platform.startswith('win'):
     qgis_prefix = "C:/qgis"
