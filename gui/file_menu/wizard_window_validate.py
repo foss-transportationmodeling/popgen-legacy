@@ -102,7 +102,6 @@ class Wizard(QWizard):
             self.page4.emit(SIGNAL("resolutionChanged"), resolution)
 
         if id == 4:
-            print 'emit dbc connection signal'
             self.page5.hostnameLineEdit.emit(SIGNAL("editingFinished()"))
 
         
@@ -150,7 +149,7 @@ class Wizard(QWizard):
             self.page6.fillPage(self.project)
 
             self.page6.checkProjectLocation(self.project.location, self.project.name)
-            self.page6.checkProjectDatabase(self.project.db, self.project.filename)
+            self.page6.checkProjectDatabase(self.project.db, self.project.name)
 
 
 
