@@ -126,7 +126,7 @@ class AutoImportSFData():
             reply = QMessageBox.question(None, "Import",
                                          QString("""Cannot download data when the data already exists.\n\n"""
                                                  """Would you like to keep the existing files?"""
-                                                 """\nHit No if you would like to download the files again."""),
+                                                 """\nSelect No if you would like to download the files again."""),
                                          QMessageBox.Yes|QMessageBox.No)
             if reply == QMessageBox.No:
                 confirm = QMessageBox.question(None, "Import",
