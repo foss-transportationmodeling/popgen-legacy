@@ -94,8 +94,16 @@ class SampleDataPage(QWizardPage):
 
     def sampleUserProvAction(self):
         self.sampleUserProvGroupBox.setEnabled(True)
-        self.sampleHHLocationDummy = 0
-        self.samplePersonLocationDummy = 0
+        if self.sampleHHLocationComboBox.currentIndex() == 0:
+            self.sampleHHLocationDummy = False
+        else:
+            self.sampleHHLocationDummy = True
+
+        if self.samplePersonLocationComboBox.currentIndex() == 0:
+            self.samplePersonLocationDummy = False
+        else:
+            self.samplePersonLocationDummy = True
+
         self.emit(SIGNAL("completeChanged()"))
 
 

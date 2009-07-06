@@ -91,8 +91,17 @@ class ControlDataPage(QWizardPage):
     
     def controlUserProvAction(self):
         self.controlUserProvGroupBox.setEnabled(True)
-        self.controlHHLocationDummy = 0
-        self.controlPersonLocationDummy = 0
+        if self.controlHHLocationComboBox.currentIndex() == 0:
+            self.controlHHLocationDummy = False
+        else:
+            self.controlHHLocationDummy = True
+
+        if self.controlPersonLocationComboBox.currentIndex() == 0:
+            self.controlPersonLocationDummy = False
+        else:
+            self.controlPersonLocationDummy = True
+
+
         self.emit(SIGNAL("completeChanged()"))
 
 
