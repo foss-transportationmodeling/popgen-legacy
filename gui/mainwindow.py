@@ -295,7 +295,8 @@ class MainWindow(QMainWindow):
                                                        None, dataGeocorr))
 
 
-        self.addActions(self.helpMenu, (None, helpDocumentationAction, helpHelpAction, None, helpAboutAction))
+        #self.addActions(self.helpMenu, (None, helpDocumentationAction, helpHelpAction, None, helpAboutAction))
+        self.addActions(self.helpMenu, (None, helpDocumentationAction, None, helpAboutAction))
 
 
 
