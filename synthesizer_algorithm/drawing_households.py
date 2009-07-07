@@ -326,12 +326,14 @@ def round_bucket(numbers):
     int_of_numbers = [math.floor(i) for i in numbers]
     num_array[:,1] = frac_of_numbers #fractional part
     num_array[:,2] = int_of_numbers #integer part
-    num_array[:,3] = bucket_additions(frac_of_numbers) # additions
+    num_array[:,3] = bucket_additions1(frac_of_numbers) # additions
     num_array[:,4] = num_array[:,2] + num_array[:,3]
     
+    #print num_array
     return num_array[:,-1]
     
-def bucket_additions(fractions):
+def bucket_additions1(fractions):
+    # bucket rounding NOT THE RIGHT WAY
     start = 0
     sum = 0
     additions = []
@@ -350,6 +352,21 @@ def bucket_additions(fractions):
             
     return additions
 
+def bucket_additions(fractions):
+    # Actual bucket rounding procedure
+    additions = []
+    sum = 0
+    size = len(fractions)
+    for j in range(size):
+        sum = sum + fractions[j]
+        if round(sum) == 1:
+            sum = sum - 1
+            additions.append(1)
+        else:
+            additions.append(0)
+    #print additions
+    return additions
+
 def round_stochastic(numbers):
     size = len(numbers)
     num_array = zeros((size, 6))
@@ -363,7 +380,7 @@ def round_stochastic(numbers):
     num_array[:,4] = num_array[:,3] < num_array[:,1] # checking if random num is < fractional part
     num_array[:,5] = num_array[:,2] + num_array[:,4]
 
-    
+    #print num_array
     return num_array[:,-1]
 
 
@@ -374,8 +391,9 @@ def round_stochastic(numbers):
 
 if __name__ == '__main__':
     #print round(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
-    round_stochastic(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))    
-    round_bucket(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
+    #round_stochastic(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))    
+    #round_bucket(arr([0.2, 0.4, 2.7, 0.3, 0.4, 1.3, 0.1, 3.4, 1.2]))
+    round_stochastic(arr([0.2, 0.4, 2.7, 0.3, 0.4, 1.3, 0.1, 3.4, 1.2]))
 
 
 
