@@ -192,8 +192,10 @@ def update_weights (db, synthesis_type, control_variables, control_variable, pum
 # Updating weights after calculating adjustments along each dimension
     dbc.execute('select %s from %s_%s_joint_dist where tract = %s and bg = %s group by %s  ' %( control_variable, synthesis_type, pumano, tract, bg, control_variable))
     result = dbc.fetchall()
-    for i in range(dbc.rowcount):
-        dbc.execute('update %s_%s_joint_dist set frequency = frequency * %s where %s = %s and tract = %s and bg = %s' %(synthesis_type, pumano, adjustment[i], control_variable, result[i][0], tract, bg))
+    rows = dbc.rowcount
+
+    for i in range(rows):
+        dbc.execute('update %s_%s_joint_dist set frequency = frequency * %s where %s = %s and tract = %s and bg = %s and frequency > 1e-300' %(synthesis_type, pumano, adjustment[i], control_variable, result[i][0], tract, bg))
     dbc.close()
     db.commit()
 
