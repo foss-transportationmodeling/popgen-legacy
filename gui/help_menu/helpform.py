@@ -33,6 +33,7 @@ class HelpForm(QDialog):
         toolBar.addAction(homeAction)
         toolBar.addWidget(self.pageLabel)
         self.textBrowser = QTextBrowser()
+        self.textBrowser.setOpenExternalLinks(True)
 
         layout = QVBoxLayout()
         layout.addWidget(toolBar)
