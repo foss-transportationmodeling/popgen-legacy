@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 import MySQLdb
@@ -195,7 +200,7 @@ def store_performance_statistics(db, pumano, tract, bg, values):
     dbc.execute("""delete from performance_statistics where pumano = %s"""
                 """ and tract = %s and bg = %s""" %(pumano, tract, bg))
     dbc.execute("""insert into performance_statistics values(%s)""" %str(values)[1:-1])
-        
+
     dbc.close()
     db.commit()
 

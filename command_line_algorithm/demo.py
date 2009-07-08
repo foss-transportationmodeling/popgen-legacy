@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 
@@ -78,7 +83,7 @@ def configure_and_run(index_matrix, p_index_matrix, geoid):
 #______________________________________________________________________
 # Creating the control array
     total_constraint = numpy.hstack((hhld_estimated_constraint[:,0], gq_estimated_constraint[:,0], person_estimated_constraint[:,0]))
-    
+
 #______________________________________________________________________
 # Running the heuristic algorithm for the required geography
     iteration, weights, conv_crit_array, wts_array = heuristic_algorithm.heuristic_adjustment(db, 0, index_matrix, weights, total_constraint, sp_matrix)

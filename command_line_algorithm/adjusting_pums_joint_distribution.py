@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # This file contains a MySQL class that helps manipulate data. The instance of
 # the class also stores the results of the query as a list.
 

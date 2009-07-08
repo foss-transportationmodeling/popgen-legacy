@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # This file contains a MySQL class that helps manipulate data. The instance of
 # the class also stores the results of the query as a list.
 
@@ -22,7 +27,7 @@ class database:
     def _query(self, q):
         if self.debug: print "Query: %s" % (q)
         self.dbc.execute(q)
-        
+
 
     def __iter__(self):
         q = "select * from %s" % (self.name)
@@ -33,7 +38,7 @@ class database:
         """Returns the number of unique categories in the supplied variable
         """
         self.dbc.execute("select distinct %s from %s"% ( varname, self.name))
-        category_count = self.dbc.rowcount        
+        category_count = self.dbc.rowcount
         return category_count
 
     def vardescription(self):
@@ -46,12 +51,12 @@ class database:
         """
         self.vardescription()
         result = self.dbc.fetchall()
-        self_var_desc = []    
+        self_var_desc = []
         for dummy in result:
             self_var_desc.append(list(dummy)[0])
         return self_var_desc
 
-    
+
     def next(self):
         r = self.dbc.fetchone()
         if not r:
@@ -60,4 +65,3 @@ class database:
 
 if __name__ == '__main__':
     pass
-    

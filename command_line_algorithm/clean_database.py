@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # This file contains a MySQL class that helps manipulate data. The instance of
 # the class also stores the results of the query as a list.
 
@@ -14,11 +19,11 @@ def clean_database(db):
         if check_table(i[0]) == 1:
             print "dropping - %s"%i[0]
             dbc.execute('drop table %s'%i[0])
-  
+
     dbc.close()
 
 def check_table(name):
-       
+
     if name == 'housing_marginals' or name == 'hhld_pums' or name == 'person_marginals' or \
         name == 'person_pums' or name == 'housing_pums' or name =='gq_pums':
         return 0
@@ -32,7 +37,7 @@ if __name__ == '__main__':
     print "start - ",ti
 
     db = MySQLdb.connect(user = 'root', passwd = '1234', db = 'ncpopsyn')
-    
+
     clean_database(db)
-   
+
     print "End - ",time.clock()-ti

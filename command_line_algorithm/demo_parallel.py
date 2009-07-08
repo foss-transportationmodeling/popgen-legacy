@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 
@@ -176,7 +181,7 @@ if __name__ == '__main__':
     dbc.execute('select pumano from housing_marginals where pumano <>0 group by pumano')
     pumas = numpy.asarray(dbc.fetchall())
     for i in pumas:
-        start = time.clock()        
+        start = time.clock()
         dbc.execute('''select pumano, tract, bg from housing_marginals where
                            pumano = %s and hhtotal <> 0''' %(i[0]))
         blockgroups = list(dbc.fetchall())

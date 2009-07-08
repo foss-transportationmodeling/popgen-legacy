@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 from psuedo_sparse_matrix import generate_index_matrix
@@ -11,7 +16,7 @@ from numpy import ones, zeros
 def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
     dbc = db.cursor()
     ti =time.clock()
-  
+
 
 # Adjusting for household types
     dbc.execute('select hhlduniqueid from hhld_pums group by hhlduniqueid')
@@ -27,7 +32,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
     wts_personadj = []
     conv_criterion = 0
     convergence = 0
-#    print 'Starting the Heuristic Procedure'    
+#    print 'Starting the Heuristic Procedure'
     print 'iteration, Sum_Wts_Hhld_Adj, Sum_Wts_Person_Adj, Constraints, e-statistic, convergence (0/1)'
     while (iteration < 10 or convergence == 0):
         ti = time.clock()
@@ -45,7 +50,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
                 print 'Zero Control'
             adjustment = control[i[0]-2] / sum(weights[sp_matrix[i[1]-1:i[2], 2]])
             weights[sp_matrix[i[1]-1:i[2], 2]] = weights[sp_matrix[i[1]-1:i[2], 2]] * adjustment
-        
+
 # Creating the evaluation statistic
         for i in index_matrix[hh_colno:,:]:
             dummy = (sum(weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4]) - control[i[0]-2]) / control[i[0]-2]
@@ -72,7 +77,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix):
     conv_criterion = conv_criterion / ( tot_colno - hh_colno)
     print '%d, %.4f, %.4f, %d, %.4f, %d'%(iteration, sum(weights), wts_personadj[-1], tot_colno, conv_criterion_array[-1], convergence)
     return iteration, weights, conv_criterion_array, wts_personadj
-        
+
 # How to deal with the fact that zero marginals will multiply the weights out to zeros
 
 if __name__ == '__main__':
