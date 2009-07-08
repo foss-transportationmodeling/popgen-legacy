@@ -1,3 +1,9 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
+
 # This file contains a MySQL class that helps manipulate data. The instance of
 # the class also stores the results of the query as a list.
 
@@ -221,7 +227,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         dbc.execute('select %s from %s_sample group by %s' %(dummy, synthesis_type, dummy))
         cats = arr(dbc.fetchall(), float)
         #print dummy, cats
-        
+
         variable_marginals1 = []
         check_marginal_sum = 0
         for i in cats:
@@ -233,9 +239,9 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
             if result[0][0] <> 0:
                 variable_marginals1.append(result[0][0])
             else:
-                variable_marginals1.append(0.1)            
+                variable_marginals1.append(0.1)
         #print 'new', variable_marginals1
-                     
+
 
         #variable_marginals =[]
         #for i in variable_names:
@@ -247,7 +253,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         #        else:
         #            variable_marginals.append(0.1)
         #print 'old', variable_marginals
-        
+
         if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
             raise Exception, 'The given marginal distribution for a control variable sums to zero.'
         control_marginals.append(variable_marginals1)
@@ -256,7 +262,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         for i in control_marginals_sum[0:]:
             if i <> control_marginals_sum[0]:
                 raise Exception, 'The marginal distributions for the control variables are not the same.'
-            
+
     dbc.close()
     db.commit()
     return control_marginals
@@ -285,7 +291,7 @@ def create_adjusted_frequencies(db, synthesis_type, control_variables, pumano, t
     dbc.execute('select * from %s order by %s' %(pums_table, dummy_order_string))
     pums_joint = arr(dbc.fetchall(), float)
     pums_prob = pums_joint[:,-2] / sum(pums_joint[:,-2])
-    
+
 
     puma_adjustment = (pums_prob <= upper_prob_bound) * pums_prob + (pums_prob > upper_prob_bound) * upper_prob_bound
     correction = 1 - sum((puma_prob == 0) * puma_adjustment)

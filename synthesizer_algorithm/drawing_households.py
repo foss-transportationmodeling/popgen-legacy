@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 import MySQLdb
@@ -67,7 +72,7 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
         frequency = round_bucket(frequency)
     if parameters.roundingProcedure == 'stochastic':
         frequency = round_bucket(frequency)
-    
+
 
     dbc.execute('select frequency from %s_0_joint_dist order by %s' %(synthesis_type, order_string))
     prior = arr(dbc.fetchall(), float)
@@ -184,7 +189,7 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
         for i in synthetic_population[:,0]:
             print i, housing_sample[i,:]
         print e, 'Crashesssssssssssssssssssssssssssssssssssssssss Herrrrrrrrrrrrrrrrrrrreeeeeeeeeeeeeeeee'
-        
+
     # Store household frequency
     synthetic_housing_attributes[:,-2] = synthetic_population[:,1]
     # Store household unique id
@@ -195,7 +200,7 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
     for i in synthetic_population:
         hhid = hhidRowDict[i[0]]
         personrowno = rowHhidDict[hhid]
-        
+
         rows = rows + person_index_matrix[personrowno, 2] - person_index_matrix[personrowno, 1] + 1
 
     synthetic_person_attributes = zeros((rows, 9))
@@ -216,7 +221,7 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
         hhid = hhidRowDict[i[0]]
         # give me the the row number for the hhid in the person index matrix
         personrowno = rowHhidDict[hhid]
-        
+
 
         pums_start_row = person_index_matrix[personrowno,1] - 1
 
@@ -240,7 +245,7 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
 def checking_against_joint_distribution(objective_frequency, attributes, dimensions, pumano = 0, tract = 0, bg = 0):
 
     estimated_frequency = zeros((dimensions.prod(),1))
-    
+
     for i in attributes[:,-2:]:
         #print i
         estimated_frequency[i[1]-1,0] = estimated_frequency[i[1]-1, 0] + i[0]
@@ -258,7 +263,7 @@ def checking_against_joint_distribution(objective_frequency, attributes, dimensi
 def storing_synthetic_attributes(synthesis_type, attributes, county, tract = 0, bg = 0, location=None, name=None):
     filename = '%s/%s/results/%sdata.txt' %(location, name, synthesis_type)
     f = open(filename, 'a')
-    
+
     for i in range(attributes.shape[0]):
         values = ''
         for j in attributes[i,:]:
@@ -288,7 +293,7 @@ def store_performance_statistics(db, geo, values):
     dbc.execute("""delete from performance_statistics where"""
                 """ county = %s and tract = %s and bg = %s""" %(county, tract, bg))
     dbc.execute("""insert into performance_statistics values %s""" %str(values))
-        
+
     dbc.close()
     db.commit()
 
@@ -314,24 +319,24 @@ def round_numbers(numbers, method):
         r_numners = round_bucket(numbers)
 
 def round_arithmetic(numbers):
-    
+
     pass
 
 def round_bucket(numbers):
     size = len(numbers)
     num_array = zeros((size, 5))
     num_array[:,0] = numbers
-    
+
     frac_of_numbers = [i - math.floor(i) for i in numbers]
     int_of_numbers = [math.floor(i) for i in numbers]
     num_array[:,1] = frac_of_numbers #fractional part
     num_array[:,2] = int_of_numbers #integer part
     num_array[:,3] = bucket_additions1(frac_of_numbers) # additions
     num_array[:,4] = num_array[:,2] + num_array[:,3]
-    
+
     #print num_array
     return num_array[:,-1]
-    
+
 def bucket_additions1(fractions):
     # bucket rounding NOT THE RIGHT WAY
     start = 0
@@ -349,7 +354,7 @@ def bucket_additions1(fractions):
                 additions.append(round(sum))
             else:
                 additions.append(0)
-            
+
     return additions
 
 def bucket_additions(fractions):
@@ -371,7 +376,7 @@ def round_stochastic(numbers):
     size = len(numbers)
     num_array = zeros((size, 6))
     num_array[:,0] = numbers
-    
+
     frac_of_numbers = [i - math.floor(i) for i in numbers]
     int_of_numbers = [math.floor(i) for i in numbers]
     num_array[:,1] = frac_of_numbers # fractional part
@@ -391,7 +396,7 @@ def round_stochastic(numbers):
 
 if __name__ == '__main__':
     #print round(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
-    #round_stochastic(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))    
+    #round_stochastic(arr([0.5, 0.1, 0.2, 0.3, 1.1, 1.4]))
     #round_bucket(arr([0.2, 0.4, 2.7, 0.3, 0.4, 1.3, 0.1, 3.4, 1.2]))
     round_stochastic(arr([0.2, 0.4, 2.7, 0.3, 0.4, 1.3, 0.1, 3.4, 1.2]))
 

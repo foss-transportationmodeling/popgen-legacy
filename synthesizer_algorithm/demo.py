@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 from PyQt4.QtCore import *
@@ -61,9 +66,9 @@ def configure_and_run(project, geo, varCorrDict):
     gq_dimensions = project.gqDims
     person_dimensions = project.personDims
 
-    
 
-# Reading the parameters 
+
+# Reading the parameters
     parameters = project.parameters
 
 #______________________________________________________________________
@@ -122,7 +127,7 @@ def configure_and_run(project, geo, varCorrDict):
 #______________________________________________________________________
 # Sampling Households and choosing the draw with the best match with with the objective distribution
 
-    ti = time.time() 
+    ti = time.time()
 
     f = open('pIndexMatrix.pkl', 'rb')
     p_index_matrix = cPickle.load(f)
@@ -130,7 +135,7 @@ def configure_and_run(project, geo, varCorrDict):
     f.close()
 
     print 'pIndexMatrix in - %.4f' %(time.time()-ti)
-    
+
 
     hhidRowDict = drawing_households.hhid_row_dictionary(housing_sample) # row in the master matrix - hhid
     rowHhidDict = drawing_households.row_hhid_dictionary(p_index_matrix) # hhid - row in the person index matrix
@@ -146,8 +151,8 @@ def configure_and_run(project, geo, varCorrDict):
 
 # Creating synthetic hhld, and person attribute tables
 
-        synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix, 
-                                                                                                                       housing_sample, person_sample, hhidRowDict, 
+        synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix,
+                                                                                                                       housing_sample, person_sample, hhidRowDict,
                                                                                                                        rowHhidDict)
 
 
@@ -168,7 +173,7 @@ def configure_and_run(project, geo, varCorrDict):
     sp_matrix = None
 
     if draw_count >= parameters.synPopDraws:
-        print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f' 
+        print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f'
                %(parameters.synPopDraws, max_p))
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
@@ -183,7 +188,7 @@ def configure_and_run(project, geo, varCorrDict):
     filePerson = filePerson.replace('\\', '/')
 
     drawing_households.store(db, fileHousing, 'housing_synthetic_data')
-    drawing_households.store(db, filePerson, 'person_synthetic_data')    
+    drawing_households.store(db, filePerson, 'person_synthetic_data')
 
     os.remove(fileHousing)
     os.remove(filePerson)

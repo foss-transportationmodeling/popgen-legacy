@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 # Running IPF on Person and Household data
 
 import synthesizer_algorithm.heuristic_algorithm
@@ -68,7 +73,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
     person_dimensions = project.personDims
 
 
-# Reading the parameters 
+# Reading the parameters
     parameters = project.parameters
 
 
@@ -91,7 +96,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
     print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
-    
+
 #______________________________________________________________________
 # Creating the weights array
     print 'Step 2: Running IPU procedure for obtaining weights that satisfy Household and Person type constraints... '
@@ -116,7 +121,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
 
     print 'IPU procedure was completed in %.2f sec\n'%(time.clock()-ti)
     ti = time.clock()
-    
+
 
 #_________________________________________________________________
     print 'Step 3: Creating the synthetic households and individuals...'
@@ -171,9 +176,9 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
             min_chi = stat
 
     sp_matrix = None
-    
+
     if draw_count >= parameters.synPopDraws:
-        print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f' 
+        print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f'
                %(parameters.synPopDraws, max_p))
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
@@ -222,7 +227,7 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
                'synthesizer_algorithm.drawing_households',
                'synthesizer_algorithm.adjusting_sample_joint_distribution',
                'synthesizer_algorithm.ipf',
-               'cPickle', 
+               'cPickle',
                'scipy',
                'numpy',
                'pylab',
@@ -231,12 +236,12 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
                'scipy.stats')
 
     print 'Using %d cores on the processor' %(job_server.get_ncpus())
-    
+
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
                                                         varCorrDict,
-                                                        dbList), (), modules)) for geo in geoIds] 
+                                                        dbList), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         job()
     job_server.print_stats()
@@ -250,11 +255,11 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
     filePerson = filePerson.replace('\\', '/')
 
     synthesizer_algorithm.drawing_households.store(db, fileHousing, 'housing_synthetic_data')
-    synthesizer_algorithm.drawing_households.store(db, filePerson, 'person_synthetic_data')    
+    synthesizer_algorithm.drawing_households.store(db, filePerson, 'person_synthetic_data')
 
     os.remove(fileHousing)
     os.remove(filePerson)
-    
+
     print ' Total time for %d geographies - %.2f, Timing per geography - %.2f' %(len(geoIds), time.time()-start, (time.time()-start)/len(geoIds))
 
 
