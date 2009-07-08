@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 import urllib
 import os
 import time
@@ -38,13 +43,13 @@ class UserImportControlData():
 
         if check:
             gqLocLen = len(self.project.controlUserProv.gqLocation)
-        
+
             if gqLocLen > 1:
                 gqTableQuery = self.mysqlQueries('gq_marginals', self.project.controlUserProv.gqLocation)
 
                 if not self.query.exec_(gqTableQuery.query1):
                     raise FileError, self.query.lastError().text()
-            
+
                 if not self.query.exec_(gqTableQuery.query2):
                     raise FileError, self.query.lastError().text()
 
@@ -64,11 +69,11 @@ class UserImportControlData():
     def mysqlQueries(self, name, filePath):
         # Generate the mysql queries to import the tables
         fileProp = FileProperties(filePath)
-        fileQuery = ImportUserProvData(name, 
-                                       filePath, 
+        fileQuery = ImportUserProvData(name,
+                                       filePath,
                                        fileProp.varNames,
                                        fileProp.varTypes,
-                                       fileProp.varNamesDummy, 
+                                       fileProp.varNamesDummy,
                                        fileProp.varTypesDummy)
         return fileQuery
 
@@ -101,7 +106,7 @@ class AutoImportSFData():
 
         self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SF'
         self.loc = os.path.realpath(self.loc)
-        
+
         self.countiesSelected = self.project.region.keys()
 
         self.projectDBC = createDBC(self.project.db, self.project.name)
@@ -110,7 +115,7 @@ class AutoImportSFData():
         self.query = QSqlQuery(self.projectDBC.dbc)
 
         self.rawSF = RAW_SUMMARY_FILES
-        
+
         self.rawSFNamesNoExt = RAW_SUMMARY_FILES_NOEXT
 
         #self.downloadSFData()
@@ -192,7 +197,7 @@ class AutoImportSFData():
 
         if self.checkIfTableExists(tablename):
             if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid float, """
-                                    """state float, county float, tract  float, bg float, logrecno float)""" 
+                                    """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
                 raise FileError, self.query.lastError().text()
 
@@ -223,7 +228,7 @@ class AutoImportSFData():
                 raise FileError, self.query.lastError().text()
 
         # Load the other necessary tables
-        
+
         for j in self.rawSFNamesNoExt[1:]:
             variables, variabletypes = self.variableNames(j)
             filename = "%s%s" %(self.stateAbb[self.state], j)
@@ -280,11 +285,11 @@ class AutoImportSFData():
 
         var1.remove('logrecno')
         var1.append('temp1.logrecno')
-        
+
         if self.checkIfTableExists('mastersftable'):
             self.checkIfTableExists('temp1')
             self.checkIfTableExists('temp2')
-            if not self.query.exec_("""create table temp1 select %s from %sgeo""" 
+            if not self.query.exec_("""create table temp1 select %s from %sgeo"""
                                     %(var1string, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
 
@@ -292,9 +297,9 @@ class AutoImportSFData():
                 var2, var2types = self.variableNames('%s' %j)
                 var1 = var1 + var2[5:]
                 var1string = self.createVariableString(var1)
-                
+
                 tablename = '%s%s' %(self.stateAbb[self.state], j)
-                
+
                 if not self.query.exec_("""create table temp2 select %s from temp1, %s"""
                                         """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename)):
                     raise FileError, self.query.lastError().text()
@@ -302,7 +307,7 @@ class AutoImportSFData():
                     raise FileError, self.query.lastError().text()
                 if not self.query.exec_("""alter table temp2 rename to temp1"""):
                     raise FileError, self.query.lastError().text()
-            
+
             if not self.query.exec_("""alter table temp1 rename to mastersftable"""):
                 raise FileError, self.query.lastError().text()
 
@@ -310,7 +315,7 @@ class AutoImportSFData():
     def createMasterSubSFTable(self):
         #Based on the resolution import a summary file table for only that resolution
 
-        
+
 
         if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
             print self.project.resolution
@@ -321,11 +326,11 @@ class AutoImportSFData():
             if self.project.resolution == 'County':
                 sumlev = 510
             if not self.query.exec_("""create table mastersftable%s """
-                                    """select * from mastersftable where sumlev = %s """ 
+                                    """select * from mastersftable where sumlev = %s """
                                     %(self.project.resolution, sumlev)):
                 raise FileError, self.query.lastError().text()
 
-        
+
 
 
     def createVariableString(self, variableList):
@@ -350,12 +355,12 @@ class AutoImportSFData():
 
         if not self.query.exec_("""create table housing_marginals_%s select %s from mastersftable_%s"""
                                 %(self.stateAbb[self.state], varstring, self.stateAbb[self.state])):
-                                        
+
             raise FileError, self.query.lastError().text()
 
     def createPersonSFTable(self):
         PersonTables = PERSON_SUMMARY_TABLES
-        
+
         import copy
         var = copy.deepcopy(MASTER_SUMMARY_FILE_VARS)
 

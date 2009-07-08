@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -35,14 +40,14 @@ class Hhmap(QDialog):
         self.canvas.setCanvasColor(QColor(200,200,255))
         self.canvas.enableAntiAliasing(True)
         self.canvas.useQImageToRender(False)
-        
+
         layerName = "Counties"
         layerProvider = "ogr"
         self.layer  = QgsVectorLayer(inlayer_loc, layerName, layerProvider)
         if not self.layer.isValid():
             return
-        
-        #modlayer = 
+
+        #modlayer =
         #Output a new layer with selected geographies
         self.outSelectGeogs()
         renderer = self.geoglayer.renderer()
@@ -53,21 +58,21 @@ class Hhmap(QDialog):
         rp = RandPoints(self)
         hhlayerloc = rp.accept(self.path,hhcount_fieldname)
         self.hhlayer = QgsVectorLayer(hhlayerloc, "hh", layerProvider)
-        
-        self.layers = []   
+
+        self.layers = []
         self.addLayer(self.hhlayer)
         self.addLayer(self.geoglayer)
-        
-        
+
+
         self.canvas.setExtent(self.geoglayer.extent())
         print "MapCanvas layer count: ",self.canvas.layerCount()
-        
+
         self.toolbar = Toolbar(self.canvas, self.hhlayer)
         vLayout = QVBoxLayout()
         vLayout.addWidget(self.toolbar)
         vLayout.addWidget(self.canvas)
         self.setLayout(vLayout)
-    
+
     def outSelectGeogs(self):
         sel_ids = []
         sel_feats = []
@@ -78,12 +83,12 @@ class Hhmap(QDialog):
             self.layer.getFeatureAtId(featid, feat)
             sel_feats.append(feat)
         print sel_ids
-        
+
         basepath = inlayer_loc.split('.shp')
         dbfpath = basepath[0] + '.dbf'
         fdst = basepath[0] + '_sel' + '.shp'
         self.path = basepath[0]
-        if not os.path.isfile(fdst): 
+        if not os.path.isfile(fdst):
             #QgsVectorFileWriter.deleteShapeFile(fdst):
             provider = self.layer.getDataProvider()
             writer = QgsVectorFileWriter(fdst, "CP1250", provider.fields(), QGis.WKBPolygon, None)
@@ -102,7 +107,7 @@ class Hhmap(QDialog):
             print "layer feature count: ",newlayer.featureCount()
             self.setGeogLayer(newlayer)
 
-        
+
     def getFeatId(self, id):
         state = id[0]
         county = id[1]
@@ -111,7 +116,7 @@ class Hhmap(QDialog):
 
         stidx = provider.indexFromFieldName("STATE")
         ctindx = provider.indexFromFieldName("COUNTY")
-        
+
         #self.layer.setSelectedFeatures(range(self.layer.featureCount()))
         self.layer.select(QgsRect(), True)
         #provider.select(allAttrs, QgsRect(), False)
@@ -123,10 +128,10 @@ class Hhmap(QDialog):
             if (featstate.compare(state) == 0 and featcounty.compare(county) == 0):
                 return feat.featureId()
         return -1
-    
+
     def setGeogLayer(self, layer):
         self.geoglayer = layer
-    
+
     def addHHField(self):
         basepath = inlayer_loc.split('.shp')
         dbfpath = basepath[0] + '_sel' + '.dbf'
@@ -145,16 +150,16 @@ class Hhmap(QDialog):
             f.close()
         else:
             print hhcount_fieldname + " Present"
-    
+
     def addLayer(self, layer):
         QgsMapLayerRegistry.instance().addMapLayer(layer)
         cl = QgsMapCanvasLayer(layer)
         self.layers.append(cl)
         self.canvas.setLayerSet(self.layers)
-    
+
     def getHHFreq(self):
         return randint(500,700)
-    
+
     def out(self):
         layerpath = inlayer_loc
         layerName = "Counties"
@@ -162,21 +167,21 @@ class Hhmap(QDialog):
         layer = QgsVectorLayer(layerpath, layerName, layerProvider)
         if not layer.isValid():
             return
-        
+
         basepath = inlayer_loc.split('.shp')
         dbfpath = basepath[0] + '.dbf'
-        
+
         provider = layer.getDataProvider()
         allAttrs = provider.allAttributesList()
-         
+
         allFields = provider.fields()
         for(i, field) in allFields.iteritems():
             print field.name()
-        
+
         fdst = basepath[0] + '_test' + '.shp'
         QgsVectorFileWriter.deleteShapeFile(fdst)
         QgsVectorFileWriter.writeAsShapefile(layer, fdst, "CP1250")
-        
+
         if not self.isFieldInTable(hhcount_fieldname,allFields):
             print "Field Absent"
             #db = dbf.Dbf(dbfpath)
@@ -190,15 +195,15 @@ class Hhmap(QDialog):
 
             fieldnames.append(hhcount_fieldname)
             fieldspecs.append(('N',11,0))
-            
+
             for rec in records:
                 rec.append(0)
-                       
+
             f = open(dbfpath, 'wb')
             dbfwriter(f, fieldnames, fieldspecs, records)
 
 
-    
+
     def isFieldInTable(self, field, allFields):
         retval = False
         for (i, attr) in allFields.iteritems():
@@ -206,7 +211,7 @@ class Hhmap(QDialog):
                 retval = True
                 return retval
         return retval
-        
+
 
 
 def main():

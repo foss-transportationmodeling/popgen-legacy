@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 #!/usr/bin/env python
 # Copyright (c) 2007-8 Qtrac Ltd. All rights reserved.
 # This program or module is free software: you can redistribute it and/or
@@ -56,7 +61,7 @@ class HelpForm(QDialog):
 
     def home(self):
         self.textBrowser.setSource(QUrl("index.html"))
-    
+
     def updatePageTitle(self):
         self.pageLabel.setText(self.textBrowser.documentTitle())
 

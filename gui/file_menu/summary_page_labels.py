@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -17,7 +22,7 @@ class SummaryPage(QWizardPage):
 
         self.setTitle("Step 6: Project Summary")
         vlayoutCol1 = QVBoxLayout()
-        
+
         vlayoutCol1.addWidget(QLabel(self.leftPad("Project name")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Project location")))
         vlayoutCol1.addWidget(QLabel(self.leftPad("Project description")))
@@ -104,8 +109,8 @@ class SummaryPage(QWizardPage):
         text = text.ljust(70, '.')
         return text
 
-        
-        
+
+
     def fillPage(self, project):
         self.project = project
         self.projectName.setText(self.formatText(self.project.name))
@@ -127,15 +132,15 @@ class SummaryPage(QWizardPage):
             resolution = 'Traffic Analysis Zone (TAZ)'
         else:
             resolution = 'County'
-                
+
 
         self.projectResolution.setText(self.formatText(resolution))
         #self.projectResolutionComboBox.findAndSet(self.project.resolution)
-        
+
         text = self.convertBoolToString(self.project.geocorrUserProv.userProv)
         self.geocorrUserProv.setText(self.formatText(text))
         self.geocorrUserProvLocation.setText(self.formatText(self.project.geocorrUserProv.location))
-        
+
         text = self.convertBoolToString(self.project.sampleUserProv.userProv)
         self.sampleUserProv.setText(self.formatText(text))
         self.sampleHHLocation.setText(self.formatText(self.project.sampleUserProv.hhLocation))
@@ -155,11 +160,11 @@ class SummaryPage(QWizardPage):
         else:
             text = 'No, default data will be used'
         return text
-        
+
     def formatText(self, text):
         if text == "":
             text = "-"
-            
+
         return ("<font color = brown>" + '%s' %text + "</font>")
 
 

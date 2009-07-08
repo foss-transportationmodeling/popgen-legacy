@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -27,7 +32,7 @@ class Pval(Matplot):
             self.on_draw()
         else:
             QMessageBox.warning(self, "Results", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
-       
+
     def isValid(self):
         return self.checkIfTableExists("performance_statistics")
 
@@ -36,29 +41,29 @@ class Pval(Matplot):
         """
         self.err = []
         if self.retrieveResults():
-        
+
             # clear the axes and redraw the plot anew
-            self.axes.clear()        
+            self.axes.clear()
             self.axes.grid(True)
-        
+
             #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
             self.axes.hist(self.err, normed=False, align='mid')
             self.axes.set_xlabel("p-values")
             self.axes.set_ylabel("Frequency")
             self.axes.set_xbound(None,1)
-            self.canvas.draw()      
+            self.canvas.draw()
 
     def retrieveResults(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
-        
+
         # Get p-values from performance statistics
         performancetable = "performance_statistics"
         pvaluevar = "pvalue"
         filter = ""
         group = ""
         query = self.executeSelectQuery(projectDBC.dbc,pvaluevar, performancetable, filter, group)
-        
+
         if query:
             while query.next():
                 pval = query.value(0).toDouble()[0]
@@ -68,8 +73,8 @@ class Pval(Matplot):
         else:
             projectDBC.dbc.close()
             return False
-        
-        
+
+
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)

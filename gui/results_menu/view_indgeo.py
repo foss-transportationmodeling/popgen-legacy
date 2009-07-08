@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -32,7 +37,7 @@ class Indgeo(Matplot):
             self.stateCode = self.project.stateCode[self.project.state]
             resultfilename = self.res_prefix+self.stateCode+"_selected"
             self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
-        
+
             self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
 
             self.projectDBC = createDBC(self.project.db, self.project.name)
@@ -82,7 +87,7 @@ class Indgeo(Matplot):
             self.draw_boxselect()
             self.connect(self.geocombobox, SIGNAL("currSelChanged"), self.draw_boxselect)
             self.connect(self.toolbar, SIGNAL("currentGeoChanged"), self.draw_mapselect)
-        
+
             self.selcounty = "0"
             self.seltract = "0"
             self.selblkgroup = "0"
@@ -108,7 +113,7 @@ class Indgeo(Matplot):
             return retval
         else:
             return retval
-            
+
     def isResolutionValid(self):
         return self.project.resolution != "TAZ"
 
@@ -129,10 +134,10 @@ class Indgeo(Matplot):
         self.projectDBC.dbc.close()
         self.mapcanvas.clear()
         QDialog.reject(self)
-        
+
     def draw_boxselect(self):
         currgeo = (self.geocombobox.getCurrentText()).split(',')
-        
+
         provider = self.layer.getDataProvider()
         allAttrs = provider.allAttributesList()
         #self.layer.select(QgsRect(), True)
@@ -140,9 +145,9 @@ class Indgeo(Matplot):
         blkgroupidx = provider.indexFromFieldName("BLKGROUP")
         tractidx = provider.indexFromFieldName("TRACT")
         countyidx = provider.indexFromFieldName("COUNTY")
-        
+
         selfeatid = 0
-        feat = QgsFeature()        
+        feat = QgsFeature()
         while provider.getNextFeature(feat):
             attrMap = feat.attributeMap()
             featcounty = attrMap[countyidx].toString().trimmed()
@@ -179,8 +184,8 @@ class Indgeo(Matplot):
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
             tractidx = provider.indexFromFieldName("TRACT")
             countyidx = provider.indexFromFieldName("COUNTY")
-            
-            
+
+
             attrMap = selfeat.attributeMap()
             try:
                 self.selcounty = attrMap[countyidx].toString().trimmed()
@@ -193,7 +198,7 @@ class Indgeo(Matplot):
                     else:
                         self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
                         self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
-                
+
                 geog = '%s' %int(self.stateCode) + "," + '%s' %int(self.selcounty) + "," + '%s' %int(self.seltract) + "," + '%s' %int(self.selblkgroup)
                 if geog in self.geolist:
                     self.geocombobox.setCurrentText(geog)
@@ -201,8 +206,8 @@ class Indgeo(Matplot):
                 else:
                     self.draw_stat()
             except Exception, e:
-                print "Exception: %s; Invalid Selection." %e                    
-                    
+                print "Exception: %s; Invalid Selection." %e
+
     def draw_stat(self):
         self.ids = []
         self.act = []
@@ -213,7 +218,7 @@ class Indgeo(Matplot):
         self.axes.set_xlabel("Joint Frequency Distribution from IPF")
         self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
         self.axes.set_xbound(0)
-        self.axes.set_ybound(0) 
+        self.axes.set_ybound(0)
         self.retrieveResults()
         if len(self.ids) > 0:
             scat_plot = self.axes.scatter(self.act, self.syn)
@@ -222,15 +227,15 @@ class Indgeo(Matplot):
         else:
             pass
         self.canvas.draw()
-        
-        
+
+
     def on_draw(self, provider=None, selfeat=None ):
         if provider != None:
             blkgroupidx = provider.indexFromFieldName("BLKGROUP")
             tractidx = provider.indexFromFieldName("TRACT")
             countyidx = provider.indexFromFieldName("COUNTY")
-            
-            
+
+
             attrMap = selfeat.attributeMap()
             try:
                 self.selcounty = attrMap[countyidx].toString().trimmed()
@@ -243,9 +248,9 @@ class Indgeo(Matplot):
                     else:
                         self.selblkgroup = attrMap[blkgroupidx].toString().trimmed()
                         self.selgeog.setText("County - " + self.selcounty + "; Tract - " + self.seltract + "; BlockGroup - " + self.selblkgroup)
-                
+
                 geog = '%s' %int(self.stateCode) + "," + '%s' %int(self.selcounty) + "," + '%s' %int(self.seltract) + "," + '%s' %int(self.selblkgroup)
-                
+
                 self.ids = []
                 self.act = []
                 self.syn = []
@@ -255,7 +260,7 @@ class Indgeo(Matplot):
                 self.axes.set_xlabel("Joint Frequency Distribution from IPF")
                 self.axes.set_ylabel("Synthetic Joint Frequency Distribution")
                 self.axes.set_xbound(0)
-                self.axes.set_ybound(0)      
+                self.axes.set_ybound(0)
                 self.retrieveResults()
                 if len(self.ids) > 0:
                     scat_plot = self.axes.scatter(self.act, self.syn)
@@ -263,10 +268,10 @@ class Indgeo(Matplot):
                     scat_plot.axes.set_ybound(0)
                 else:
                     pass
-                self.canvas.draw()                
+                self.canvas.draw()
             except Exception, e:
                 print "Exception: %s; Invalid Selection." %e
-                
+
     def makeComboBox(self):
         self.geolist.sort()
         self.geocombobox = LabComboBox("Geography:",self.geolist)
@@ -299,19 +304,19 @@ class Indgeo(Matplot):
 
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
-        
+
         if not geo.puma5:
             if self.project.resolution == 'County':
                 geo.puma5 = 0
 
             elif self.project.resolution == 'Tract':
-                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
                                    %(geo.state, geo.county, geo.tract)):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
             else:
-                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s"""
                                    %(geo.state, geo.county, geo.tract, geo.bg)):
                     raise FileError, query.lastError().text()
                 while query.next():
@@ -321,12 +326,12 @@ class Indgeo(Matplot):
 
 
     def retrieveResults(self):
-        
+
         # Get p-values and aard-values from performance statistics
         performancetable = "performance_statistics"
         aardvalvar = "aardvalue"
         pvaluevar = "pvalue"
-        vars = aardvalvar + "," + pvaluevar 
+        vars = aardvalvar + "," + pvaluevar
         filter = ""
         group = ""
 
@@ -339,7 +344,7 @@ class Indgeo(Matplot):
         else:
             filter_act = "tract=0 and bg=0"
             filter_syn = "county=" + str(self.selcounty) + " and tract=0 and bg=0"
-            
+
         query = self.executeSelectQuery(self.projectDBC.dbc,vars, performancetable, filter_syn, group)
         aardval = 0.0
         pval = 0.0
@@ -347,15 +352,15 @@ class Indgeo(Matplot):
             while query.next():
                 aardval = query.value(0).toDouble()[0]
                 pval = query.value(1).toDouble()[0]
-                                     
+
         self.aardval.setText("%.4f" %aardval)
         self.pval.setText("%.4f" %pval)
-        
+
         geo = Geography(self.stateCode, int(self.selcounty), int(self.seltract), int(self.selblkgroup))
         geo = self.getPUMA5(geo)
-        
+
         self.pumano = geo.puma5
-        
+
         # Get and populate the actual and synthetics unique person type frequencies for the scatter plot
         if int(self.pumano) > 0:
             actualtable = "person_" + str(self.pumano) + "_joint_dist"
@@ -368,7 +373,7 @@ class Indgeo(Matplot):
                     freq = query.value(1).toDouble()[0]
                     self.ids.append(id)
                     self.act.append(freq)
-                
+
             syntable = "person_synthetic_data"
             vars = "personuniqueid" + "," + "sum(frequency)"
             group = "personuniqueid"
@@ -382,7 +387,7 @@ class Indgeo(Matplot):
                         idx = self.ids.index(id)
                         self.syn[idx] = freq
 
-        
+
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)

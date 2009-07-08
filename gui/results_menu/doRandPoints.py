@@ -1,9 +1,14 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 #-----------------------------------------------------------
-# 
+#
 # Generate Random Points
 #
 # A QGIS plugin for generating a simple random points
-# shapefile. 
+# shapefile.
 #
 # Copyright (C) 2008  Carson Farmer
 #
@@ -11,23 +16,23 @@
 # WEB  : www.geog.uvic.ca/spar/carson
 #
 #-----------------------------------------------------------
-# 
+#
 # licensed under the terms of GNU GPL 2
-# 
+#
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 2 of the License, or
 # (at your option) any later version.
-# 
+#
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
-# 
+#
 # You should have received a copy of the GNU General Public License along
 # with this program; if not, write to the Free Software Foundation, Inc.,
 # 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
-# 
+#
 #---------------------------------------------------------------------
 
 from PyQt4.QtCore import *
@@ -46,10 +51,10 @@ class RandPoints():
         #self.gridlayout.addWidget(self.progressBar,7,0,1,1)
         self.progressBar.setValue(0)
 
-# when 'OK' button is pressed, gather required inputs, and initiate random points generation            
+# when 'OK' button is pressed, gather required inputs, and initiate random points generation
     def accept(self, path, hhfreqvar):
         self.progressBar.setValue(2.5)
-        
+
         inlayerpath = path + '_sel' + '.shp'
         inLayer = QgsVectorLayer(inlayerpath, "SelCounties", "ogr")
         outPath = path + '_hhpoints' + '.shp'
@@ -60,14 +65,14 @@ class RandPoints():
         self.progressBar.setValue(10)
         self.randomize(inLayer, outPath, minimum, design, value, self.progressBar)
         self.progressBar.setValue(100)
-        #addToTOC = QMessageBox.question(self, "Random Points", "Created output point Shapefile:\n" + outPath 
+        #addToTOC = QMessageBox.question(self, "Random Points", "Created output point Shapefile:\n" + outPath
         #    + "\n\nWould you like to add the new layer to the TOC?", QMessageBox.Yes, QMessageBox.No, QMessageBox.NoButton)
         #if addToTOC == QMessageBox.Yes:
         #    self.vlayer = QgsVectorLayer(outPath, unicode(outName), "ogr")
         #    QgsMapLayerRegistry.instance().addMapLayer(self.vlayer)
-        self.progressBar.setValue(0)        
+        self.progressBar.setValue(0)
         return outPath
-# Generate list of random points     
+# Generate list of random points
     def simpleRandom(self, n, bound, xmin, xmax, ymin, ymax):
         seed()
         points = []
@@ -78,8 +83,8 @@ class RandPoints():
                 points.append(pGeom)
                 i = i + 1
         return points
-    
-# Get vector layer by name from TOC     
+
+# Get vector layer by name from TOC
     def getVectorLayerByName(self, myName):
         mc = self.iface.getMapCanvas()
         nLayers = mc.layerCount()
@@ -91,8 +96,8 @@ class RandPoints():
                     return vlayer
                 else:
                     QMessageBox.information(self, "Generate Centroids", "Vector layer is not valid")
-    
-# Get map layer by name from TOC     
+
+# Get map layer by name from TOC
     def getMapLayerByName(self, myName):
         mc = self.iface.getMapCanvas()
         nLayers = mc.layerCount()
@@ -100,7 +105,8 @@ class RandPoints():
             layer = mc.getZpos(l)
             if layer.name() == unicode(myName):
                 if layer.isValid():
-                    return layer    
+                    return layer
+
 # Retreive the field map of a vector Layer
     def getFieldList(self, vlayer):
         fProvider = vlayer.getDataProvider()
@@ -109,7 +115,7 @@ class RandPoints():
         fProvider.select(allAttrs)
         myFields = fProvider.fields()
         return myFields
-    
+
 
     def randomize(self, inLayer, outPath, minimum, design, value, progressBar):
         outFeat = QgsFeature()
@@ -134,8 +140,8 @@ class RandPoints():
             count = count + add
             progressBar.setValue(count)
         del writer
-    
-#   
+
+#
     def loopThruPolygons(self, inLayer, numRand, design, progressBar):
         sProvider = inLayer.getDataProvider()
         sAllAttrs = sProvider.allAttributesList()

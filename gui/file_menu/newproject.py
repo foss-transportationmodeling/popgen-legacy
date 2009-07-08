@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from __future__ import with_statement
 from collections import defaultdict
 
@@ -52,7 +57,7 @@ class Geography(object):
         self.tract = tract
         self.bg = bg
         self.puma5 = puma5
-        
+
     """
     def gqControlVariables(self):
         pass
@@ -71,7 +76,7 @@ class Geography(object):
 
     def personDimensions(self):
         pass
-    
+
 
     def runIPFHousingNoAdj(self):
         #return objective freq
@@ -114,12 +119,12 @@ class Geography(object):
     """
 
 class Parameters(object):
-    def __init__(self, 
-                 ipfTol=IPF_TOLERANCE, 
-                 ipfIter=IPF_MAX_ITERATIONS, 
-                 ipuTol=IPU_TOLERANCE, 
-                 ipuIter=IPU_MAX_ITERATIONS, 
-                 synPopDraws=SYNTHETIC_POP_MAX_DRAWS, 
+    def __init__(self,
+                 ipfTol=IPF_TOLERANCE,
+                 ipfIter=IPF_MAX_ITERATIONS,
+                 ipuTol=IPU_TOLERANCE,
+                 ipuIter=IPU_MAX_ITERATIONS,
+                 synPopDraws=SYNTHETIC_POP_MAX_DRAWS,
                  synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE,
                  roundingProcedure=ROUNDING_PROCEDURE):
 
@@ -140,7 +145,7 @@ class NewProject(object):
                  sampleUserProv=Sample(), controlUserProv=Control(),
                  db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariableDicts(),
                  hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds={}):
-        self.name = name 
+        self.name = name
         self.filename = name
         self.location = location
         self.description = description

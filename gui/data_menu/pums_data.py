@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from __future__ import with_statement
 
 import urllib
@@ -27,10 +32,10 @@ class UserImportSampleData():
 
         if check:
             hhldTableQuery = self.mysqlQueries('hhld_sample', self.project.sampleUserProv.hhLocation)
-            
+
             if not self.query.exec_(hhldTableQuery.query1):
                 raise FileError, self.query.lastError().text()
-        
+
             if not self.query.exec_(hhldTableQuery.query2):
                 raise FileError, self.query.lastError().text()
 
@@ -39,21 +44,21 @@ class UserImportSampleData():
                 #raise FileError, self.query.lastError().text()
                 print "Warning: %s" %self.query.lastError.text()
 
-            
-                                
-                                
+
+
+
     def createGQTable(self):
         check = self.checkIfTableExists('gq_sample')
 
         if check:
             gqLocLen = len(self.project.sampleUserProv.gqLocation)
-        
+
             if gqLocLen > 1:
                 gqTableQuery = self.mysqlQueries('gq_sample', self.project.sampleUserProv.gqLocation)
-                
+
                 if not self.query.exec_(gqTableQuery.query1):
                     raise FileError, self.query.lastError().text()
-                
+
                 if not self.query.exec_(gqTableQuery.query2):
                     raise FileError, self.query.lastError().text()
 
@@ -62,7 +67,7 @@ class UserImportSampleData():
                     #raise FileError, self.query.lastError().text()
                     print "Warning: %s" %self.query.lastError.text()
 
-    
+
     def createPersonTable(self):
         check = self.checkIfTableExists('person_sample')
 
@@ -71,7 +76,7 @@ class UserImportSampleData():
 
             if not self.query.exec_(personTableQuery.query1):
                 raise FileError, self.query.lastError().text()
-        
+
             if not self.query.exec_(personTableQuery.query2):
                 raise FileError, self.query.lastError().text()
 
@@ -152,7 +157,7 @@ class AutoImportPUMSData():
             self.personDefVar()
             self.personSelVars()
             self.createPersonPUMSTable()
-        
+
     def checkIfTableExists(self, tablename):
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
@@ -210,7 +215,7 @@ class AutoImportPUMSData():
         file = UnzipFile(self.loc, "all_%s.zip" %(web_state))
         file.unzip()
 
-        
+
 
 
 
@@ -272,7 +277,7 @@ class AutoImportPUMSData():
             self.personDefaultVariables = []
             while (self.query.next()):
                 self.personDefaultVariables.append(self.query.value(0).toString())
-        
+
 
     def housingSelVars(self):
         housingVariablesDialog = VariableSelectionDialog(self.housingVariableDict, self.housingDefaultVariables,
@@ -297,7 +302,7 @@ class AutoImportPUMSData():
         if personVariablesDialog.exec_():
             self.personVariablesSelectedDummy = True
             self.personVariablesSelected = personVariablesDialog.selectedVariableListWidget.variables
-            
+
         else:
             self.personVariablesSelectedDummy = False
 
@@ -306,7 +311,7 @@ class AutoImportPUMSData():
         try:
             fileInfo = os.stat(file)
 
-            reply = QMessageBox.question(None, "Import", 
+            reply = QMessageBox.question(None, "Import",
                                          QString("""File %s exists. Would you like to overwrite?""" %(file)),
                                          QMessageBox.Yes| QMessageBox.No)
 
@@ -317,28 +322,28 @@ class AutoImportPUMSData():
         except WindowsError, e:
             print 'Warning: File - %s not present' %(file)
             return 0
-            
+
     def createHousingPUMSTable(self):
         # Creating a Housing PUMS Table
         self.housingFileName = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
         self.housingPUMSloc = os.path.join(self.loc, self.housingFileName)
-        
+
         if not self.checkIfFileExists(self.housingPUMSloc):
             self.createHousingPUMSFile()
-            
+
         housingVariablesSelected = copy.deepcopy(self.housingVariablesSelected)
         housingVariablesSelected.insert(0, 'hhid')
-        
+
         housingVariablesSelectedType = ['bigint'] * len(housingVariablesSelected)
-        
+
         try:
-            housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc, 
+            housingPUMSTableQuery = ImportUserProvData("housing_pums", self.housingPUMSloc,
                                                        housingVariablesSelected, housingVariablesSelectedType, False, False)
         except Exception, e:
             raise FileError, e
         if not self.query.exec_(housingPUMSTableQuery.query1):
             raise FileError, self.query.lastError().text()
-        
+
         if not self.query.exec_(housingPUMSTableQuery.query2):
             raise FileError, self.query.lastError().text()
 
@@ -351,19 +356,19 @@ class AutoImportPUMSData():
 
         if not self.checkIfFileExists(self.personPUMSloc):
             self.createPersonPUMSFile()
-            
+
 
         personVariablesSelected = copy.deepcopy(self.personVariablesSelected)
 
 
         personVariablesSelected.insert(0, 'hhid')
         personVariablesSelected.insert(0, 'pumano')
-        personVariablesSelected.insert(0, 'state')        
-        
+        personVariablesSelected.insert(0, 'state')
+
         personVariablesSelectedType = ['bigint'] * len(personVariablesSelected)
 
         try:
-            personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc, 
+            personPUMSTableQuery = ImportUserProvData("person_pums", self.personPUMSloc,
                                                       personVariablesSelected, personVariablesSelectedType, False, False)
         except Exception, e:
             raise FileError, e
@@ -398,9 +403,9 @@ class AutoImportPUMSData():
 #                            if rectype == 'P':
 #                                housingRec = self.parseHousing(i)
 #                                fhousing.write(housingRec)
-#                                nhousing = nhousing + 1                    
+#                                nhousing = nhousing + 1
 
- #       print 'Housing Records Parsed - %s' %nhousing        
+ #       print 'Housing Records Parsed - %s' %nhousing
  #       print 'Person Records Parsed - %s' %nperson
 
 
@@ -426,10 +431,10 @@ class AutoImportPUMSData():
                 else:
                     QMessageBox.warning(None, "Import", QString("""Empty person PUMS File and empty person PUMS"""
                                                                 """ table will be created since no"""
-                                                                """ variables were selected for extraction."""), 
+                                                                """ variables were selected for extraction."""),
                                         QMessageBox.Ok)
         #print 'Person Records Parsed - %s' %nperson
-        
+
 
     def createHousingPUMSFile(self):
         pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
@@ -451,7 +456,7 @@ class AutoImportPUMSData():
                                                                 """ table will be created since no"""
                                                                 """ variables were selected for extraction."""),
                                         QMessageBox.Ok)
-        #print 'Housing Records Parsed - %s' %nhousing        
+        #print 'Housing Records Parsed - %s' %nhousing
 
 
     def parseHousing(self, record, nhousing):
@@ -461,7 +466,7 @@ class AutoImportPUMSData():
             end = start + int(self.housingVarLenDict['%s'%i])
             value = record[start:end]
             string = string + value + ','
-            
+
         string = string[:-1] + '\n'
         return string
 
@@ -474,11 +479,11 @@ class AutoImportPUMSData():
             end = start + int(self.personVarLenDict['%s'%i])
             value = record[start:end]
             string = string + value + ','
-            
+
         string = string[:-1] + '\n'
         return string
 
-    
+
 if __name__ == "__main__":
     import sys
     app = QApplication(sys.argv)

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -30,37 +35,37 @@ class Absreldiff(Matplot):
             self.on_draw()
         else:
             QMessageBox.warning(self, "Results", "A table with name - performance_statistics does not exist.", QMessageBox.Ok)
-        
+
     def isValid(self):
         return self.checkIfTableExists("performance_statistics")
-        
+
     def on_draw(self):
         """ Redraws the figure
         """
         self.err = []
         if self.retrieveResults():
-       
+
             # clear the axes and redraw the plot anew
-            self.axes.clear()        
+            self.axes.clear()
             self.axes.grid(True)
-        
+
             #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
             self.axes.hist(self.err , normed=False, align='mid')
             self.axes.set_xlabel("Average Absolute Relative Differences")
             self.axes.set_ylabel("Frequency")
-            self.canvas.draw()    
+            self.canvas.draw()
 
     def retrieveResults(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
-        
+
         # Get aard-values from performance statistics
         performancetable = "performance_statistics"
         aardvalvar = "aardvalue"
         filter = ""
         group = ""
         query = self.executeSelectQuery(projectDBC.dbc,aardvalvar, performancetable, filter, group)
-        
+
         if query:
             while query.next():
                 aardval = query.value(0).toDouble()[0]
@@ -70,7 +75,7 @@ class Absreldiff(Matplot):
         else:
             projectDBC.dbc.close()
             return False
-        
+
 
 def main():
     app = QApplication(sys.argv)

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -57,7 +62,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.connect(renameAction, SIGNAL("triggered()"), self.renameTable)
         self.connect(dropAction, SIGNAL("triggered()"), self.dropTable)
         self.connect(defaultTransforAction, SIGNAL("triggered()"), self.defaultTransformations)
-        
+
         if self.item.parent() is None:
             menu.exec_(event.globalPos())
         else:
@@ -69,12 +74,12 @@ class QTreeWidgetCMenu(QTreeWidget):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
         projectDBC = createDBC(self.project.db, self.project.name)
-        projectDBC.dbc.open()        
+        projectDBC.dbc.open()
 
         deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
         if deleteRows.exec_():
 
-            reply = QMessageBox.question(self, "Delete Records", "Would you like to continue?", 
+            reply = QMessageBox.question(self, "Delete Records", "Would you like to continue?",
                                          QMessageBox.Yes| QMessageBox.Cancel)
             if reply == QMessageBox.Yes:
 
@@ -83,19 +88,19 @@ class QTreeWidgetCMenu(QTreeWidget):
                 whereExpression = deleteRows.whereEdit.toPlainText()
                 print whereExpression, 'is the text'
                 if not whereExpression == "":
-                    
+
                     if not query.exec_("""delete from %s where %s""" %(tablename, whereExpression)):
                         raise FileError, query.lastError().text()
                 else:
-                    QMessageBox.warning(self, "Delete Records", """No filter expression selected, 0 records deleted.""", 
+                    QMessageBox.warning(self, "Delete Records", """No filter expression selected, 0 records deleted.""",
                                         QMessageBox.Ok)
-                                       
+
         projectDBC.dbc.close()
 
-       
+
     def copyTable(self):
         tablename = self.item.text(0)
-        
+
         copyNameDialog = NameDialog("Copy Table - %s" %tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
@@ -110,7 +115,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def renameTable(self):
         tablename = self.item.text(0)
-        
+
         renameNameDialog = NameDialog("Rename Table - %s" %tablename)
         if renameNameDialog.exec_():
             newTablename = renameNameDialog.nameLineEdit.text()
@@ -126,22 +131,22 @@ class QTreeWidgetCMenu(QTreeWidget):
     def dropTable(self):
         tablename = self.item.text(0)
 
-        reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?", 
+        reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?",
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
             projectDBC = createDBC(self.project.db, self.project.name)
             projectDBC.dbc.open()
-        
+
             query = QSqlQuery(projectDBC.dbc)
             if not query.exec_("""drop table %s""" %tablename):
                 raise FileError, query.lastError().text()
             self.populate()
             projectDBC.dbc.close()
 
-        
+
     def click(self, item, column):
         self.item = item
-        
+
     def createVariable(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
@@ -162,14 +167,14 @@ class QTreeWidgetCMenu(QTreeWidget):
                 query = QSqlQuery(projectDBC.dbc)
                 if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
                     raise FileError, query.lastError().text()
-                if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName, 
+                if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName,
                                                                           numericExpression, whereExpression)):
                     raise FileError, query.lastError().text()
-        
+
         projectDBC.dbc.close()
 
 
-        
+
     def displayTable(self):
         tablename = self.item.text(0)
 
@@ -183,7 +188,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         tablename = self.item.text(0)
         modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename, icon = "modifydata")
         modify.exec_()
-        
+
         projectDBC.dbc.close()
 
 
@@ -196,7 +201,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         query = QSqlQuery(projectDBC.dbc)
 
         title = "Delete Dialog - %s" %tablename
-        deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = title, icon = "modifydata", 
+        deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = title, icon = "modifydata",
                                                      warning = "Note: Select variables to delete.")
 
         if deleteVariablesdia.exec_():
@@ -207,8 +212,8 @@ class QTreeWidgetCMenu(QTreeWidget):
                     raise FileError, query.lastError().text()
 
         projectDBC.dbc.close()
-        
-        
+
+
     def defaultTransformations(self):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
@@ -224,11 +229,11 @@ class QTreeWidgetCMenu(QTreeWidget):
             if tablename == 'housing_pums':
                 queries = DEFAULT_HOUSING_PUMS_QUERIES
                 checkPUMSTableTransforms = True
-                
+
             if tablename == 'person_pums':
                 queries = DEFAULT_PERSON_PUMS_QUERIES
                 checkPUMSTableTransforms = True
-                                
+
             if checkPUMSTableTransforms:
                 for i in queries:
                     print "Executing Query: %s" %i
@@ -250,7 +255,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         if not (checkPUMSTableTransforms or checkSFTableTransforms):
             print "FileError: The file does not have default transformations"
-        
+
         projectDBC.dbc.close()
         self.populate()
 
@@ -272,7 +277,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             key = query.value(KEY).toString()
             default = query.value(DEFAULT).toString()
             extra = query.value(EXTRA).toString()
-            
+
             self.variableTypeDictionary['%s' %field] = type
         projectDBC.dbc.close()
 
@@ -296,7 +301,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         if editWidget.exec_():
             check1 = (self.page.projectDescLineEdit.text() == self.project.description)
             check2 = (self.page.projectResolutionComboBox.currentText() == self.project.resolution)
-            
+
             #print check1, check2, 'checkkkkkkkkksssssssssssssssssss'
 
             if check1 and check2:
@@ -313,13 +318,13 @@ class QTreeWidgetCMenu(QTreeWidget):
                 print 'Project resolution changed'
                 autoImportSFDataInstance = AutoImportSFData(self.project)
                 autoImportSFDataInstance.createMasterSubSFTable()
-                autoImportSFDataInstance.projectDBC.dbc.close()      
+                autoImportSFDataInstance.projectDBC.dbc.close()
                 tablename = 'mastersftable%s' %(self.page.projectResolutionComboBox.currentText())
 
                 self.populate()
 
 
-            
+
 
     def importData(self):
         #QMessageBox.information(None, "Check", "Import Data", QMessageBox.Ok)
@@ -331,10 +336,10 @@ class QTreeWidgetCMenu(QTreeWidget):
     def populate(self):
         self.setEnabled(True)
         self.clear()
-        
+
         projectAncestor = QTreeWidgetItem(self, [QString("Project: " + self.project.name)])
         informationParent = QTreeWidgetItem(projectAncestor, [QString("Information")])
-        
+
         dummy = ""
         if self.project.region is not None:
             for i in self.project.region.keys():
@@ -354,18 +359,18 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
 
-        informationItems = {"Location":self.project.location, 
+        informationItems = {"Location":self.project.location,
                             "Description":self.project.description,
                             "Region":dummy,
                             "Resolution":resolution}
         for i,j in informationItems.items():
             child = QTreeWidgetItem(informationParent, [i, QString(j)])
-        
+
         geocorrParent = QTreeWidgetItem(projectAncestor, [QString("Geographic Correspondence")])
         geocorrUserProvText = self.userProvText(self.project.geocorrUserProv.userProv)
-        geocorrItems = {"User Provided":geocorrUserProvText, 
+        geocorrItems = {"User Provided":geocorrUserProvText,
                         "Location":self.project.geocorrUserProv.location}
-        
+
         for i,j in geocorrItems.items():
             child = QTreeWidgetItem(geocorrParent, [i, QString("%s"%j)])
 
@@ -419,21 +424,21 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def tableChildren(self):
-               
+
         projectDBC = createDBC(self.project.db, self.project.name)
-        
+
         projectDBC.dbc.open()
-        
+
         self.query = QSqlQuery(projectDBC.dbc)
-        
+
         if not self.query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
-        
+
         tableItems = []
 
         while self.query.next():
             tableItems.append(self.query.value(0).toString())
-            
+
         projectDBC.dbc.close()
 
         tableItems.sort()

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 """
 This demo demonstrates how to embed a matplotlib (mpl) plot
 into a PyQt4 GUI application, including:
@@ -49,7 +54,7 @@ class Matplot(QDialog):
         self.vbox = QVBoxLayout()
 
         self.dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok)
-        
+
         self.connect(self.dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
@@ -107,7 +112,7 @@ class Matplot(QDialog):
         except:
             return False
         return True
-        
+
 
     def tableList(self):
         self.projectDBC = createDBC(self.project.db, self.project.name)
@@ -133,24 +138,24 @@ class LabComboBox(QWidget):
         QDialog.__init__(self, parent)
         self.layout = QHBoxLayout()
         self.setLayout(self.layout)
-        
+
         self.label = QLabel(label)
         self.combobox = QComboBox()
         self.list = list
         self.combobox.addItems(self.list)
-        
+
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.combobox)
         self.connect(self.combobox, SIGNAL("currentIndexChanged(const QString&)"), self.emitSignal)
         self.label.setFixedWidth(70)
         self.setFixedWidth(300)
-        
+
     def emitSignal(self):
         self.emit(SIGNAL("currSelChanged"))
-        
+
     def getCurrentText(self):
         return self.combobox.currentText()
-        
+
     def setCurrentText(self,txt):
         self.combobox.setCurrentIndex(self.list.index(txt))
 

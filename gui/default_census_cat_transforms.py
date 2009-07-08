@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand 
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 DEFAULT_PERSON_PUMS_QUERIES = [ "alter table person_pums add column agep bigint",
                                 "alter table person_pums add column gender bigint",
                                 "alter table person_pums add column race bigint",

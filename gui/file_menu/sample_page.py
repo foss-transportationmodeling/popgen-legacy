@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 #from misc.errors import *
@@ -55,7 +60,7 @@ class SampleDataPage(QWizardPage):
         sampleVLayout.addWidget(self.samplePersonLocationComboBox)
         self.sampleUserProvGroupBox.setLayout(sampleVLayout)
 
-        
+
         self.sampleUserProvGroupBox.setEnabled(False)
 
         vLayout = QVBoxLayout()

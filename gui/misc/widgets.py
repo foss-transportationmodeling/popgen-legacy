@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -37,7 +42,7 @@ class ComboBoxFolder(QComboBox):
         for i in range(self.count()):
             if location == self.itemText(i):
                 return i
-        return None        
+        return None
 
 class ComboBoxFile(QComboBox):
     def __init__(self, parent=None):
@@ -61,7 +66,7 @@ class ComboBoxFile(QComboBox):
             if file == self.itemText(i):
                 return i
         return None
-                
+
     def findAndSet(self, text):
         for i in range(self.count()):
             if self.itemText(i) == ('%s' %text):
@@ -89,20 +94,20 @@ class LineEdit(QLineEdit):
             if not re.match("[A-Za-z]",text[0]):
                 text = text[1:]
                 raise TextError, "First character has to be a alphabet"
-            
+
             for i in text[1:]:
                 if not re.match("[A-Za-z_0-9]", i):
                     text.replace(i, '')
                     raise TextError, "Name can only comprise of alphabets and an underscore (_)"
         except TextError, e:
-            QMessageBox.information(self, "Warning", 
-                                    "%s" %e, 
+            QMessageBox.information(self, "Warning",
+                                    "%s" %e,
                                     QMessageBox.Ok)
             self.setText(text)
             self.selectAll()
             self.setFocus()
         return True
-            
+
 class Separator(QFrame):
     def __init__(self, parent=None):
         super(Separator, self).__init__(parent)
@@ -113,7 +118,7 @@ class Separator(QFrame):
 class NameDialog(QDialog):
     def __init__(self,  title, parent=None):
         super(NameDialog, self).__init__(parent)
-        
+
         self.setMinimumSize(200, 100)
         self.setWindowTitle(title)
         self.setWindowIcon(QIcon("./images/modifydata.png"))
@@ -124,9 +129,9 @@ class NameDialog(QDialog):
         hLayout = QHBoxLayout()
         hLayout.addWidget(nameLabel)
         hLayout.addWidget(self.nameLineEdit)
-        
+
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
-        
+
         copyWarning = QLabel("""<font color = blue>Enter a name for the table</font> """)
 
         vLayout = QVBoxLayout()
@@ -135,10 +140,10 @@ class NameDialog(QDialog):
         vLayout.addWidget(dialogButtonBox)
 
         self.setLayout(vLayout)
-        
+
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
-        self.connect(self.nameLineEdit, SIGNAL("textChanged(const QString&)"), self.checkName)        
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+        self.connect(self.nameLineEdit, SIGNAL("textChanged(const QString&)"), self.checkName)
 
     def checkName(self, text):
         try:
@@ -171,7 +176,7 @@ class VariableSelectionDialog(QDialog):
         if len(defaultVariables) == 0:
             dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
         else:
-            dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.RestoreDefaults| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)            
+            dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.RestoreDefaults| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
         layout = QVBoxLayout()
 
         selectButton = QPushButton('Select>>')
@@ -219,7 +224,7 @@ class VariableSelectionDialog(QDialog):
 
 
     def accept(self):
-        
+
         QDialog.accept(self)
 
 
@@ -331,7 +336,7 @@ class RecodeDialog(QDialog):
         self.project = project
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
-        
+
         self.setWindowTitle(title)
 
         self.setFixedSize(QSize(500, 300))
@@ -342,14 +347,14 @@ class RecodeDialog(QDialog):
         self.variableList = QListWidget()
 
         self.populate()
-        
+
         oldLabel = QLabel("Variable name to be recoded:")
         self.variableOldEdit = QLineEdit()
         self.variableOldEdit.setEnabled(False)
         newLabel = QLabel("New variable name after recoding:")
         self.variableNewEdit = QLineEdit()
         self.variableNewEdit.setEnabled(False)
-        
+
         self.oldNewButton = QPushButton("Old and New Values")
         self.oldNewButton.setEnabled(False)
 
@@ -362,7 +367,7 @@ class RecodeDialog(QDialog):
         recodeWarning.setWordWrap(True)
         vlayout1 = QVBoxLayout()
         vlayout1.addWidget(self.variableList)
-        
+
         vlayout2 = QVBoxLayout()
         vlayout2.addWidget(oldLabel)
         vlayout2.addWidget(self.variableOldEdit)
@@ -383,15 +388,15 @@ class RecodeDialog(QDialog):
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)
-        
+
         self.connect(self.variableList, SIGNAL("itemDoubleClicked(QListWidgetItem *)"), self.moveSelectedVar)
         self.connect(self.variableNewEdit, SIGNAL("textChanged(const QString&)"), self.checkNewVarName)
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
         self.connect(self.oldNewButton, SIGNAL("clicked()"), self.relationOldNew)
-        
+
     def checkNewVarName(self, name):
-        
+
         import copy
         variables = copy.deepcopy(self.variables)
 
@@ -431,22 +436,22 @@ class RecodeDialog(QDialog):
 
     def runRecodeCrit(self, variablename, newvariablename, recodeCrit):
         query = QSqlQuery(self.projectDBC.dbc)
-        
+
         self.addColumn(newvariablename)
-        
+
         for crit in recodeCrit:
-            if not query.exec_("""update %s set %s = %s where %s = %s""" 
-                               %(self.tablename, 
-                                 newvariablename, 
-                                 crit[1], 
+            if not query.exec_("""update %s set %s = %s where %s = %s"""
+                               %(self.tablename,
+                                 newvariablename,
+                                 crit[1],
                                  variablename,
                                  crit[0])):
                 raise FileError, query.lastError().text()
-        
+
 
     def addColumn(self, variablename):
         query = QSqlQuery(self.projectDBC.dbc)
-        
+
 
         if not query.exec_("""alter table %s add column %s text""" %(self.tablename, variablename)):
             raise FileError, query.lastError().text()
@@ -456,8 +461,8 @@ class RecodeDialog(QDialog):
         self.variableOldEdit.clear()
         self.variableList.clear()
         self.populate()
-        
-        
+
+
 
 
     def populate(self):
@@ -486,7 +491,7 @@ class RecodeDialog(QDialog):
             variables.append(field)
 
         return variables
-            
+
 
 
     def categories(self, varname):
@@ -505,7 +510,7 @@ class RecodeDialog(QDialog):
             #except:
             #    cat = query.value(CATEGORY).toString()[0]
             cats.append(cat)
-                    
+
         return cats
 
 class OldNewRelation(QDialog):
@@ -518,7 +523,7 @@ class OldNewRelation(QDialog):
         self.variablename = variablename
         self.varcats = varcats
         self.recCritDict = {}
-        
+
         varCatsLabel = QLabel("Categories in the variable:")
         self.varCatsList = ListWidget()
         self.varCatsList.setSelectionMode(QAbstractItemView.ExtendedSelection)
@@ -550,19 +555,19 @@ class OldNewRelation(QDialog):
         vLayout3.addItem(QSpacerItem(10,100))
 
         vLayout4 = self.vLayout([recodeCritLabel, self.recodeCritList])
-        
-        
+
+
         hLayout = self.hLayout([vLayout2, vLayout3, vLayout4])
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Reset| QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
-        
+
         layout = QVBoxLayout()
         layout.addLayout(hLayout)
         layout.addWidget(oldnewWarning)
         layout.addWidget(dialogButtonBox)
 
         self.setLayout(layout)
-        
+
         self.populate()
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
@@ -572,7 +577,7 @@ class OldNewRelation(QDialog):
         self.connect(self.varCatsList, SIGNAL("itemSelectionChanged()"), self.enableCopyOldCrit)
         self.connect(self.newCatEdit, SIGNAL("textChanged(const QString&)"), self.enableAddCrit)
         self.connect(self.recodeCritList, SIGNAL("itemSelectionChanged()"), self.enableRemoveCrit)
-        
+
         self.connect(self.addRecCrit, SIGNAL("clicked()"), self.addRecCritList)
         self.connect(self.removeRecCrit, SIGNAL("clicked()"), self.removeRecCritList)
         self.connect(self.copyOldCrit, SIGNAL("clicked()"), self.addCopyOldCritList)
@@ -580,12 +585,12 @@ class OldNewRelation(QDialog):
 
     def accept(self):
         self.recodeCrit = []
-        
+
         if not self.recodeCritList.count() < 1:
             for i in range(self.recodeCritList.count()):
                 itemText = self.recodeCritList.item(i).text()
                 old, new = self.parse(itemText)
-            
+
                 self.recodeCrit.append([old,new])
                 QDialog.accept(self)
         else:
@@ -596,7 +601,7 @@ class OldNewRelation(QDialog):
                 QDialog.accept(self)
 
 
-        
+
     def parse(self, text):
         parsed = text.split(',')
         return int(parsed[0]), int(parsed[1])
@@ -604,7 +609,7 @@ class OldNewRelation(QDialog):
 
     def reset(self):
         pass
-        
+
     def enableAddCrit(self):
         try:
             int(self.newCatEdit.text())
@@ -621,8 +626,8 @@ class OldNewRelation(QDialog):
         else:
             self.copyOldCrit.setEnabled(False)
 
-        
-            
+
+
     def enableRemoveCrit(self):
         if len(self.recodeCritList.selectedItems())>0:
             self.removeRecCrit.setEnabled(True)
@@ -650,7 +655,7 @@ class OldNewRelation(QDialog):
         recCrit = []
 
         newCat = int(self.newCatEdit.text())
-        
+
         for i in items:
             crit = '%s' %i.text() + ',' + '%s' %newCat
             recCrit.append(crit)
@@ -660,11 +665,11 @@ class OldNewRelation(QDialog):
         self.recodeCritList.sortItems()
         self.varCatsList.removeList(items)
         self.newCatEdit.clear()
-        
+
 
     def removeRecCritList(self):
         items = self.recodeCritList.selectedItems()
-        
+
         for i in items:
             self.varCatsList.addItem(self.recCritDict['%s' %i.text()])
         self.varCatsList.sortItems()
@@ -673,7 +678,7 @@ class OldNewRelation(QDialog):
 
 
     def populate(self):
-        
+
         catString = ['%s' %i for i in self.varcats]
         self.varCatsList.addItems(catString)
         self.varCatsList.sortItems()
@@ -689,7 +694,7 @@ class OldNewRelation(QDialog):
         for i in widgetList:
             layout.addWidget(i)
         return layout
-            
+
 
 class CreateVariable(QDialog):
     def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
@@ -720,7 +725,7 @@ class CreateVariable(QDialog):
         dummy = "Eg. Var1 > 10"
         whereEgLabel = QLabel("<font color = brown>%s</font>" %dummy)
         self.whereEdit.setEnabled(False)
-        
+
         createVarWarning = QLabel("""<font color = blue>Note: Enter the name of the new variable in <b>New Variable Name</b> """
                                   """line edit box, type the mathematical expression that defines the new variable in the """
                                   """<b>Expression</b> text edit box, and add any mathematical filter expression in the """
@@ -728,12 +733,12 @@ class CreateVariable(QDialog):
                                   """The dialog also allows users to check the """
                                   """categories under any variable by clicking the variable in the """
                                   """<b>Variables in Table</b> list box.</font>""")
-        
+
         createVarWarning.setWordWrap(True)
         vLayout2 = QVBoxLayout()
         vLayout2.addWidget(newVarLabel)
         vLayout2.addWidget(self.newVarNameEdit)
-        
+
         hLayout1 = QHBoxLayout()
         vLayout3 = QVBoxLayout()
         vLayout3.addWidget(variableListLabel)
@@ -784,10 +789,10 @@ class CreateVariable(QDialog):
 
         self.variableCatsListWidget.clear()
         self.variableCatsListWidget.addItems(cats)
-        
+
 
     def checkNewVarName(self, name):
-        
+
         import copy
         variables = copy.deepcopy(self.variables)
 
@@ -812,8 +817,8 @@ class CreateVariable(QDialog):
                                 self.enable(True)
             else:
                 self.enable(False)
-        
-        
+
+
     def enable(self, value):
         self.formulaEdit.setEnabled(value)
         self.whereEdit.setEnabled(value)
@@ -838,7 +843,7 @@ class CreateVariable(QDialog):
             #    cat = query.value(CATEGORY).toString()
             #    print cat
             cats.append(cat)
-                   
+
 
         return cats
 
@@ -869,10 +874,10 @@ class DeleteRows(QDialog):
                                   """The dialog also allows users to check the """
                                   """categories under any variable by selecting the variable in the """
                                   """<b>Variables in Table</b> list box.</font>""")
-        
+
         createVarWarning.setWordWrap(True)
         vLayout2 = QVBoxLayout()
-        
+
         hLayout1 = QHBoxLayout()
         vLayout3 = QVBoxLayout()
         vLayout3.addWidget(variableListLabel)
@@ -917,9 +922,9 @@ class DeleteRows(QDialog):
 
         self.variableCatsListWidget.clear()
         self.variableCatsListWidget.addItems(cats)
-        
 
-        
+
+
     def populate(self):
         self.variableListWidget.addItems(self.variables)
 
@@ -946,9 +951,9 @@ if __name__ == "__main__":
     var = {}
     var['first'] = [1,2,3,4,-99]
     var['second'] = [3,4,1,-1]
-    
+
     dia = CreateVariable(var)
     dia.show()
     app.exec_()
-    
-    
+
+

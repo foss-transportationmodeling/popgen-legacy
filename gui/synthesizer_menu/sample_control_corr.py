@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 import sys
 import numpy
 
@@ -50,13 +55,13 @@ class SetCorrDialog(QDialog):
             self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
 
 
     def populate(self, selVariable, tab):
         for i in selVariable.keys():
-            
+
             tab.selSampleVarListWidget.addItem(i)
             row = tab.sampleVarListWidget.rowOf(i)
             tab.sampleVarListWidget.setCurrentRow(row)
@@ -73,7 +78,7 @@ class SetCorrDialog(QDialog):
                 controlVar = selVariable[i][varCatString]
 
                 relation = '%s -  %s' %(varCatString, controlVar)
-                
+
                 tab.selVarCatStrings[varCatString] = varName
                 tab.relationStrings[relation] = varName
                 tab.selVariables = selVariable
@@ -82,7 +87,7 @@ class SetCorrDialog(QDialog):
                 tab.relationsListWidget.addItem(relation)
 
                 cats.append(sampleVarCat)
-            tab.sampleVarsDict[i] = cats       
+            tab.sampleVarsDict[i] = cats
 
 
 
@@ -114,7 +119,7 @@ class SetCorrDialog(QDialog):
             raise FileError, query.lastError().text()
 
         query1 = QSqlQuery(self.projectDBC.dbc)
-         
+
         while query.next():
             tableName = query.value(0).toString()
             if tableName.startsWith(tableNamePrefix) and (tableName.endsWith("_joint_dist") or tableName.endsWith("_ipf")):
@@ -128,10 +133,10 @@ class SetCorrDialog(QDialog):
             controlVariables.sort()
             #controlDimensions = numpy.asarray([len(vardict[QString(i)].keys()) for i in controlVariables])
             controlDimensions = numpy.asarray([len(vardict[i].keys()) for i in controlVariables])
-            
+
             #print controlVariables, controlDimensions
 
-            return controlVariables, controlDimensions        
+            return controlVariables, controlDimensions
         else:
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Control variables, and variable correspondence not defined appropriately. """
                                 """Choose variables/ define relations and then run the synthesizer.""", QMessageBox.Ok)
@@ -146,7 +151,7 @@ class SetCorrTabWidget(QTabWidget):
         self.project = project
 
         layout = QVBoxLayout()
-        
+
 
         tablesProject = self.tables()
 
@@ -155,7 +160,7 @@ class SetCorrTabWidget(QTabWidget):
 
         self.addTab(self.housingTab, 'Household Variables')
         self.addTab(self.personTab, 'Person Variables')
-        
+
         self.gqAnalyzed = self.isGqAnalyzed()
         if self.gqAnalyzed:
             self.gqTab = TabWidgetItems(self.project, 'Groupquarter', 'gq_marginals', 'gq_sample')
@@ -163,43 +168,43 @@ class SetCorrTabWidget(QTabWidget):
 
         self.setLayout(layout)
 
-        
+
     def isGqAnalyzed(self):
         if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
             return True
-        
+
         if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
             return True
-        
+
         if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
             return True
-        
+
         return False
-        
+
 
 
     def tables(self):
         projectDBC = createDBC(self.project.db, self.project.name)
-        projectDBC.dbc.open()        
+        projectDBC.dbc.open()
 
         tables = []
         query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, query.lastError().text()
-        
+
         while query.next():
             tables.append('%s' %query.value(0).toString())
-            
+
         projectDBC.dbc.close()
         return tables
-            
+
 
 class TabWidgetItems(QWidget):
     def __init__(self, project, controlType, controlTable, sampleTable, parent=None):
         super(TabWidgetItems, self).__init__(parent)
-        
+
         self.project = project
-        
+
         self.selVariables = defaultdict(dict)
 
         self.controlType = controlType
@@ -227,14 +232,14 @@ class TabWidgetItems(QWidget):
         self.deselSampleVar = QPushButton("<<Deselect")
         self.deselSampleVar.setEnabled(False)
 
-        
+
         vLayout4 = QVBoxLayout()
         vLayout4.addItem(QSpacerItem(10,50))
         vLayout4.addWidget(self.selSampleVar)
         vLayout4.addWidget(self.deselSampleVar)
         vLayout4.addItem(QSpacerItem(10,50))
 
-                
+
 
         vLayout5 = QVBoxLayout()
         vLayout5.addWidget(sampleVarLabel)
@@ -301,7 +306,7 @@ class TabWidgetItems(QWidget):
         layout.addWidget(relationLabel)
         layout.addLayout(hLayout2)
 
-        
+
         self.setLayout(layout)
 
         self.connect(self.addRelation, SIGNAL("clicked()"), self.addRelationAction)
@@ -315,33 +320,33 @@ class TabWidgetItems(QWidget):
         self.connect(self.deleteRelation, SIGNAL("clicked()"), self.deleteRelationNow)
         self.connect(self.sampleTableComboBox, SIGNAL("highlighted(int)"), self.populateSampleVariables)
         self.connect(self.controlTableComboBox, SIGNAL("highlighted(int)"), self.populateControlVariables)
-        
+
         self.populate()
 
-        
-        
+
+
     def check(self):
         check = self.checkSelectedVariables() and self.checkNumRelationsDefined()
-        
+
         return check
 
-        
+
 
 
     def checkSelectedVariables(self):
         if not (self.selSampleVarListWidget.count() > 0):
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
                                 """No variable was selected for %s control."""
-                                """ Select variables and define relations to continue.""" %self.controlType, 
+                                """ Select variables and define relations to continue.""" %self.controlType,
                                 QMessageBox.Ok)
             return False
         else:
             return True
-        
+
 
     def checkNumRelationsDefined(self):
         if self.relationsListWidget.count() <> self.selSampleVarCatListWidget.count():
-            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", 
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
                                 """Insufficient correspondence defined for the selected <b>%s</b> control variable(s).""" %self.controlType,
                                 QMessageBox.Ok)
             return False
@@ -363,7 +368,7 @@ class TabWidgetItems(QWidget):
         self.controlVars = self.variablesInTable(self.controlSelTable)
         self.controlVarListWidget.clear()
         self.controlVarListWidget.addItems(self.controlVars)
-        
+
 
     def variablesInTable(self, tablename):
         projectDBC = createDBC(self.project.db, self.project.name)
@@ -373,13 +378,13 @@ class TabWidgetItems(QWidget):
         query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""desc %s""" %tablename):
             raise FileError, query.lastError().text()
-        
+
         FIELD = 0
-        
+
         while query.next():
             field = query.value(FIELD).toString()
             variables.append(field)
-            
+
         projectDBC.dbc.close()
         return variables
 
@@ -427,7 +432,7 @@ class TabWidgetItems(QWidget):
     def categories(self, varname):
         projectDBC = createDBC(self.project.db, self.project.name)
         projectDBC.dbc.open()
-        
+
         cats = []
         query = QSqlQuery(projectDBC.dbc)
         if not query.exec_("""select %s from %s group by %s""" %(varname, self.sampleSelTable, varname)):
@@ -449,7 +454,7 @@ class TabWidgetItems(QWidget):
 
         return string
 
-    
+
 
     def removeSampleVarCats(self, item):
         varName = '%s' %item.text()
@@ -485,7 +490,7 @@ class TabWidgetItems(QWidget):
                 self.selVariables[varName][sampleVarCat] = controlVar
                 relation = '%s -  %s' %(sampleVarCat, controlVar)
                 self.relationStrings[relation] = varName
-                
+
             row = self.relationsListWidget.rowOf(relation)
             itemAt = self.relationsListWidget.item(row)
 
@@ -500,7 +505,7 @@ class TabWidgetItems(QWidget):
         except Exception, e:
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", """Select a variable category """
                                 """and a variable name to add a relation.""", QMessageBox.Ok)
-            
+
 
 
 
@@ -514,7 +519,7 @@ class TabWidgetItems(QWidget):
         #print self.selVariables
 
 
-        
+
     def parseRelation(self, item):
         relation = '%s' %item.text()
         for i in self.selVariables.keys():

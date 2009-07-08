@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 import datetime, time, numpy, re, sys
 import MySQLdb
 import pp
@@ -17,12 +22,12 @@ from gui.misc.widgets import VariableSelectionDialog, ListWidget
 from gui.misc.errors  import *
 
 class RunDialog(QDialog):
-    
+
     def __init__(self, project, jobserver, parent=None):
 
         self.job_server = jobserver
         super(RunDialog, self).__init__(parent)
-        
+
         self.setWindowTitle("Run Synthesizer")
         self.setWindowIcon(QIcon("./images/run.png"))
         self.setMinimumSize(800,500)
@@ -33,7 +38,7 @@ class RunDialog(QDialog):
         self.projectDBC.dbc.open()
 
         self.runGeoIds = []
-        
+
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
         selGeographiesLabel = QLabel("Selected Geographies")
@@ -47,7 +52,7 @@ class RunDialog(QDialog):
         runWarning = QLabel("""<font color = blue>Note: Select geographies by clicking on the <b>Select Geographies</b> button """
                             """and then click on <b>Run Synthesizer</b> to start synthesizing population.</font>""")
         runWarning.setWordWrap(True)
-        
+
         vLayout1 = QVBoxLayout()
         vLayout1.addWidget(self.selGeographiesButton)
         vLayout1.addWidget(selGeographiesLabel)
@@ -61,15 +66,15 @@ class RunDialog(QDialog):
         hLayout = QHBoxLayout()
         hLayout.addLayout(vLayout1)
         hLayout.addLayout(vLayout2)
-        
+
         vLayout3 = QVBoxLayout()
         vLayout3.addLayout(hLayout)
         vLayout3.addWidget(runWarning)
         vLayout3.addWidget(dialogButtonBox)
 
-        
+
         self.setLayout(vLayout3)
-        
+
         self.connect(self.selGeographiesButton, SIGNAL("clicked()"), self.selGeographies)
         self.connect(self.runSynthesizerButton, SIGNAL("clicked()"), self.runSynthesizer)
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
@@ -96,7 +101,7 @@ class RunDialog(QDialog):
         return varCorrDict
 
     def runSynthesizer(self):
-        
+
         date = datetime.date.today()
         ti = time.localtime()
 
@@ -110,8 +115,8 @@ class RunDialog(QDialog):
         if not query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
 
-        
-        
+
+
         varCorrDict = {}
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
@@ -123,7 +128,7 @@ class RunDialog(QDialog):
         missingTablesString = ""
         while query.next():
             projectTables.append('%s' %(query.value(0).toString()))
-            
+
         for i in preprocessDataTables:
             try:
                 projectTables.index(i)
@@ -149,7 +154,7 @@ class RunDialog(QDialog):
 
             reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
                                           """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
-            
+
             for i in self.runGeoIds:
                 ti = time.time()
                 if not query.exec_("""delete from housing_synthetic_data where state = %s and county = %s """
@@ -164,12 +169,12 @@ class RunDialog(QDialog):
 
             if reply == QMessageBox.Yes:
                 print '------------------------------------------------------------------'
-                print 'Generating synthetic population in Parallel...' 
+                print 'Generating synthetic population in Parallel...'
 
 
                 dbList = ['%s' %self.project.db.hostname, '%s' %self.project.db.username, '%s' %self.project.db.password, '%s' %self.project.name]
                 # breaking down the whole list into lists of 100 geographies each
-                
+
                 from math import floor
 
                 geoCount = len(self.runGeoIds)
@@ -177,10 +182,10 @@ class RunDialog(QDialog):
 
                 bins = int(floor(geoCount/binsize))
 
-                
+
                 index = [(i*binsize, i*binsize+binsize) for i in range(bins)]
                 index.append((bins*binsize, geoCount))
-                
+
 
                 for i in index:
                     #run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
@@ -192,18 +197,18 @@ class RunDialog(QDialog):
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo[0], geo[1], geo[3], geo[4]))
 
-                print 'Completed generating synthetic population' 
+                print 'Completed generating synthetic population'
                 print '------------------------------------------------------------------'
 
             elif reply == QMessageBox.No:
                 print '------------------------------------------------------------------'
-                print 'Generating synthetic population in Series...' 
+                print 'Generating synthetic population in Series...'
 
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
-                    
+
                     geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
-                    
+
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
                     #configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
@@ -218,24 +223,24 @@ class RunDialog(QDialog):
                 self.runGeoIds = []
                 self.selGeographiesList.clear()
 
-                print 'Completed generating synthetic population' 
+                print 'Completed generating synthetic population'
                 print '------------------------------------------------------------------'
 
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
-        
+
         if not geo.puma5:
             if self.project.resolution == 'County':
                 geo.puma5 = 0
 
             elif self.project.resolution == 'Tract':
-                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
                                    %(geo.state, geo.county, geo.tract)):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
             else:
-                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s""" 
+                if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s"""
                                    %(geo.state, geo.county, geo.tract, geo.bg)):
                     raise FileError, query.lastError().text()
                 while query.next():
@@ -250,16 +255,16 @@ class RunDialog(QDialog):
         if dia.exec_():
             exists = True
             notoall = False
-            
+
             if dia.selectedVariableListWidget.count() > 0:
                 self.selGeographiesList.clear()
                 for i in range(dia.selectedVariableListWidget.count()):
                     itemText = dia.selectedVariableListWidget.item(i).text()
-                    
+
                     item = re.split("[,]", itemText)
                     state, county, tract, bg = item
                     geo = Geography(int(state), int(county), int(tract), int(bg))
-                    geo = self.getPUMA5(geo) 
+                    geo = self.getPUMA5(geo)
 
                     try:
 
@@ -271,7 +276,7 @@ class RunDialog(QDialog):
                         if not notoall:
                             reply = QMessageBox.warning(self, "Run Synthesizer", """Synthetic population for """
                                                         """<b>State - %s, County - %s, PUMA5 - %s, Tract - %s, BG - %s</b> exists. """
-                                                        """Would you like to re-run the synthesizer for the geography(s)?""" 
+                                                        """Would you like to re-run the synthesizer for the geography(s)?"""
                                                         %(geo.state, geo.county, geo.puma5, geo.tract, geo.bg),
                                                         QMessageBox.Yes| QMessageBox.No| QMessageBox.YesToAll| QMessageBox.NoToAll)
                             if reply == QMessageBox.Yes:
@@ -298,11 +303,11 @@ class RunDialog(QDialog):
             else:
                 self.selGeographiesList.clear()
                 self.runSynthesizerButton.setEnabled(False)
-        
+
 
     def allGeographyids(self):
         query = QSqlQuery(self.projectDBC.dbc)
-        allGeoids = {}        
+        allGeoids = {}
         for i in self.project.region.keys():
             countyName = i
             stateName = self.project.region[i]
@@ -323,11 +328,11 @@ class RunDialog(QDialog):
                 if not query.exec_("""select state, county, tract, bg from geocorr where state = %s and county = %s"""
                                    """ group by state, county, tract, bg"""
                                    %(stateCode, countyCode)):
-                    raise FileError, query.lastError().text()                
+                    raise FileError, query.lastError().text()
         #return a dictionary of all VALID geographies
-        
+
             STATE, COUNTY, TRACT, BG = range(4)
-            
+
 
             tract = 0
             bg = 0
@@ -335,24 +340,24 @@ class RunDialog(QDialog):
             while query.next():
                 state = query.value(STATE).toInt()[0]
                 county = query.value(COUNTY).toInt()[0]
-                
+
                 if self.project.resolution == 'Tract' or self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
                     tract = query.value(TRACT).toInt()[0]
                 if self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
                     bg = query.value(BG).toInt()[0]
-                
+
                 id = '%s,%s,%s,%s' %(state, county, tract, bg)
                 idText = 'State - %s, County - %s, Tract - %s, Block Group - %s' %(state, county, tract, bg)
-                
+
                 allGeoids[id] = idText
 
         return allGeoids
 
-        
+
     def prepareData(self):
         self.project.synGeoIds = {}
 
-        db = MySQLdb.connect(user = '%s' %self.project.db.username, 
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
         prepare_data(db, self.project)
@@ -362,14 +367,14 @@ class RunDialog(QDialog):
 
 
     def readData(self):
-        db = MySQLdb.connect(user = '%s' %self.project.db.username, 
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
         dbc = db.cursor()
 
         dbc.execute("""select * from index_matrix_%s""" %(0))
         indexMatrix = numpy.asarray(dbc.fetchall())
-        
+
         f = open('indexMatrix.pkl', 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
@@ -414,5 +419,5 @@ if __name__ == "__main__":
     a = '10'
     dia = RunDialog(a)
     dia.show()
-    
+
     app.exec_()

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -14,16 +19,16 @@ class UserImportGeocorrData():
 
     def createGeocorrTable(self):
         check = self.checkIfTableExists('geocorr')
-        
+
         if check:
             geocorrTableQuery = self.mysqlQueries('geocorr', self.project.geocorrUserProv.location)
-            
+
             if not self.query.exec_(geocorrTableQuery.query1):
                 raise FileError, self.query.lastError().text()
 
             if not self.query.exec_(geocorrTableQuery.query2):
                 raise FileError, self.query.lastError().text()
-        
+
     def mysqlQueries(self, name, filePath):
         fileProp = FileProperties(filePath)
         fileQuery = ImportUserProvData(name,
@@ -65,7 +70,7 @@ class AutoImportGeocorrData():
         check = self.checkIfTableExists('geocorr')
 
         if check:
-            geocorrTableQuery = ImportUserProvData('geocorr', 
+            geocorrTableQuery = ImportUserProvData('geocorr',
                                                    "./data/usgeocorr.csv",
                                                    [], [], True, True)
 
@@ -75,7 +80,7 @@ class AutoImportGeocorrData():
             if not self.query.exec_(geocorrTableQuery.query2):
                 raise FileError, self.query.lastError().text()
 
-    
+
     def checkIfTableExists(self, tablename):
         # 0 - some other error, 1 - overwrite error (table deleted)
         if not self.query.exec_("""create table %s (dummy text)""" %tablename):
@@ -94,4 +99,4 @@ class AutoImportGeocorrData():
         else:
             if not self.query.exec_("""drop table %s""" %tablename):
                 raise FileError, self.query.lastError().text()
-            return 1    
+            return 1

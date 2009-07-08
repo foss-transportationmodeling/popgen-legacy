@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -85,12 +90,12 @@ class DBConnectionPage(QWizardPage):
         db = DBInfo(self.hostnameLineEdit.text(),
                     self.usernameLineEdit.text(),
                     self.passwordLineEdit.text())
-                    
+
         try:
             dbconnection = createDBC(db)
             if not dbconnection.dbc.open():
                 raise FileError, dbconnection.dbc.lastError().text()
-            
+
             self.connectionDummy = True
             dbconnection.dbc.close()
         except Exception, e:
@@ -98,15 +103,15 @@ class DBConnectionPage(QWizardPage):
             self.connectionDummy = False
 
         self.emit(SIGNAL("completeChanged()"))
-        
+
     def isComplete(self):
         validate = self.connectionDummy
-        
-        
+
+
 
         if validate:
             return True
         else:
             return False
-        
+
 

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from misc.widgets import *
@@ -59,7 +64,7 @@ class IntroPage(QWizardPage):
         countyVLayout.addWidget(countySelectLabel)
         countyVLayout.addWidget(self.countySelectTree)
         countyVLayout.addWidget(countySelectWarningLabel)
-        
+
 
         # Displaying counties and selecting counties using the map
         self.canvas = QgsMapCanvas()
@@ -73,11 +78,11 @@ class IntroPage(QWizardPage):
 
         renderer = self.layer.renderer()
         renderer.setSelectionColor(QColor(255,255,0))
-        
+
         symbol = renderer.symbols()[0]
         symbol.setFillColor(QColor(153,204,0))
 
- 
+
         if not self.layer.isValid():
             return
         QgsMapLayerRegistry.instance().addMapLayer(self.layer)
@@ -97,14 +102,14 @@ class IntroPage(QWizardPage):
         self.toolbar.hideDragTool()
         self.toolbar.hideSelectTool()
         self.vLayout2.addWidget(self.toolbar)
-        self.vLayout2.addWidget(self.canvas) 
+        self.vLayout2.addWidget(self.canvas)
         self.toolbar.setHidden(True)
         self.canvas.setHidden(True)
         self.mapwidget = QLabel()
         pixmap = QPixmap()
         pixmap.load("./images/Globe.png")
         self.mapwidget.setPixmap(pixmap)
-        self.vLayout2.addWidget(self.mapwidget)  
+        self.vLayout2.addWidget(self.mapwidget)
         # Horizontal layout of all elements
         self.hLayout = QHBoxLayout()
         self.hLayout.addLayout(vLayout1)
@@ -130,7 +135,7 @@ class IntroPage(QWizardPage):
         else:
             self.locationDummy = True
         self.emit(SIGNAL("completeChanged()"))
-        
+
     def regionCheck(self):
         self.selectedCounties = {}
         items = self.countySelectTree.selectedItems()
@@ -151,17 +156,17 @@ class IntroPage(QWizardPage):
         else:
             self.regionDummy = False
         self.emit(SIGNAL("completeChanged()"))
-        
+
         for i in self.countySelectTree.selectedItems():
             self.selectedCounties[i.text(0)] = i.parent().text(0)
-        
+
         if self.canvas.isHidden():
             self.mapwidget.clear()
             self.mapwidget.setHidden(True)
             self.toolbar.setHidden(False)
             self.canvas.setHidden(False)
         self.highlightSelectedCounties()
-        
+
     def highlightSelectedCounties(self):
         self.layer.removeSelection()
         selectedFeatureIds = []
@@ -181,7 +186,7 @@ class IntroPage(QWizardPage):
                 if (featstate.compare(state) == 0 and featcounty.compare(county) == 0):
                     selid = feat.featureId()
                     selectedFeatureIds.append(selid)
-                    
+
         if len(selectedFeatureIds) > 0:
             self.layer.setSelectedFeatures(selectedFeatureIds)
             boundingBox = self.layer.boundingBoxOfSelected()
@@ -216,7 +221,7 @@ class IntroPage(QWizardPage):
         self.countySelectTree.sortItems(0, Qt.AscendingOrder)
 
 
-    
+
 
     def initialLoad(self):
         try:

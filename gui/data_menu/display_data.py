@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -33,7 +38,7 @@ class DisplayTable(QDialog):
         self.view = QTableView()
         self.view.setModel(self.model)
         self.view.setMinimumSize(QSize(800, 500))
-        
+
         outputLabel = QLabel("Output")
 
         self.output = QTextEdit()
@@ -68,20 +73,20 @@ class DisplayTable(QDialog):
 
         self.connect(buttonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(buttonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
-        
+
         self.connect(descButton, SIGNAL("clicked()"), self.descriptives)
         self.connect(freqButton, SIGNAL("clicked()"), self.frequencies)
 
-        
+
     def descriptives(self):
-        descriptivesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
+        descriptivesVarDialog = VariableSelectionDialog(self.variableTypeDictionary,
                                                         title = "Descriptives", icon = "modifydata")
         if descriptivesVarDialog.exec_():
             self.descriptivesVariablesSelected = descriptivesVarDialog.selectedVariableListWidget.variables
-            
+
 
             COUNT, AVERAGE, MINIMUM, MAXIMUM, SUM = range(5)
-            
+
             query = QSqlQuery(self.projectDBC.dbc)
 
             self.output.append("DESCRIPTIVES:")
@@ -100,16 +105,16 @@ class DisplayTable(QDialog):
                     sum = query.value(SUM).toDouble()[0]
                 self.output.append("%s, %d, %.4f, %.4f, %.4f, %.4f" %(i, count, average, minimum, maximum, sum))
             self.output.append("")
-            
-    
+
+
     def frequencies(self):
-        frequenciesVarDialog = VariableSelectionDialog(self.variableTypeDictionary, 
+        frequenciesVarDialog = VariableSelectionDialog(self.variableTypeDictionary,
                                                         title = "Frequencies", icon = "modifydata")
         if frequenciesVarDialog.exec_():
             self.frequenciesVariablesSelected = frequenciesVarDialog.selectedVariableListWidget.variables
 
             CATEGORY, FREQUENCY = range(2)
-            
+
             query = QSqlQuery(self.projectDBC.dbc)
 
             self.output.append("FREQUENCIES:")
@@ -117,7 +122,7 @@ class DisplayTable(QDialog):
             for i in self.frequenciesVariablesSelected:
                 self.output.append("Variable Name - %s" %i)
                 self.output.append("%s, %s" %('CATEGORY', 'FREQUENCY'))
-            
+
                 if not query.exec_("""select %s, count(*) from %s group by %s"""
                                %(i, self.tablename, i)):
                     raise FileError, query.lastError().text()
@@ -127,8 +132,8 @@ class DisplayTable(QDialog):
                     self.output.append("%s, %s" %(category, frequency))
                 self.output.append("The %s variable has a total of %s categories" %(i, query.size()))
                 self.output.append("")
-            
-    
+
+
     def populateVariableDictionary(self):
         query = QSqlQuery(self.projectDBC.dbc)
         query.exec_("""desc %s""" %self.tablename)
@@ -142,7 +147,7 @@ class DisplayTable(QDialog):
             key = query.value(KEY).toString()
             default = query.value(DEFAULT).toString()
             extra = query.value(EXTRA).toString()
-            
+
             self.variableTypeDictionary['%s' %field] = type
 
 
@@ -155,8 +160,8 @@ class DisplayTable(QDialog):
         QDialog.reject(self)
 
 
-class DisplayTableStructure(QDialog): 
-    def __init__(self, tabledata, headers, title, parent=None): 
+class DisplayTableStructure(QDialog):
+    def __init__(self, tabledata, headers, title, parent=None):
         super(DisplayTableStructure, self).__init__(parent)
 
         self.setWindowTitle("%s" %title)
@@ -165,17 +170,17 @@ class DisplayTableStructure(QDialog):
         # create table
         self.tabledata = tabledata
         self.headers = headers
-        
 
-        table = self.createTable() 
+
+        table = self.createTable()
 
         buttonBox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         # layout
         layout = QVBoxLayout()
-        layout.addWidget(table) 
+        layout.addWidget(table)
         layout.addWidget(buttonBox)
-        self.setLayout(layout) 
+        self.setLayout(layout)
 
         self.connect(buttonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
 
@@ -189,7 +194,7 @@ class DisplayTableStructure(QDialog):
         tableview = QTableView()
 
         # set the table model
-        tablemodel = MyTableModel(self.tabledata, self.headers, self) 
+        tablemodel = MyTableModel(self.tabledata, self.headers, self)
         tableview.setModel(tablemodel)
 
         # set the minimum size
@@ -208,28 +213,28 @@ class DisplayTableStructure(QDialog):
             tableview.setRowHeight(row, 18)
 
         return tableview
- 
-class MyTableModel(QAbstractTableModel): 
-    def __init__(self, datain, headerdata, parent=None, *args): 
+
+class MyTableModel(QAbstractTableModel):
+    def __init__(self, datain, headerdata, parent=None, *args):
         """ datain: a list of lists
             headerdata: a list of strings
         """
-        QAbstractTableModel.__init__(self, parent, *args) 
+        QAbstractTableModel.__init__(self, parent, *args)
         self.arraydata = datain
         self.headerdata = headerdata
- 
-    def rowCount(self, parent): 
-        return len(self.arraydata) 
- 
-    def columnCount(self, parent): 
-        return len(self.arraydata[0]) 
- 
-    def data(self, index, role): 
-        if not index.isValid(): 
-            return QVariant() 
-        elif role != Qt.DisplayRole: 
-            return QVariant() 
-        return QVariant(self.arraydata[index.row()][index.column()]) 
+
+    def rowCount(self, parent):
+        return len(self.arraydata)
+
+    def columnCount(self, parent):
+        return len(self.arraydata[0])
+
+    def data(self, index, role):
+        if not index.isValid():
+            return QVariant()
+        elif role != Qt.DisplayRole:
+            return QVariant()
+        return QVariant(self.arraydata[index.row()][index.column()])
 
     def headerData(self, col, orientation, role):
         if orientation == Qt.Horizontal and role == Qt.DisplayRole:

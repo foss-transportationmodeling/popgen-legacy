@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 import sys
 
 from PyQt4.QtCore import *
@@ -24,27 +29,27 @@ class ParametersDialog(QDialog):
         ipfTolLabel.setBuddy(self.ipfTolEdit)
         self.ipfTolEdit.setText('%s' %self.project.parameters.ipfTol)
         #ipfTolEdit.setText('%s' %IPF_TOLERANCE)
-        
+
         ipfMaxIterLabel = QLabel("Maximum iterations after which IPF procedure should stop")
         self.ipfMaxIterEdit = QSpinBox()
         ipfMaxIterLabel.setBuddy(self.ipfMaxIterEdit)
         self.ipfMaxIterEdit.setRange(0,  500)
         self.ipfMaxIterEdit.setValue(self.project.parameters.ipfIter)
         #ipfMaxIterEdit.setValue(IPF_MAX_ITERATIONS)
-                           
+
         ipuTolLabel = QLabel("Tolerance level for convergence in the IPU procedure")
         self.ipuTolEdit = QLineEdit()
-        ipuTolLabel.setBuddy(self.ipfTolEdit)        
+        ipuTolLabel.setBuddy(self.ipfTolEdit)
         self.ipuTolEdit.setText('%s' %self.project.parameters.ipuTol)
         #ipuTolEdit.setText('%s' %IPU_TOLERANCE)
-        
+
         ipuMaxIterLabel = QLabel("Maximum iterations after which IPU procedure should stop")
         self.ipuMaxIterEdit = QSpinBox()
         ipuMaxIterLabel.setBuddy(self.ipuMaxIterEdit)
         self.ipuMaxIterEdit.setRange(0,  500)
         self.ipuMaxIterEdit.setValue(self.project.parameters.ipuIter)
         #ipuMaxIterEdit.setValue(IPU_MAX_ITERATIONS)
-        
+
         synPopDrawsLabel = QLabel("Maximum number of draws to find a desirable synthetic population")
         self.synPopDrawsEdit = QSpinBox()
         synPopDrawsLabel.setBuddy(self.synPopDrawsEdit)
@@ -76,7 +81,7 @@ class ParametersDialog(QDialog):
         roundingLayout.addWidget(self.bucketRadio)
         roundingLayout.addWidget(self.stochasticRadio)
 
-        roundingGroupBox.setLayout(roundingLayout)        
+        roundingGroupBox.setLayout(roundingLayout)
 
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
@@ -84,23 +89,23 @@ class ParametersDialog(QDialog):
         ipfLabel = QLabel("a. IPF related parameters:")
         vLayout11 = self.vLayout(ipfTolLabel, ipfMaxIterLabel)
         vLayout12 = self.vLayout(self.ipfTolEdit, self.ipfMaxIterEdit)
-        
+
         hLayout1 = self.hLayout(vLayout11, vLayout12)
 
         ipuLabel = QLabel("b. IPU related parameters:")
         vLayout21 = self.vLayout(ipuTolLabel, ipuMaxIterLabel)
         vLayout22 = self.vLayout(self.ipuTolEdit, self.ipuMaxIterEdit)
-        
+
         hLayout2 = self.hLayout(vLayout21, vLayout22)
 
         synLabel = QLabel("c. Synthetic population draw-related parameters:")
         vLayout31 = self.vLayout(synPopDrawsLabel, synPopPValTolLabel)
         vLayout32 = self.vLayout(self.synPopDrawsEdit, self.synPopPValTolEdit)
-        
+
         hLayout3 = self.hLayout(vLayout31, vLayout32)
 
         vLayout = QVBoxLayout()
-                          
+
         vLayout.addWidget(ipfLabel)
         vLayout.addLayout(hLayout1)
         vLayout.addWidget(Separator())
@@ -115,13 +120,13 @@ class ParametersDialog(QDialog):
         vLayout.addWidget(dialogButtonBox)
 
         self.setLayout(vLayout)
-        
+
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))        
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
 
         #Connect the edit events with updating the self.project.parameter variables
-        
+
         #self.connect(
 
 
@@ -146,7 +151,7 @@ class ParametersDialog(QDialog):
 
 
     def vLayout(self, widget1, widget2):
-        
+
         layout = QVBoxLayout()
         layout.addWidget(widget1)
         layout.addWidget(widget2)
@@ -154,14 +159,14 @@ class ParametersDialog(QDialog):
         return layout
 
     def hLayout(self, layout1, layout2):
-        
+
         layout = QHBoxLayout()
         layout.addLayout(layout1)
         layout.addLayout(layout2)
-        
+
         return layout
-        
-        
+
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

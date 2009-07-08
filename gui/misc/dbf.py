@@ -1,5 +1,9 @@
-import struct, datetime, decimal, itertools
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
 
+import struct, datetime, decimal, itertools
 
 def dbfreader(f):
     """Returns an iterator over records in a Xbase DBF file.
@@ -15,13 +19,13 @@ def dbfreader(f):
     # See DBF format spec at:
     #     http://www.pgts.com.au/download/public/xbase.htm#DBF_STRUCT
 
-    numrec, lenheader = struct.unpack('<xxxxLH22x', f.read(32))    
+    numrec, lenheader = struct.unpack('<xxxxLH22x', f.read(32))
     numfields = (lenheader - 33) // 32
 
     fields = []
     for fieldno in xrange(numfields):
         name, typ, size, deci = struct.unpack('<11sc4xBB14x', f.read(32))
-        name = name.replace('\0', '')       # eliminate NULs from string   
+        name = name.replace('\0', '')       # eliminate NULs from string
         fields.append((name, typ, size, deci))
     yield [field[0] for field in fields]
     yield [tuple(field[1:]) for field in fields]
@@ -73,7 +77,7 @@ def dbfwriter(f, fieldnames, fieldspecs, records):
         size is the field width
         deci is the number of decimal places in the provided decimal object
     Records can be an iterable over the records (sequences of field values).
-    
+
     """
     # header info
     ver = 3
@@ -85,7 +89,7 @@ def dbfwriter(f, fieldnames, fieldspecs, records):
     lenrecord = sum(field[1] for field in fieldspecs) + 1
     hdr = struct.pack('<BBBBLHH20x', ver, yr, mon, day, numrec, lenheader, lenrecord)
     f.write(hdr)
-                      
+
     # field specs
     for name, (typ, size, deci) in itertools.izip(fieldnames, fieldspecs):
         name = name.ljust(11, '\x00')

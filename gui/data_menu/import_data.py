@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from __future__ import with_statement
 
 import os
@@ -12,10 +17,10 @@ from gui.misc.errors import FileError
 
 class FileProperties():
     def __init__(self, filePath):
-        with open(filePath, 'r') as f:        
+        with open(filePath, 'r') as f:
             self.varNames = []
             self.varTypes = []
-            
+
             firstline = f.readline()
             secondline = f.readline()
 
@@ -48,7 +53,7 @@ class FileProperties():
             if self.varNamesDummy and self.varTypesDummy:
                 if len(self.varNames) <> len(self.varTypes):
                     raise FileError, "Mismatch in the number of Variable Names and Variable Types"
-                
+
 
     def checkVarTypes(self, line):
         validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
@@ -133,7 +138,7 @@ class ImportUserProvData():
             firstrow = f.readline()
             firstrow = re.split("[,|\t]", firstrow[:-1])
 
-            
+
         for i in self.varNames:
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable name"

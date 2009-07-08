@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
@@ -23,7 +28,7 @@ class Wizard(QWizard):
         self.project.countyCode, self.project.stateCode, self.project.stateAbb = self.countyDicts()
         self.setFixedSize(QSize(950,500))
         self.setWizardStyle(QWizard.ClassicStyle)
-        
+
         self.setPixmap(QWizard.WatermarkPixmap, QPixmap("./images/banner.png"))
 
 
@@ -45,7 +50,7 @@ class Wizard(QWizard):
 
         self.connect(self.button(QWizard.CancelButton), SIGNAL("pressed()"), self.reject)
         self.connect(self, SIGNAL("currentIdChanged(int)"), self.update)
-        
+
     def countyDicts(self):
         file = QFile("./data/counties.csv")
 
@@ -67,7 +72,7 @@ class Wizard(QWizard):
             countycode = '%s'%a[2]
             countycode = countycode.rjust(3, '0')
             countyCode[uniquecounty] = countycode
-            
+
         file.close()
 
         return countyCode, stateCode, stateAbb
@@ -81,7 +86,7 @@ class Wizard(QWizard):
 
 
     def update(self, id):
-        
+
 
         if id > 1:
             resolutionText = self.page2.resolutionComboBox.currentText()
@@ -93,7 +98,7 @@ class Wizard(QWizard):
                 resolution = 'TAZ'
             else:
                 resolution = 'County'
-            
+
         if id == 2:
             self.page3.emit(SIGNAL("resolutionChanged"), resolution)
 
@@ -104,12 +109,12 @@ class Wizard(QWizard):
         if id == 4:
             self.page5.hostnameLineEdit.emit(SIGNAL("editingFinished()"))
 
-        
+
         if id == 5:
             geocorrLocation = self.page2.geocorrLocationComboBox.currentText()
             geocorrUserProv = newproject.Geocorr(self.page2.geocorrUserProvRadio.isChecked(),
                                                  geocorrLocation)
-            
+
             sampleHHLocation = self.page3.sampleHHLocationComboBox.currentText()
             sampleGQLocation = self.page3.sampleGQLocationComboBox.currentText()
             samplePersonLocation = self.page3.samplePersonLocationComboBox.currentText()
@@ -125,7 +130,7 @@ class Wizard(QWizard):
                                                  controlHHLocation,
                                                  controlGQLocation,
                                                  controlPersonLocation)
-            
+
             db = newproject.DBInfo(self.page5.hostnameLineEdit.text(),
                                    self.page5.usernameLineEdit.text(),
                                    self.page5.passwordLineEdit.text(),
@@ -138,7 +143,7 @@ class Wizard(QWizard):
             self.project.description = self.page1.descTextEdit.toPlainText()
             self.project.region = self.page1.selectedCounties
             self.project.state = self.page1.selectedCounties.values()[0]
-            
+
 
             self.project.resolution = resolution
             self.project.geocorrUserProv = geocorrUserProv

@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from collections import defaultdict
@@ -16,7 +21,7 @@ class UnzipFile:
 
     def unzip(self):
         zipObject = ZipFile(self.filename)
-        
+
         archFiles = zipObject.namelist()
 
         for i in archFiles:
@@ -27,8 +32,8 @@ class UnzipFile:
                                              QString("""Would you like to replace the existing file <font color = brown>"""
                                                      """%s (size %s) </font>"""
                                                      """ with the file <font color = blue>%s (size %s)</font>"""
-                                                     """ from the zip folder?""" 
-                                             %(i, fileExtrInfo.st_size, i, fileArchInfo.file_size)), 
+                                                     """ from the zip folder?"""
+                                             %(i, fileExtrInfo.st_size, i, fileArchInfo.file_size)),
                                              QMessageBox.Yes| QMessageBox.YesToAll|
                                              QMessageBox.No| QMessageBox.NoToAll)
                 if reply == QMessageBox.Yes:

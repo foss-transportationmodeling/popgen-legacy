@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -31,19 +36,19 @@ class Ppdist(Matplot):
             self.vbox.addWidget(self.comboboxholder)
             self.vbox.addWidget(self.canvas)
             self.vbox.addWidget(ppdistWarning)
-            self.vbox.addWidget(self.dialogButtonBox)            
+            self.vbox.addWidget(self.dialogButtonBox)
             self.setLayout(self.vbox)
-        
+
             self.makeTempTables()
             self.on_draw()
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
             self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         else:
             QMessageBox.warning(self, "Results", "A table with name - person_synthetic_data does not exist.", QMessageBox.Ok)
-        
+
     def isValid(self):
         return self.checkIfTableExists("person_synthetic_data")
-        
+
     def reject(self):
         self.projectDBC.dbc.close()
         QDialog.reject(self)
@@ -53,29 +58,29 @@ class Ppdist(Matplot):
         for i in self.variables:
             varstr = varstr + i + ','
         varstr = varstr[:-1]
-            
+
         query = QSqlQuery(self.projectDBC.dbc)
         query.exec_(""" DROP TABLE IF EXISTS temp""")
         if not query.exec_("""CREATE TABLE temp SELECT person_synthetic_data.*,%s FROM person_synthetic_data"""
             """ LEFT JOIN person_sample using (serialno,pnum)""" %(varstr)):
             raise FileError, query.lastError().text()
-    
+
     def on_draw(self):
-        """ Redraws the figure  
+        """ Redraws the figure
         """
         self.current = '%s' %self.attrbox.getCurrentText()
         selgeog = '%s' %self.geobox.getCurrentText()
         self.categories = self.project.selVariableDicts.person[self.current].keys()
         self.categories.sort()
         self.corrControlVariables =  self.project.selVariableDicts.person[self.current].values()
-        
+
         filterAct = ""
         #self.countyCodes = []
         #for i in self.project.region.keys():
             #code = self.project.countyCode['%s,%s' % (i, self.project.state)]
             #self.countyCodes.append(code)
             #filterAct = filterAct + "county = %s or " %code
-        #filterAct = filterAct[:-3]   
+        #filterAct = filterAct[:-3]
         if selgeog == 'All':
             table = "person_synthetic_data"
             variable = "county,tract,bg"
@@ -90,8 +95,8 @@ class Ppdist(Matplot):
                     filterAct = filterAct + " or " + "(" + filstr + ")"
         else:
             geosplit = selgeog.split(',')
-            filterAct = "county=%s and tract=%s and bg=%s" %(geosplit[1],geosplit[2],geosplit[3])            
-        
+            filterAct = "county=%s and tract=%s and bg=%s" %(geosplit[1],geosplit[2],geosplit[3])
+
         actTotal = []
         estTotal = []
         self.catlabels = []
@@ -113,7 +118,7 @@ class Ppdist(Matplot):
                 filterEst = filterEst + ' and ' + filterAct
             variableEst = "sum(frequency)"
             queryEst = self.executeSelectQuery(self.projectDBC.dbc,variableEst, tableEst, filterEst)
-            
+
             iteration = 0
             while queryEst.next():
                 value = queryEst.value(0).toInt()[0]
@@ -121,15 +126,15 @@ class Ppdist(Matplot):
                 iteration = 1
             if iteration == 0:
                 estTotal.append(0)
-        
+
         # clear the axes and redraw the plot anew
-        self.axes.clear()        
+        self.axes.clear()
         self.axes.grid(True)
-        
+
         N=len(actTotal)
         ind = np.arange(N)
         width = 0.35
-        
+
         rects1 = self.axes.bar(ind, actTotal, width, color='r')
         rects2 = self.axes.bar(ind+width, estTotal, width, color='y')
         self.axes.set_xlabel("Person Variables")
@@ -139,7 +144,7 @@ class Ppdist(Matplot):
         self.axes.set_xticklabels(self.catlabels)
         self.axes.legend((rects1[0], rects2[0]), ('Actual', 'Synthetic'))
         self.canvas.draw()
-        
+
     def makeComboBox(self):
         self.comboboxholder = QWidget()
         self.hbox = QHBoxLayout()
@@ -153,7 +158,7 @@ class Ppdist(Matplot):
             self.hbox.addWidget(self.geobox)
         self.hbox.addWidget(QWidget())
         self.hbox.addWidget(QWidget())
-        
+
     def getGeogFilStr(self,county,tract,bg):
         if self.project.resolution == "County":
             str = "county=%s" %(county)
@@ -162,7 +167,7 @@ class Ppdist(Matplot):
         if self.project.resolution == "Blockgroup" or self.project.resolution == "TAZ" :
             str = "county=%s and tract=%s and bg=%s" %(county,tract,bg)
         return str
-        
+
 def main():
     app = QApplication(sys.argv)
     QgsApplication.setPrefixPath(qgis_prefix, True)

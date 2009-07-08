@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from __future__ import with_statement
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -159,7 +164,7 @@ class DataDialog(QDialog):
             self.importControlInstance = UserImportControlData(self.project)
             # Housing Controls
             try:
-                
+
                 self.importControlInstance.createHhldTable()
                 self.importControlInstance.createGQTable()
                 self.ControlHousingLayout.changeStatus(True)
@@ -194,7 +199,7 @@ class DataDialog(QDialog):
                 self.ControlPersonLayout.changeStatus(True)
             except FileError, e:
                 print e
-                self.ControlPersonLayout.changeStatus(False)                
+                self.ControlPersonLayout.changeStatus(False)
             self.importSFInstance.projectDBC.dbc.close()
 
 

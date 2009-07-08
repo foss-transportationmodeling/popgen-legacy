@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
@@ -16,7 +21,7 @@ class Toolbar(QToolBar):
 
         self.canvas = canvas
         self.layer = layer
-        
+
         self.mpActionZoomIn = QAction(self.canvas)
         self.mpActionZoomIn.setIcon(QIcon("./images/viewmag+.png"))
         self.mpActionZoomIn.setObjectName("mpActionZoomIn")
@@ -41,7 +46,7 @@ class Toolbar(QToolBar):
         self.mpActionSelect.setIcon(QIcon("./images/highlight.png"))
         self.mpActionSelect.setObjectName("mpActionSelect")
         self.mpActionSelect.setToolTip("Select")
-        
+
         self.mpActionClickSelect = QAction(self.canvas)
         self.mpActionClickSelect.setIcon(QIcon("./images/highlight.png"))
         self.mpActionClickSelect.setObjectName("mpActionClickSelect")
@@ -66,7 +71,7 @@ class Toolbar(QToolBar):
         self.toolZoomIn.setAction(self.mpActionZoomIn)
         self.toolZoomOut = QgsMapToolZoom(self.canvas, True) # true = out
         self.toolZoomOut.setAction(self.mpActionZoomOut)
-    
+
         # create the actions behaviours
         self.connect(self.mpActionZoomIn, SIGNAL("triggered()"), self.zoomIn)
         self.connect(self.mpActionZoomOut, SIGNAL("triggered()"), self.zoomOut)
@@ -76,26 +81,26 @@ class Toolbar(QToolBar):
         self.connect(self.mpActionClickSelect, SIGNAL("triggered()"), self.clickSelect)
         self.connect(self.toolSelect.o, SIGNAL("finished()"), self.doneRectangle)
         self.connect(self.toolClickSelect.o, SIGNAL("finished()"), self.donePointSelect)
-    
+
     def zoomIn(self):
         self.canvas.setMapTool(self.toolZoomIn)
 
     def zoomOut(self):
         self.canvas.setMapTool(self.toolZoomOut)
-    
+
     def zoomFull(self):
         self.canvas.zoomFullExtent()
 
     def pan(self):
-        self.canvas.setMapTool(self.toolPan)   
-    
+        self.canvas.setMapTool(self.toolPan)
+
     def select(self):
         self.canvas.setMapTool(self.toolSelect)
-        self.toolSelect.canvas.setCursor(self.toolSelect.cursor)	
+        self.toolSelect.canvas.setCursor(self.toolSelect.cursor)
 
     def clickSelect(self):
         self.canvas.setMapTool(self.toolClickSelect)
-        self.toolSelect.canvas.setCursor(self.toolClickSelect.cursor)	
+        self.toolSelect.canvas.setCursor(self.toolClickSelect.cursor)
 
     def donePointSelect(self):
         provider = self.layer.getDataProvider()
@@ -128,17 +133,17 @@ class Toolbar(QToolBar):
                 else:
                     dummy += ',"%s"' % attr.toString().trimmed()
             print "Field Values: " + dummy, feat.featureId()
-    
+
     def hideDragTool(self):
         self.mpActionSelect.setVisible(False)
-        
+
     def hideSelectTool(self):
         self.mpActionClickSelect.setVisible(False)
-        
+
     def activateClickSelectTool(self):
         pass
-        
-        
+
+
 
 def main():
     app = QApplication(sys.argv)
@@ -154,4 +159,4 @@ def main():
 
 if __name__ == "__main__":
     main()
-    
+

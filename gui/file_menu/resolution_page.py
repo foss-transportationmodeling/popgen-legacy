@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from misc.widgets import *
@@ -12,7 +17,7 @@ class ResolutionPage(QWizardPage):
         self.setTitle("Step 2: Geographic Resolution")
 
         self.resolutionComboBox = QComboBox()
-        self.resolutionComboBox.addItems([QString("County"), QString("Census Tract"), 
+        self.resolutionComboBox.addItems([QString("County"), QString("Census Tract"),
                                           QString("Census Blockgroup"), QString("Traffic Analysis Zone (TAZ)")])
         self.resolutionComboBox.setFixedSize(QSize(250,20))
 
@@ -46,7 +51,7 @@ class ResolutionPage(QWizardPage):
         geocorrVLayout.addWidget(self.geocorrLocationComboBox)
         self.geocorrUserProvGroupBox.setLayout(geocorrVLayout)
         self.geocorrUserProvGroupBox.setEnabled(False)
-        
+
 
         vLayout = QVBoxLayout()
         vLayout.addWidget(resolutionGroupBox)
@@ -55,7 +60,7 @@ class ResolutionPage(QWizardPage):
         vLayout.addWidget(geocorrWarning)
         vLayout.addWidget(self.geocorrUserProvGroupBox)
         self.setLayout(vLayout)
-        
+
         self.connect(self.geocorrAutoRadio, SIGNAL("clicked()"), self.geocorrAutoAction)
         self.connect(self.geocorrUserProvRadio, SIGNAL("clicked()"), self.geocorrUserProvAction)
         self.connect(self.geocorrLocationComboBox, SIGNAL("activated(int)"), self.fileCheck)

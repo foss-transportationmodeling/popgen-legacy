@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from __future__ import with_statement
 
 from PyQt4.QtCore import *
@@ -14,10 +19,10 @@ class OpenProject(QFileDialog):
         super(OpenProject, self).__init__(parent)
         self.file = self.getOpenFileName(parent, "Browse to select file", "/home",
                                          "PopGen File (*.pop)")
-        
 
-        
-            
+
+
+
 class SaveFile(QFileDialog):
     def __init__(self, project, fileType, parent=None):
         super(SaveFile, self).__init__(parent)
@@ -28,7 +33,7 @@ class SaveFile(QFileDialog):
         elif self.fileType == 'dat':
             self.fileSep = '\t'
         self.folder = self.getExistingDirectory(self, QString("Results Location..."),
-                                                "%s/%s" %(self.project.location, self.project.filename), 
+                                                "%s/%s" %(self.project.location, self.project.filename),
                                                 QFileDialog.ShowDirsOnly)
 
         if not self.folder.isEmpty():
@@ -46,7 +51,7 @@ class SaveFile(QFileDialog):
             os.remove(filename)
         if self.checkIfFileExists(filename) < 2:
             if not query.exec_("""select * from housing_synthetic_data into outfile """
-                               """'%s/housing_synthetic_data.%s' fields terminated by '%s'""" 
+                               """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
                                %(self.folder, self.fileType, self.fileSep)):
                 raise FileError, query.lastError().text()
 
@@ -55,7 +60,7 @@ class SaveFile(QFileDialog):
             os.remove(filename)
         if self.checkIfFileExists(filename) < 2:
             if not query.exec_("""select * from person_synthetic_data into outfile """
-                               """'%s/person_synthetic_data.%s' fields terminated by '%s'""" 
+                               """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
                                %(self.folder, self.fileType, self.fileSep)):
                 raise FileError, query.lastError().text()
 
@@ -63,12 +68,12 @@ class SaveFile(QFileDialog):
 
         projectDBC.dbc.close()
 
-    
+
     def checkIfFileExists(self, file):
         try:
             fileInfo = os.stat(file)
 
-            reply = QMessageBox.question(None, "Import", 
+            reply = QMessageBox.question(None, "Import",
                                          QString("""File %s exists. Would you like to overwrite?""" %(file)),
                                          QMessageBox.Yes| QMessageBox.No)
 
@@ -80,6 +85,6 @@ class SaveFile(QFileDialog):
             #print 'Warning: File - %s not present' %(file)
             return 1
 
-        
+
 
 

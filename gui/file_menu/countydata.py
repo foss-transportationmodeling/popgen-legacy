@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import cPickle
@@ -9,24 +14,24 @@ class County(object):
         self.countyID = countyID
         self.countyName = county
 
-        
+
 class CountyContainer(object):
     def __init__(self, filename=QString()):
         self.filename = filename
         self.counties = {}
         self.countyNames = set()
         self.stateNames = set()
-        
+
     def __len__(self):
         return len(self.counties)
 
     def __iter__(self):
         for county in self.counties.values():
             yield county
-            
+
     def inOrder(self):
         return sorted(self.ships.values())
-    
+
     def inStateOrder(self):
         def compare(a,b):
             if a.state != b.state:
@@ -65,11 +70,11 @@ class CountyContainer(object):
 
 
 
-            
-            
 
-        
-        
-        
-        
-        
+
+
+
+
+
+
+

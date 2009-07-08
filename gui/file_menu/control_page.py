@@ -1,3 +1,8 @@
+# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from misc.widgets import *
@@ -10,7 +15,7 @@ class ControlDataPage(QWizardPage):
 
         self.controlHHLocationDummy = True
         self.controlPersonLocationDummy = True
-        
+
         self.setTitle("Step 4: Marginal Totals")
 
         self.controlGroupBox = QGroupBox("""a. Will you provide the marginal totals for """
@@ -56,7 +61,7 @@ class ControlDataPage(QWizardPage):
         controlVLayout.addWidget(self.controlPersonLocationComboBox)
         self.controlUserProvGroupBox.setLayout(controlVLayout)
         self.controlUserProvGroupBox.setEnabled(False)
-        
+
         vLayout = QVBoxLayout()
         vLayout.addWidget(self.controlGroupBox)
         vLayout.addWidget(controlWarning)
@@ -88,7 +93,7 @@ class ControlDataPage(QWizardPage):
         self.controlPersonLocationDummy = True
         self.controlHHLocationDummy = True
         self.emit(SIGNAL("completeChanged()"))
-    
+
     def controlUserProvAction(self):
         self.controlUserProvGroupBox.setEnabled(True)
         if self.controlHHLocationComboBox.currentIndex() == 0:
