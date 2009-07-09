@@ -325,7 +325,7 @@ class AutoImportPUMSData():
 
     def createHousingPUMSTable(self):
         # Creating a Housing PUMS Table
-        self.housingFileName = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
+        self.housingFileName = 'PUMS5_hou_%s.csv' %(self.stateCode[self.state])
         self.housingPUMSloc = os.path.join(self.loc, self.housingFileName)
 
         if not self.checkIfFileExists(self.housingPUMSloc):
@@ -351,7 +351,7 @@ class AutoImportPUMSData():
 
     def createPersonPUMSTable(self):
         # Creating a Person PUMS Table
-        self.personFileName = 'PUMS5_per_%s.TXT' %(self.stateCode[self.state])
+        self.personFileName = 'PUMS5_per_%s.csv' %(self.stateCode[self.state])
         self.personPUMSloc = os.path.join(self.loc, self.personFileName)
 
         if not self.checkIfFileExists(self.personPUMSloc):
@@ -411,7 +411,7 @@ class AutoImportPUMSData():
 
     def createPersonPUMSFile(self):
         pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
-        pumspersonFilename = 'PUMS5_per_%s.TXT' %(self.stateCode[self.state])
+        pumspersonFilename = 'PUMS5_per_%s.csv' %(self.stateCode[self.state])
 
         with open(os.path.join(self.loc, pumsFilename), 'r') as f:
             with open(os.path.join(self.loc, pumspersonFilename), 'w') as fperson:
@@ -438,7 +438,7 @@ class AutoImportPUMSData():
 
     def createHousingPUMSFile(self):
         pumsFilename = 'PUMS5_%s.TXT' %(self.stateCode[self.state])
-        pumshousingFilename = 'PUMS5_hou_%s.TXT' %(self.stateCode[self.state])
+        pumshousingFilename = 'PUMS5_hou_%s.csv' %(self.stateCode[self.state])
 
         with open(os.path.join(self.loc, pumsFilename), 'r') as f:
             with open(os.path.join(self.loc, pumshousingFilename), 'w') as fhousing:

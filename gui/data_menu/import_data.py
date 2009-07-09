@@ -177,7 +177,7 @@ class ImportUserProvData():
         self.query1 = self.query1[:-2]
         self.query1 = 'create table %s('%(self.tableName) + self.query1 + ')'
 
-        if re.split("[.]", self.filePath)[-1] == 'csv':
+        if re.split("[.]", self.filePath)[-1] == 'csv' or re.split("[.]", self.filePath)[-1] == 'uf3':
             
             self.query2 = ("""load data local infile "%s" into table %s fields terminated by "," """
                            """lines terminated by "\r\n" ignore %s lines""" %(self.filePath,
