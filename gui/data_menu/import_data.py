@@ -151,6 +151,8 @@ class ImportUserProvData():
             except:
                 raise FileError, "Enter a valid variable type definition"
 
+        #print firstrow, len(firstrow)
+
         if len(self.varNames) <> len(firstrow):
             raise FileError, "Please enter the same number of variable names as columns in the data file."
 
@@ -175,25 +177,31 @@ class ImportUserProvData():
         self.query1 = self.query1[:-2]
         self.query1 = 'create table %s('%(self.tableName) + self.query1 + ')'
 
-        self.query2 = ("""load data local infile "%s" into table %s fields terminated by "," """
-                       """lines terminated by "\r\n" ignore %s lines""" %(self.filePath,
-                                                                        self.tableName,
-                                                                        int(self.varNamesFileDummy) + int(self.varTypesFileDummy)))
+        if re.split("[.]", self.filePath)[-1] == 'csv':
+            
+            self.query2 = ("""load data local infile "%s" into table %s fields terminated by "," """
+                           """lines terminated by "\r\n" ignore %s lines""" %(self.filePath,
+                                                                              self.tableName,
+                                                                              int(self.varNamesFileDummy) + int(self.varTypesFileDummy)))
+        if re.split("[.]", self.filePath)[-1] == 'dat':
+            self.query2 = ("""load data local infile "%s" into table %s fields terminated by "\t" """
+                           """lines terminated by "\r\n" ignore %s lines""" %(self.filePath,
+                                                                              self.tableName,
+                                                                              int(self.varNamesFileDummy) + int(self.varTypesFileDummy)))
+
 if __name__ == "__main__":
 
     #for b in ['test', 'names', 'types', 'none']:
     #for b in ['test']:
-    for b in ['names', 'none']:
-        a = FileProperties("C:/PopGen/test/%s.dat" %b)
+    for b in ['names']:
+        a = FileProperties("C:/Documents and Settings/kkonduri/Desktop/impute.csv")
         print b
         print "Var Type Dummy:", a.varTypesDummy
         print a.varTypes
         print "Var Names Dummy:", a.varNamesDummy
         print a.varNames
 
-        c = ImportUserProvData(b, "c:/PopGen/test/%s.dat" %b, a.varNames, a.varTypes, a.varNamesDummy, a.varTypesDummy)
+        c = ImportUserProvData(b,"C:/Documents and Settings/kkonduri/Desktop/impute.csv" , a.varNames, a.varTypes, a.varNamesDummy, a.varTypesDummy)
         print c.query1
         print c.query2
-
-        print "\n\n"
 
