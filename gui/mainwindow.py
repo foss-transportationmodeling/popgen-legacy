@@ -586,53 +586,94 @@ class MainWindow(QMainWindow):
                                 QMessageBox.Ok)
 
     def showHhldSampleStruct(self):
-        headers = ['state', 'pumano', 'hhid', 'serialno', 'hhtype', 'householdvariable1', 
-                   'householdvariabl2', '...']
+        headers = ['state', 'pumano', 'hhid', 'serialno', '<householdvariable1>', 
+                   '<householdvariable2>', '...']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for household sample file')
+        a = DisplayTableStructure(data, headers, 'Data structure for household sample file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>household sample file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
         a.exec_()
 
     def showGQSampleStruct(self):
-        headers = ['state', 'pumano', 'hhid', 'serialno', 'hhtype', 'groupquartervariable1', 
-                   'groupquartervariabl2', '...']
+        headers = ['state', 'pumano', 'hhid', 'serialno', '<groupquartervariable1>', 
+                   '<groupquartervariable2>', '...']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter sample file')
+        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter sample file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>groupquarter sample file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     def showPersonSampleStruct(self):
-        headers = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'personvariable1', 
-                   'personvariabl2', '...']
+        headers = ['state', 'pumano', 'hhid', 'serialno', 'pnum', '<personvariable1>', 
+                   '<personvariable2>', '...']
 
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for person sample file')
+        a = DisplayTableStructure(data, headers, 'Data structure for person sample file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>person sample file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     def showHhldMarginalsStruct(self):
-        headers = ['state', 'county', 'tract', 'bg', 'householdvar1cat1', 'householdvar1cat2', 
-                   '...', 'householdvar2cat1', '...']
+        headers = ['state', 'county', 'tract', 'bg', '<householdvariable1category1>', '<householdvariable1category2>', 
+                   '...', '<householdvariable2category1>', '...']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for household marginals file')
+        a = DisplayTableStructure(data, headers, 'Data structure for household marginals file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>household marginals file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     def showGQMarginalsStruct(self):
-        headers = ['state', 'county', 'tract', 'bg', 'groupquartervar1cat1', 'groupquartervar1cat2', 
-                   '...', 'groupquartervar2cat1', '...']
+        headers = ['state', 'county', 'tract', 'bg', '<groupquartervariable1category1>', '<groupquartervariable1category2>', 
+                   '...', '<groupquartervariable2category1>', '...']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter marginals file')
+        a = DisplayTableStructure(data, headers, 'Data structure for groupquarter marginals file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>groupquarter marginals file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     def showPersonMarginalsStruct(self):
-        headers = ['state', 'county', 'tract', 'bg', 'personvar1cat1', 'personvar1cat2', 
-                   '...', 'personvar2cat1', '...']
+        headers = ['state', 'county', 'tract', 'bg', '<personvariable1category1>', '<personvariable1category2>', 
+                   '...', '<personvariable2category1>', '...']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file')
+        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>person marginals file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     def showGeocorrStruct(self):
         headers = ['county', 'tract', 'bg','state', 'pumano', 'stateabb', 
                    'countyname']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file')
+        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file', 
+                                  """If you would like to provide your own data, """
+                                  """use the above data structure for the <b>geographic correspondence file</b>. """
+                                  """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
+                                  """keyword <b>float</b> or <b>double</b> for floating point variables, """
+                                  """and keyword <b>text</b> for string variables.""")
+
         a.exec_()
 
     
