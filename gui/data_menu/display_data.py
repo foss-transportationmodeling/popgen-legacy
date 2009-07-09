@@ -161,7 +161,7 @@ class DisplayTable(QDialog):
 
 
 class DisplayTableStructure(QDialog):
-    def __init__(self, tabledata, headers, title, parent=None):
+    def __init__(self, tabledata, headers, title, text, parent=None):
         super(DisplayTableStructure, self).__init__(parent)
 
         self.setWindowTitle("%s" %title)
@@ -179,6 +179,9 @@ class DisplayTableStructure(QDialog):
         # layout
         layout = QVBoxLayout()
         layout.addWidget(table)
+        label = QLabel("<font color = blue>%s </font>" %text)
+        label.setWordWrap(True)
+        layout.addWidget(label)
         layout.addWidget(buttonBox)
         self.setLayout(layout)
 
