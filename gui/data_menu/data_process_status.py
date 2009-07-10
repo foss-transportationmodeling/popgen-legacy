@@ -35,7 +35,7 @@ class DataDialog(QDialog):
         ok.setEnabled(False)
 
         self.GeocorrHousingLayout = CheckLabel("a. Processing geographic correspondence data", "incomplete")
-        self.SampleHousingLayout = CheckLabel("b. Processing household sample data", "incomplete")
+        self.SampleHousingLayout = CheckLabel("b. Processing housing sample data", "incomplete")
         self.SamplePersonLayout = CheckLabel("c. Processing person sample data", "incomplete")
         self.ControlHousingLayout = CheckLabel("d. Processing housing marginals data", "incomplete")
         self.ControlPersonLayout = CheckLabel("e. Processing person marginals data", "incomplete")
