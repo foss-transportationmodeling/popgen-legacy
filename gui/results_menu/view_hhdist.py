@@ -67,11 +67,21 @@ class Hhdist(Matplot):
         if not query.exec_("""CREATE TABLE temphhld SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
                             """ LEFT JOIN hhld_sample using (serialno)""" %(hhldvarstr)):
             raise FileError, query.lastError().text()
-        query.exec_(""" DROP TABLE IF EXISTS tempgq""")
-        if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
-                            """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
-            raise FileError, query.lastError().text()
+
+
+        if self.checkIfTableExists("gq_sample"):
+            query.exec_(""" DROP TABLE IF EXISTS tempgq""")
+            if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
+                               """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
+                raise FileError, query.lastError().text()
         self.on_draw()
+
+
+
+
+
+
+
 
     def on_draw(self):
         """ Redraws the figure
@@ -84,7 +94,7 @@ class Hhdist(Matplot):
             tableAct = "hhld_marginals"
             tableEst = "temphhld"
             seldict = self.project.selVariableDicts.hhld
-        else:
+        elif self.current in self.gqvariables:
             self.categories = self.project.selVariableDicts.gq[self.current].keys()
             self.corrControlVariables =  self.project.selVariableDicts.gq[self.current].values()
             tableAct = "gq_marginals"
