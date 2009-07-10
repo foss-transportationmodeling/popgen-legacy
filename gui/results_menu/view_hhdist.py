@@ -69,7 +69,7 @@ class Hhdist(Matplot):
             raise FileError, query.lastError().text()
 
 
-        if self.checkIfTableExists("gq_sample"):
+        if self.project.gqVars:
             query.exec_(""" DROP TABLE IF EXISTS tempgq""")
             if not query.exec_("""CREATE TABLE tempgq SELECT housing_synthetic_data.*,%s FROM housing_synthetic_data"""
                                """ LEFT JOIN gq_sample using (serialno)""" %(gqvarstr)):
