@@ -320,7 +320,7 @@ class QTreeWidgetCMenu(QTreeWidget):
                 autoImportSFDataInstance.createMasterSubSFTable()
                 autoImportSFDataInstance.projectDBC.dbc.close()
                 tablename = 'mastersftable%s' %(self.page.projectResolutionComboBox.currentText())
-
+                self.project.save()
                 self.populate()
 
 
