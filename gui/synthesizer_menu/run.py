@@ -391,7 +391,8 @@ class RunDialog(QDialog):
                                                                  """to groupquarters. In PopGen, when Census data is used, """
                                                                  """by default groupquarters need"""
                                                                  """ to be synthesized because person marginals include """
-                                                                 """individuals living in households and groupquarters."""), 
+                                                                 """individuals living in households and groupquarters. Fix the data"""
+                                                                 """ and run synthesizer again."""), 
                                 QMessageBox.Ok)
             
             self.dialogButtonBox.emit(SIGNAL("accepted()"))
