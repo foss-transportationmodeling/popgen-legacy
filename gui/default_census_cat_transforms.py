@@ -30,8 +30,15 @@ DEFAULT_PERSON_PUMS_QUERIES = [ "alter table person_pums add column agep bigint"
                                 "update person_pums set employment = 3 where esr = 3",
                                 "update person_pums set employment = 4 where esr = 6",
                                 "drop table person_sample",
-                                "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment from person_pums",
-                                "alter table person_sample add index(serialno, pnum)"]
+                                "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment, relate from person_pums",
+                                "alter table person_sample add index(serialno, pnum)",
+                                "drop table hhld_sample_temp",
+                                "alter table hhld_sample drop column agep",
+                                "alter table hhld_sample rename to hhld_sample_temp",
+                                "drop table hhld_sample",
+                                "create table hhld_sample select hhld_sample_temp.*, agep from hhld_sample_temp left join person_sample using(serialno) where relate = 1",
+                                "update hhld_sample set agep = 1 where agep <=7 ",
+                                "update hhld_sample set agep = 2 where agep >7"]
 
 
 DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add index(serialno)",
@@ -42,6 +49,7 @@ DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add index(serialno)",
                                 "alter table housing_pums add column hhldsize bigint",
                                 "alter table housing_pums add column childpresence bigint",
                                 "alter table housing_pums add column groupquarter bigint",
+                                "alter table housing_pums add column hhldfam bigint",
                         
                                 "update housing_pums set hhtype = 1 where unittype = 0",
                                 "update housing_pums set hhtype = 2 where unittype = 1 or unittype = 2",
@@ -71,10 +79,14 @@ DEFAULT_HOUSING_PUMS_QUERIES = ["alter table housing_pums add index(serialno)",
                                 "update housing_pums set childpresence = -99 where hht = 0",                          
                                 "update housing_pums set groupquarter = unittype where unittype >0",
                                 "update housing_pums set groupquarter = -99 where unittype =0",
+                                
+                                "update housing_pums set hhldfam = 1 where hhldtype <=3",
+                                "update housing_pums set hhldfam = 2 where hhldtype > 3",
+
                                 "delete from housing_pums where persons = 0",
                                 "drop table hhld_sample",
                                 "drop table gq_sample",
-                                "create table hhld_sample select state, pumano, hhid, serialno, hhtype, hhldtype, hhldinc, hhldsize, childpresence from housing_pums where hhtype = 1",
+                                "create table hhld_sample select state, pumano, hhid, serialno, hhtype, hhldtype, hhldinc, hhldsize, childpresence, hhldfam from housing_pums where hhtype = 1",
                                 "create table gq_sample select state, pumano, hhid, serialno, hhtype, groupquarter from housing_pums where hhtype = 2",
                                 "alter table hhld_sample add index(serialno)",
                                 "alter table gq_sample add index(serialno)"]
@@ -127,6 +139,11 @@ DEFAULT_SF_QUERIES = ["alter table %s add column agep1 bigint",
                       "alter table %s add column hhldtype3 bigint",
                       "alter table %s add column hhldtype4 bigint",
                       "alter table %s add column hhldtype5 bigint",
+                      "alter table %s add column hhldrage1 bigint",
+                      "alter table %s add column hhldrage2 bigint",
+                      "alter table %s add column hhldfam1 bigint",
+                      "alter table %s add column hhldfam2 bigint",
+                      
                       
                       "update %s set agep1 = (P008003+P008004+P008005+P008006+P008007) + (P008042+P008043+P008044+P008045+P008046)",
                       "update %s set agep2 = (P008008+P008009+P008010+P008011+P008012+P008013+P008014+P008015+P008016+P008017 ) + (P008047+P008048+P008049+P008050+P008051+P008052+P008053+P008054+P008055+P008056)",
@@ -175,12 +192,18 @@ DEFAULT_SF_QUERIES = ["alter table %s add column agep1 bigint",
                       "update %s set hhldtype3 = P010014",
                       "update %s set hhldtype4 = P010002",
                       "update %s set hhldtype5 = P010017",
+                      "update %s set hhldrage1 = P012002",
+                      "update %s set hhldrage2 = P012017",
+                      "update %s set hhldfam1 = hhldtype1 + hhldtype2 + hhldtype3",
+                      "update %s set hhldfam2 = hhldtype4 + hhldtype5",
+
+
                       "drop table hhld_marginals",
                       "drop table gq_marginals",
                       "drop table person_marginals",
                       """create table hhld_marginals select state, county, tract, bg, hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, hhldinc7, hhldinc8,"""
                       """hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
-                      """childpresence1, childpresence2 from %s""",
+                      """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
                       "create table gq_marginals select state, county, tract, bg, groupquarter1, groupquarter2 from %s",
                       """create table person_marginals select state, county, tract, bg, agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
                       """gender1, gender2, race1, race2, race3, race4, race5, race6, race7, employment1, employment2, employment3, employment4 from"""
