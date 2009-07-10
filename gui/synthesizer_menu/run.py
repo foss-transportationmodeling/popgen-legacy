@@ -332,6 +332,9 @@ class RunDialog(QDialog):
             countyText = '%s,%s' %(countyName, stateName)
             countyCode = self.project.countyCode[countyText]
             stateCode = self.project.stateCode[stateName]
+
+            
+
             if self.project.resolution == 'County':
                 if not query.exec_("""select state, county from geocorr where state = %s and county = %s"""
                                    """ group by state, county"""
