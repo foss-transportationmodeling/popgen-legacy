@@ -281,6 +281,14 @@ class MainWindow(QMainWindow):
                                            self.showGeocorrStruct,
                                            tip = "Data structure for the geographic correspondence file.")
 
+        resHousingSyn = self.createAction("Housing Synthetic Data",
+                                           self.showHousingSyn,
+                                           tip = "Data structure for the housing synthetic data file.")
+
+        resPersonSyn = self.createAction("Person Synthetic Data",
+                                           self.showPersonSyn,
+                                           tip = "Data structure for the person synthetic data file.")
+
 
 
 
@@ -295,7 +303,7 @@ class MainWindow(QMainWindow):
 
         self.addActions(self.helpDataTemplateSubMenu, (dataHhldSample, dataGQSample, dataPersonSample, None,
                                                        dataHhldMarginals, dataGQMarginals, dataPersonMarginals,
-                                                       None, dataGeocorr))
+                                                       None, dataGeocorr, None, resHousingSyn, resPersonSyn))
 
 
         #self.addActions(self.helpMenu, (None, helpDocumentationAction, helpHelpAction, None, helpAboutAction))
@@ -666,7 +674,7 @@ class MainWindow(QMainWindow):
         headers = ['county', 'tract', 'bg','state', 'pumano', 'stateabb', 
                    'countyname']
         data = self.returnData(headers)
-        a = DisplayTableStructure(data, headers, 'Data structure for person marginals file', 
+        a = DisplayTableStructure(data, headers, 'Data structure for geographic correspondence file', 
                                   """If you would like to provide your own data, """
                                   """use the above data structure for the <b>geographic correspondence file</b>. """
                                   """In the <b>variable type</b> row, use keyword <b>bigint</b> for integer variables, """
@@ -675,10 +683,29 @@ class MainWindow(QMainWindow):
 
         a.exec_()
 
+
+    def showHousingSyn(self):
+        headers = ['state', 'county', 'tract', 'bg','hhid', 'serialno', 'frequency', 'hhuniqueid']
+        data = self.returnData(headers, varTypes=False)
+        a = DisplayTableStructure(data, headers, 'Data structure for synthetic housing file',
+                                  "Layout of the data in the housing synthetic data file.")
+
+        a.exec_()
+
+
+    def showPersonSyn(self):
+        headers = ['state', 'county', 'tract', 'bg','hhid', 'serialno', 'pnum', 'frequency', 'personuniqueid']
+        data = self.returnData(headers, varTypes=False)
+        a = DisplayTableStructure(data, headers, 'Data structure for synthetic person file',
+                                  "Layout of the data in the person synthetic data file.") 
+
+        a.exec_()
+
     
-    def returnData(self, headers):
+    def returnData(self, headers, varTypes=True):
         data = []
-        data.append(['<variable type>']*len(headers))
+        if varTypes:
+            data.append(['<variable type>']*len(headers))
         for i in range(4):
             data.append(['value']*len(headers))
         return data
