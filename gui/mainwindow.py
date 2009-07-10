@@ -530,7 +530,10 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
-        
+        filename = '%s/%s/%s.pop' %(self.project.location, self.project.name, self.project.filename)
+        with open(filename, 'rb') as f:
+            self.project = pickle.load(f)
+
         if len(self.project.selVariableDicts.hhld) > 0 and len(self.project.selVariableDicts.person) > 0:
             runDia = RunDialog(self.project, self.job_server)
             runDia.exec_()
