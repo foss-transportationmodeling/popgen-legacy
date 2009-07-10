@@ -44,7 +44,7 @@ class RunDialog(QDialog):
 
         self.runGeoIds = []
 
-        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+        self.dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
 
         selGeographiesLabel = QLabel("Selected Geographies")
         self.selGeographiesList = ListWidget()
@@ -75,15 +75,15 @@ class RunDialog(QDialog):
         vLayout3 = QVBoxLayout()
         vLayout3.addLayout(hLayout)
         vLayout3.addWidget(runWarning)
-        vLayout3.addWidget(dialogButtonBox)
+        vLayout3.addWidget(self.dialogButtonBox)
 
 
         self.setLayout(vLayout3)
 
         self.connect(self.selGeographiesButton, SIGNAL("clicked()"), self.selGeographies)
         self.connect(self.runSynthesizerButton, SIGNAL("clicked()"), self.runSynthesizer)
-        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+        self.connect(self.dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
 
     def accept(self):
@@ -378,16 +378,31 @@ class RunDialog(QDialog):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
-        if self.gqAnalyzed:
-            prepare_data(db, self.project)
-        else:
-            prepare_data_nogqs(db, self.project)
 
+        try:
+            if self.gqAnalyzed:
+                prepare_data(db, self.project)
+            else:
+                prepare_data_nogqs(db, self.project)
+        except KeyError, e:
+            QMessageBox.warning(self, "Run Synthesizer", QString("""Check the <b>hhid, serialno</b> columns in the """
+                                                                 """data. If you wish not to synthesize groupquarters, make"""
+                                                                 """ sure that you delete all person records corresponding """
+                                                                 """to groupquarters. In PopGen, when Census data is used, """
+                                                                 """by default groupquarters need"""
+                                                                 """ to be synthesized because person marginals include """
+                                                                 """individuals living in households and groupquarters."""), 
+                                QMessageBox.Ok)
+            
+            self.dialogButtonBox.emit(SIGNAL("accepted()"))
         db.commit()
         db.close()
 
 
     def isGqAnalyzed(self):
+        if not self.project.gqVars:
+            return False
+
         if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
             return True
 
@@ -396,6 +411,7 @@ class RunDialog(QDialog):
 
         if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
             return True
+
 
         return False
 
