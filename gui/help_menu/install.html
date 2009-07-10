@@ -49,7 +49,7 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 <b>Alternative 1: Download MySQL drivers for Qt</b>
 <ol STYLE="list-style-type: decimal">
 <li>Go to <a href="http://urbanmodel.asu.edu/popgen/code.html">http://urbanmodel.asu.edu/popgen/code.html</a>. Download the package named "MySQL Drivers for MySQL 5.0"
-<li>Unzip the contents of the package into ...\plugins\sqldrivers folder of the Qt installation folder. If for example, Qt 4.5.0 has been installed in C:\Qt, then unzip the contents into C:\Qt\qt\plugins\sqldrivers.
+<li>Unzip the contents of the package into ...\plugins\sqldrivers folder of the Qt installation folder. If for example, Qt 4.5.0 has been installed in C:\Qt, then unzip the contents into C:\Qt\plugins\sqldrivers.
 </ol>
 </p>
 
@@ -73,7 +73,7 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 	</ol>
 <li>Create the MySQL drivers. Open the command prompt and enter the following commands:
 	<ol STYLE="list-style-type: lower-alpha">
-	<li>cd C:\Qt\qt\src\plugins\sqldrivers\mysql (C:\Qt is where Qt is installed)
+	<li>cd C:\Qt\src\plugins\sqldrivers\mysql (C:\Qt is where Qt is installed)
 	<li>qmake -o Makefile "INCLUDEPATH+=C:\MySQL\include" "LIBS+=-LC:\MySQL\lib\opt -lmysql" mysql.pro
 	<li>mingw32-make
 	</ol>
@@ -86,20 +86,20 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 <ol STYLE="list-style-type: decimal">
 <li>Download PopGen 1.0 from <a href="http://urbanmodel.asu.edu/popgen/code.html">http://urbanmodel.asu.edu/popgen/code.html</a>
 <li>Unzip "PopGen_1_0.zip" and store the files on your computer hard drive. (Preferably as C:\PopGen)
-<li>Right-click "My Computer" and go to "properties". Click the "Advanced Tab" and select "Environmental Variables".
-<li>Under "System Variables" Find the variable named "Path". While the path variable is selected, click "Edit". Add the following locations to the "Variable Value" line. Separate with a semicolon:
+<li>Note that the environment variables have to be set before PopGen can be run. Right-click "My Computer" and go to "Properties". Click the "Advanced Tab" and select "Environmental Variables".
+<li>Under "System Variables" find the variable named "Path". While the path variable is selected, click "Edit". Add the following locations to the "Variable Value" line in the same order. Separate folder locations with a semicolon:
 	<ol STYLE="list-style-type: lower-alpha">
 	<li>C:\PopGen
-	<li>C:\Qt\qt\bin
+	<li>C:\Qt\bin
 	<li>C:\qgis
 	<li>C:\Python25
 	</ol>
-<li>Back in the Environment Variables Screen, find the system variable "PYTHONPATH". While this variable is selected, click "Edit". Add the following locations to the "Variable Value" list:
+<li>In addition to setting the "Path" variable, the "PYTHONPATH" variable also needs to be specified. In the Environment Variables Screen, find the system variable "PYTHONPATH". While this variable is selected, click "Edit". Add the following locations to the "Variable Value" list:
 	<ol STYLE="list-style-type: lower-alpha">
 	<li>C:\PopGen
 	<li>C:\qgis\python
 	</ol>
-<span style='color:red;'>Note: Be sure to separate the two locations by a semi-colon. Also, file path names given are examples only. Your exact file path location may vary depending on where you placed the program on your computer.</span>
+<span style='color:red;'>Note: Be sure to separate the folder locations by a semi-colon. Also, file path names given are examples only and your exact file path location may vary depending on where you placed the program on your computer.</span>
 </ol>
 
 Once the above steps are completed, find the "PopGen.bat" file, which is located in the "gui" folder of "pop_gen", and double-click it to initialize the application.
