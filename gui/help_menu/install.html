@@ -14,22 +14,26 @@ Download and install the following software on your computer PRIOR to downloadin
 	URL: <a href="http://sourceforge.net/project/downloading.php?group_id=27747&filename=scipy-0.7.0-win32-superpack-python2.5.exe&a=12400992">scipy-0.7.0-win32-superpack-python2.5.exe</a>
 <li>MySQL_python 1.2.2 for win32 and Python 2.5<br>
 	URL: <a href="http://sourceforge.net/project/downloading.php?group_id=22307&filename=MySQL-python-1.2.2.win32-py2.5.exe&a=85924604">MySQL-python-1.2.2.win32-py2.5.exe</a>
-<li>Matplotlib 0.98.5.3 (Platform independent architecture) - The unzipped package needs to be placed in the Python25 installation folder "C:\Python25\Lib\site-packages"<br>
-	URL: <a href="http://sourceforge.net/project/downloading.php?group_id=80706&filename=matplotlib-0.98.5.3-py2.5-win32.egg&a=58799432">matplotlib-0.98.5.3-py2.5-win32.egg</a>
+<li>Matplotlib 0.98.5.3<br>
+	URL: <a href="http://sourceforge.net/projects/matplotlib/files/matplotlib/matplotlib-0.98.5.3.win32-py2.5.exe/download">matplotlib-0.98.5.3.win32-py2.5.exe</a>
 <li>MySQL 5.0 for Windows - MySQL Community Server is freely available<br>
 	URL: <a href="http://dev.mysql.com/get/Downloads/MySQL-5.0/mysql-essential-5.0.83-win32.msi/from/http://mysql.mirror.redwire.net/">http://dev.mysql.com/get/Downloads/MySQL-5.0/mysql-essential-5.0.83-win32.msi/from/http://mysql.mirror.redwire.net/</a>
 	<ul>
-	<li>After downloading and installing MySQL 5.0, the installation wizard will prompt you to configure your MySQL settings.  Check the box and proceed to configuration
-	<li>Unless otherwise directed in these instructions, keep the default settings
+	<li>Please use the <b>Custom Setup Type</b>
+	<li>Make sure that the feature <b>C Include Files/ Lib Files</b> is installed by changing the option to "this feature will be installed on local hard drive"
+	<li>Change the <b>Install</b> to location to C:\MySQL by clicking on the "change" button near the bottom of the Custom Setup screen
+	<li>When Installation is almost complete, an advertisement will appear. Just click through this.
+	<li>After downloading and installing MySQL 5.0, the installation wizard will prompt you to configure your MySQL settings.  Check the box and proceed to configuration.
+	<li>Unless otherwise directed in these instructions, keep the default settings.
 	<li>Choose the <b>Detailed Configuration</b> option on the 1st screen
 	<li>Choose <b>Non-Transactional Database</b> Only on the 3rd screen
 	<li>Choose <b>Manual Setting</b> and change the <b>concurrent connections</b> to <b>200</b> on the 4th screen
 	<li>Check the <b>Include BIN directory in Windows PATH</b> option on the 7th screen
-	<li>Set-up your MySQL username and password
-	<li>Complete the MySQL configuration setup
+	<li>Set-up your MySQL password
+	<li>Complete the MySQL configuration setup by clicking "execute" in the screen that follows
 	</ul>
-<li>Qt 4.5.0. Qt SDK for Windows (LGPL/ Free License)<br>
-	URL: <a href="http://get.qtsoftware.com/qtsdk/qt-sdk-win-opensource-2009.02.1.exe">http://get.qtsoftware.com/qtsdk/qt-sdk-win-opensource-2009.02.1.exe</a>
+<li>Qt 4.5.0. Libraries for Windows (LGPL/ Free License). The installation location should be C:\Qt.<br>
+	URL: <a href="http://get.qtsoftware.com/qt/source/qt-win-opensource-4.5.2-mingw.exe">Qt libraries 4.5 for Windows</a>
 <li>Quantum GIS 0.11.0 - Metis<br>
 	URL: <a href="http://download.osgeo.org/qgis/win32/QGIS-0.11.0-2-Setup.exe">http://download.osgeo.org/qgis/win32/QGIS-0.11.0-2-Setup.exe</a>
 <li>Parallel Python<br>
@@ -44,8 +48,8 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 <p>
 <b>Alternative 1: Download MySQL drivers for Qt</b>
 <ol STYLE="list-style-type: decimal">
-<li>Go to <a href="http://urbanmodel.asu.edu/popgen/code.html">http://urbanmodel.asu.edu/popgen/code.html</a>. Download the package named "MySQL Drivers for MySQL 5.1"
-<li>Unzip the contents of the package into ...\plugins\sqldrivers folder of the Qt installation folder. If for example, Qt 4.5.0 has been installed in C:\Qt, then unzip the contents into C:\Qt\2009.02\qt\plugins\sqldrivers.
+<li>Go to <a href="http://urbanmodel.asu.edu/popgen/code.html">http://urbanmodel.asu.edu/popgen/code.html</a>. Download the package named "MySQL Drivers for MySQL 5.0"
+<li>Unzip the contents of the package into ...\plugins\sqldrivers folder of the Qt installation folder. If for example, Qt 4.5.0 has been installed in C:\Qt, then unzip the contents into C:\Qt\qt\plugins\sqldrivers.
 </ol>
 </p>
 
@@ -58,18 +62,18 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 		URL: <a href="https://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/MinGW-5.1.4.exe">https://sourceforge.net/projects/mingw/files/Automated%20MinGW%20Installer/MinGW-5.1.4.exe</a>
 	<li>MinGW Utilities<br>
 		URL: <a href="https://sourceforge.net/projects/mingw/files/MinGW%20Utilities/mingw-utils-0.3.tar.gz">https://sourceforge.net/projects/mingw/files/MinGW%20Utilities/mingw-utils-0.3.tar.gz</a><br>
-		Unzipping the downloaded package will output a "bin" folder. Copy all the contents of the "bin" folder to the "bin" folder of the MinGW installation in a. If MinGW has been installed at C:\MinGW, then copy the contents of the MinGW Utilities "bin" folder to C:\MinGW\bin
+		Unzipping the downloaded package will output a "bin" folder. Copy all the contents of the "bin" folder to the "bin" folder of the MinGW installation in Step 1a. For example, if MinGW has been installed at C:\MinGW, then copy the contents of the MinGW Utilities "bin" folder to C:\MinGW\bin
 	<li>Include the "bin" folder of the MinGW installation (for example, C:\MinGW\bin) in the "path" variable of the "Environment Variables"
 	</ol>
-<li>Make MySQL library available to be worked around with MinGW. Open the command prompt and enter the following lines:
+<li>Make MySQL library accessible to MinGW. Open the command prompt and enter the following commands:
 	<ol STYLE="list-style-type: lower-alpha">
-	<li>cd C:\MySQL\lib\opt (<i>C:\MySQL is where MySQL has been installed</i>)
-	<li>reimp -d libmysql.lib (<i>reimp comes with MinGW Utilities and should be in the "bin" folder of the package downloaded in 1</i>)
+	<li>cd C:\MySQL\lib\opt (C:\MySQL is where MySQL has been installed)
+	<li>reimp -d libmysql.lib (reimp comes with MinGW Utilities and should be in the "bin" folder of the package downloaded in Step 1b)
 	<li>dlltool -k --input-def libmysql.def --dllname libmysql.dll --output-lib libmysql.a
 	</ol>
-<li>Make the MySQL drivers. Open the command prompt and enter the following lines:
+<li>Create the MySQL drivers. Open the command prompt and enter the following commands:
 	<ol STYLE="list-style-type: lower-alpha">
-	<li>cd C:\qt\src\plugins\sqldrivers\mysql (C:\qt is where Qt is installed)
+	<li>cd C:\Qt\qt\src\plugins\sqldrivers\mysql (C:\Qt is where Qt is installed)
 	<li>qmake -o Makefile "INCLUDEPATH+=C:\MySQL\include" "LIBS+=-LC:\MySQL\lib\opt -lmysql" mysql.pro
 	<li>mingw32-make
 	</ol>
@@ -81,18 +85,18 @@ Additionally, QMYSQL3 drivers are required by Qt software to interact with the M
 <b>PopGen 1.0</b>
 <ol STYLE="list-style-type: decimal">
 <li>Download PopGen 1.0 from <a href="http://urbanmodel.asu.edu/popgen/code.html">http://urbanmodel.asu.edu/popgen/code.html</a>
-<li>Unzip "pop_gen.zip" and store the files on your computer hard drive. (Preferably as C:\pop_gen)
+<li>Unzip "PopGen_1_0.zip" and store the files on your computer hard drive. (Preferably as C:\PopGen)
 <li>Right-click "My Computer" and go to "properties". Click the "Advanced Tab" and select "Environmental Variables".
-<li>Add the following locations to the "Path" variable under "Environment Variables":
+<li>Under "System Variables" Find the variable named "Path". While the path variable is selected, click "Edit". Add the following locations to the "Variable Value" line. Separate with a semicolon:
 	<ol STYLE="list-style-type: lower-alpha">
-	<li>C:\pop_gen
-	<li>C:\Qt\2009.02\qt\bin
+	<li>C:\PopGen
+	<li>C:\Qt\qt\bin
 	<li>C:\qgis
 	<li>C:\Python25
 	</ol>
-<li>Add the following locations to the "PYTHONPATH" variable under "Environment Variables":
+<li>Back in the Environment Variables Screen, find the system variable "PYTHONPATH". While this variable is selected, click "Edit". Add the following locations to the "Variable Value" list:
 	<ol STYLE="list-style-type: lower-alpha">
-	<li>C:\pop_gen
+	<li>C:\PopGen
 	<li>C:\qgis\python
 	</ol>
 <span style='color:red;'>Note: Be sure to separate the two locations by a semi-colon. Also, file path names given are examples only. Your exact file path location may vary depending on where you placed the program on your computer.</span>

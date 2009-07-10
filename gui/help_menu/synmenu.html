@@ -13,12 +13,12 @@ The Synthesizer Menu has the following options available in it.
 <b>Run Default Transformations</b><br>
 This needs to be done before the set correspondence step in the case that default categories of the census variables defined in PopGen are used. Go to the <b>File Manager</b> window on the left hand side of the screen.  Click the (+) sign on <b>Data Tables</b>, if it’s not already extended.  Right-click on <b>housing_pums</b> and select <b>Default Transformation</b>. The default transformation takes about a minute to process. Do the same process for the <b>person_pums</b> and the <b>mastersftable"resolution"</b> (i.e. mastersftableblockgroup or mastersftablecensustract) data tables. <br><br>
 
-Before running the synthesizer algorithm, there needs to be correspondence set between the housing and person variables in the sample and those in the summary files. This is done using <b>Synthesizer -> Set Correspondence</b> menu option. A screen pops  up listing all the sample and summary / control variables for households, persons and group quarters. The correspondence between the two is then set by manually selecting the respective variables and adding relationships.
+Before running the synthesizer algorithm, there needs to be correspondence set between the housing and person variables in the sample and those in the summary files. This is done using <b>Synthesizer -> Set Correspondence</b> menu option. A screen pops  up listing all the sample and summary / control variables for households, persons and group quarters. The correspondence between the two is then set by manually selecting the respective variables and adding relationships.Correspondences must be set for at least one control variable in household, person, and group quarters.
 </p>
 
 <p>
-<img src="../images/parameters.png" alt="imblogo"/> Parameters/ Settings<br>
-The run parameters can be set using the <b>Synthesizer -> Parameters/ Settings</b> option. The tolerances and maximum number of iterations for both IPF and IPU procedures can be controlled. You are also given the option to change the number of draws and the p-value tolerance during the synthetic population generation.
+<img src="../images/parameters.png" alt="imblogo"/> Parameters/Settings<br>
+The run parameters can be set using the <b>Synthesizer -> Parameters/ Settings</b> option. The tolerances and maximum number of iterations for both IPF and IPU procedures can be controlled. You are also given the option to change the number of draws and the p-value tolerance during the synthetic population generation. You can choose from among three rounding procedures available - Arithmetic, Bucket and Stochastic Rounding. Rounding of the household frequencies is done after the IPU procedure to match the marginal totals of the control variables.
 </p>
 
 <p>
