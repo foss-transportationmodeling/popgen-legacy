@@ -149,6 +149,40 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
     db.commit()
     return arr(synthetic_population, int)
 
+
+def drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+
+    dbc = db.cursor()
+    dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
+    hhld_colno = dbc.rowcount
+
+    hh_colno = hhld_colno
+    synthetic_population=[]
+    j = 0
+    for i in index_matrix[:hh_colno,:]:
+        if i[1] == i[2] and frequencies[j]>0:
+            synthetic_population.append([sp_matrix[i[1]-1, 2] + 1, frequencies[j], i[0]])
+        else:
+            cumulative_weights = weights[sp_matrix[i[1]-1:i[2], 2]].cumsum()
+            probability_distribution = cumulative_weights / cumulative_weights[-1]
+            probability_lower_limit = probability_distribution.tolist()
+            probability_lower_limit.insert(0,0)
+            probability_lower_limit = arr(probability_lower_limit)
+            random_numbers = random.rand(frequencies[j])
+            freq, probability_lower_limit = histogram(random_numbers, probability_lower_limit)
+            hhldid_by_type = sp_matrix[i[1]-1:i[2],2]
+
+            for k in range(len(freq)):
+                if freq[k]<>0:
+                    #hhid = hhidRowDict[hhldid_by_type[k]]
+                    # storing the matrix row no, freq, type
+                    synthetic_population.append([hhldid_by_type[k], freq[k], i[0]])
+        j = j + 1
+
+    dbc.close()
+    db.commit()
+    return arr(synthetic_population, int)
+
 def hhid_row_dictionary(housing_sample):
     hhidRowDict = {}
     counter = 0
