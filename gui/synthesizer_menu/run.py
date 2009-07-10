@@ -14,9 +14,12 @@ from PyQt4.QtSql import *
 
 from database.createDBConnection import createDBC
 from synthesizer_algorithm.prepare_data import prepare_data
+from synthesizer_algorithm.prepare_data_nogqs import prepare_data_nogqs
 from synthesizer_algorithm.drawing_households import person_index_matrix
-from synthesizer_algorithm.demo import configure_and_run
-from synthesizer_algorithm.demo_parallel import run_parallel
+import synthesizer_algorithm.demo as demo
+import synthesizer_algorithm.demo_nogqs as demo_nogqs
+import synthesizer_algorithm.demo_parallel as demo_parallel
+import synthesizer_algorithm.demo_parallel_nogqs as demo_parallel_nogqs
 from gui.file_menu.newproject import Geography
 from gui.misc.widgets import VariableSelectionDialog, ListWidget
 from gui.misc.errors  import *
@@ -36,6 +39,8 @@ class RunDialog(QDialog):
 
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
+
+        self.gqAnalyzed = self.isGqAnalyzed()
 
         self.runGeoIds = []
 
@@ -108,8 +113,12 @@ class RunDialog(QDialog):
         self.outputWindow.append("Project Name - %s" %(self.project.name))
         self.outputWindow.append("Population Synthesized at %s:%s:%s on %s" %(ti[3], ti[4], ti[5], date))
 
-        preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
-                                'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
+        if self.gqAnalyzed:
+            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+                                    'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
+        else:
+            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+                                    'performance_statistics', 'hhld_0_joint_dist', 'person_0_joint_dist']            
 
         query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
@@ -119,8 +128,12 @@ class RunDialog(QDialog):
 
         varCorrDict = {}
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
-        varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+        
+        if self.gqAnalyzed:
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
+
 
 
         projectTables = []
@@ -188,8 +201,12 @@ class RunDialog(QDialog):
 
 
                 for i in index:
-                    #run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], self.indexMatrix, self.pIndexMatrix, dbList, varCorrDict)
-                    run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
+                    if self.gqAnalyzed:
+                        demo_parallel.run_parallel(self.job_server, self.project, 
+                                                   self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
+                    else:
+                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, 
+                                                         self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
@@ -211,13 +228,14 @@ class RunDialog(QDialog):
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-                    #configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
-                    configure_and_run(self.project, geo, varCorrDict)
-                    #try:
-                    #    configure_and_run(self.project, self.indexMatrix, self.pIndexMatrix, geo, varCorrDict)
-                    #except Exception, e:
-                    #    self.outputWindow.append("\t- Error in the Synthesis for geography")
-                    #    print ('Exception: %s' %e)
+                    try:
+                        if self.gqAnalyzed:
+                            demo.configure_and_run(self.project, geo, varCorrDict)
+                        else:
+                            demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+                    except Exception, e:
+                        self.outputWindow.append("\t- Error in the Synthesis for geography")
+                        print ('Exception: %s' %e)
                 self.selGeographiesButton.setEnabled(False)
             else:
                 self.runGeoIds = []
@@ -360,10 +378,27 @@ class RunDialog(QDialog):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
                              db = '%s' %self.project.name)
-        prepare_data(db, self.project)
+        if self.gqAnalyzed:
+            prepare_data(db, self.project)
+        else:
+            prepare_data_nogqs(db, self.project)
 
         db.commit()
         db.close()
+
+
+    def isGqAnalyzed(self):
+        if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
+            return True
+
+        if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
+            return True
+
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
+            return True
+
+        return False
+
 
 
     def readData(self):

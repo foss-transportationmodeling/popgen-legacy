@@ -94,7 +94,24 @@ class SetCorrDialog(QDialog):
     def accept(self):
         if self.tabWidget.housingTab.check():
             if self.tabWidget.personTab.check():
-                if self.tabWidget.gqTab.checkNumRelationsDefined():
+                if self.tabWidget.isGqAnalyzed():
+                    if self.tabWidget.gqTab.checkNumRelationsDefined():
+                        if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
+                            self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
+                            self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+                            self.clearTables('hhld')
+                        if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
+                            self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
+                            self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
+                            self.clearTables('person')
+                        if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
+                            self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
+                            self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+                            self.clearTables('gq')
+                        self.projectDBC.dbc.close()
+                        QDialog.hide(self)
+                        QDialog.accept(self)
+                else:
                     if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
                         self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
                         self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
@@ -103,13 +120,9 @@ class SetCorrDialog(QDialog):
                         self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
                         self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
                         self.clearTables('person')
-                    if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
-                        self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
-                        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-                        self.clearTables('gq')
                     self.projectDBC.dbc.close()
                     QDialog.hide(self)
-                    QDialog.accept(self)
+                    QDialog.accept(self)                    
 
     def clearTables(self, tableNamePrefix):
         #print "variable relations modified - %s" %(tableNamePrefix)
