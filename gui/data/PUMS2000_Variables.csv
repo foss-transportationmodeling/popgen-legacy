@@ -119,7 +119,7 @@ PNUM,Person Sequence Number,P,A,1,9,10,2
 PAUG,Augmented Person Flag,P,A,0,11,11,1
 DDP,Data-defined Person Flag,P,A,0,12,12,1
 PWEIGHT,Person Weight,P,A,1,13,16,4
-RELATE,Relationship,P,A,0,17,18,2
+RELATE,Relationship,P,A,1,17,18,2
 RELATEA,Relationship Allocation Flag,P,A,0,19,19,1
 OC,Own Child Indicator,P,A,0,20,20,1
 RC,Related Child Indicator,P,A,0,21,21,1
