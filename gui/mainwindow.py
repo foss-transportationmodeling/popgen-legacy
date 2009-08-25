@@ -31,6 +31,7 @@ from results_menu.view_hhdist import *
 from results_menu.view_ppdist import *
 from results_menu.view_indgeo import *
 from results_menu.view_hhmap import *
+from results_menu.view_thmap import *
 from results_menu.coreplot import *
 
 from help_menu.helpform import *
@@ -200,11 +201,15 @@ class MainWindow(QMainWindow):
                                                     icon="individualgeo",
                                                     tip = "Display performance statistics for individual geographies.")
 
+        resultsThematicAction = self.createAction("Thematic Maps",
+                                                    self.resultsThematic,
+                                                    icon="individualgeo",
+                                                    tip = "Display thematic attribute maps.")
+
         resultsViewHHAction = self.createAction("&View Households",
                                                     self.resultsViewHH,
                                                     icon="viewhh",
                                                     tip = "Display synthesized households for the entire region.")
-
 
         resultsExportCSVAction = self.createAction("Into &CSV Format", 
                                                 self.resultsCSVExport, 
@@ -220,7 +225,7 @@ class MainWindow(QMainWindow):
         self.addActions(self.regionwideSubMenu, (resultsRegionalAARDAction, resultsRegionalPValueAction,
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
         
-        self.addActions(self.resultsMenu, (resultsIndividualAction, None))
+        self.addActions(self.resultsMenu, (resultsIndividualAction, resultsThematicAction))
         self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Results")
         self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction))
 
@@ -574,7 +579,14 @@ class MainWindow(QMainWindow):
         #res = ResultsGen(self.project)
         indgeo = Indgeo(self.project)
         if indgeo.valid:
-            indgeo.exec_()         
+            indgeo.exec_()    
+            
+    def resultsThematic(self):
+        #res = ResultsGen(self.project)
+        thamp = Thmap(self.project)
+        if thamp.valid:
+            thamp.exec_()   
+            
     def resultsViewHH(self):
         res = Hhmap(self.project)
         res.exec_()
