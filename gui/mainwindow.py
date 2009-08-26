@@ -24,6 +24,7 @@ from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
 from synthesizer_menu.run import RunDialog
 from misc.errors import FileError
+from misc.widgets import DisplayMapsDlg
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -201,10 +202,6 @@ class MainWindow(QMainWindow):
                                                     icon="individualgeo",
                                                     tip = "Display performance statistics for individual geographies.")
 
-        resultsThematicAction = self.createAction("Thematic Maps",
-                                                    self.resultsThematic,
-                                                    icon="individualgeo",
-                                                    tip = "Display thematic attribute maps.")
 
         resultsViewHHAction = self.createAction("&View Households",
                                                     self.resultsViewHH,
@@ -219,15 +216,38 @@ class MainWindow(QMainWindow):
                                                 self.resultsTabExport, 
                                                 tip = "Export results into a tab-delimited file")
 
+        thematicMapsHhldAction = self.createAction("Household",
+                                                   self.thematicMapsHhld, 
+                                                   tip = """Display thematic maps of the synthetic population for """
+                                                   """household attribute categories""")
+
+        thematicMapsGQAction = self.createAction("Groupquarter",
+                                                 self.thematicMapsGQ, 
+                                                 tip = """Display thematic maps of the synthetic population for """
+                                                 """groupquarter attribute categories""")
+
+        thematicMapsPersonAction = self.createAction("Person",
+                                                     self.thematicMapsPerson, 
+                                                     tip = """Display thematic maps of the synthetic population for """
+                                                     """person attribute categories""")
+
+
 # Adding actions to menu
         self.resultsMenu = self.menuBar().addMenu("&Results")
         self.regionwideSubMenu = self.resultsMenu.addMenu(QIcon("images/region.png"),"Regional Statistics")
         self.addActions(self.regionwideSubMenu, (resultsRegionalAARDAction, resultsRegionalPValueAction,
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
         
-        self.addActions(self.resultsMenu, (resultsIndividualAction, resultsThematicAction))
+        self.addActions(self.resultsMenu, (resultsIndividualAction, ))
+
+        self.thematicMapsSubMenu = self.resultsMenu.addMenu(QIcon("images/thematic.png"), "&Thematic Maps")
+        self.addActions(self.thematicMapsSubMenu, (thematicMapsHhldAction,thematicMapsGQAction, thematicMapsPersonAction))
+
+        self.addActions(self.resultsMenu, (None, ))
+
         self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Results")
         self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction))
+
 
 
         #self.addActions(self.resultsMenu, (resultsViewHHAction,))
@@ -581,12 +601,6 @@ class MainWindow(QMainWindow):
         if indgeo.valid:
             indgeo.exec_()    
             
-    def resultsThematic(self):
-        #res = ResultsGen(self.project)
-        thamp = Thmap(self.project)
-        if thamp.valid:
-            thamp.exec_()   
-            
     def resultsViewHH(self):
         res = Hhmap(self.project)
         res.exec_()
@@ -606,6 +620,23 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
                                 QMessageBox.Ok)
+
+
+    def thematicMapsHhld(self):
+        thematicMaps = DisplayMapsDlg(self.project, 'hhld_sample', 'Thematic Map')
+        if thematicMaps.exec_():
+            print 'Dialog was launched'
+
+    def thematicMapsGQ(self):
+        thematicMaps = DisplayMapsDlg(self.project, 'gq_sample', 'Thematic Map')
+        if thematicMaps.exec_():
+            print 'Dialog was launched'
+
+    def thematicMapsPerson(self):
+        thematicMaps = DisplayMapsDlg(self.project, 'person_sample', 'Thematic Map')
+        if thematicMaps.exec_():
+            print 'Dialog was launched'
+
 
     def showHhldSampleStruct(self):
         headers = ['state', 'pumano', 'hhid', 'serialno', '<householdvariable1>', 
