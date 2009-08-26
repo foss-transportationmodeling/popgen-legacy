@@ -6,8 +6,14 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
+from qgis.core import *
+from qgis.gui import *
+from misc.map_toolbar import *
 import re
 from gui.misc.errors import *
+from gui.results_menu.results_preprocessor import *
+from gui.misc.dbf import *
+from numpy.random import randint
 from database.createDBConnection import createDBC
 
 class QWizardValidatePage(QWizardPage):
@@ -847,6 +853,8 @@ class CreateVariable(QDialog):
 
         return cats
 
+
+
 class DeleteRows(QDialog):
     def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
         super(DeleteRows, self).__init__(parent)
@@ -942,6 +950,328 @@ class DeleteRows(QDialog):
             cats.append(cat)
         return cats
 
+class DisplayMapsDlg(QDialog):
+    def __init__(self, project, tablename, title="", icon="", parent=None):
+        super(DisplayMapsDlg, self).__init__(parent)
+
+        self.setMinimumSize(QSize(950, 500))
+
+        self.setWindowTitle(title + " - %s" %tablename)
+        self.setWindowIcon(QIcon("./images/%s.png" %icon))
+        self.tablename = tablename
+        self.project = project
+        
+        check = self.isValid()
+        
+        if check:
+            self.emit(SIGNAL("rejected()"))
+            
+
+        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC.dbc.open()
+        self.query = QSqlQuery(self.projectDBC.dbc)
+        self.variableDict = {}
+        self.variableTypeDict = self.populateVariableTypeDictionary(self.tablename)
+        self.variables = self.variableTypeDict.keys()
+
+        variableListLabel = QLabel("Variables in Table")
+        self.variableListWidget = ListWidget()
+        variableCatsListLabel = QLabel("Categories")
+        self.variableCatsListWidget = ListWidget()
+        self.variableListWidget.setMaximumWidth(200)
+        self.variableCatsListWidget.setMaximumWidth(100)
+
+        # Displaying the thematic map
+        self.canvas = QgsMapCanvas()
+        self.canvas.setCanvasColor(QColor(255,255,255))
+        self.canvas.enableAntiAliasing(True)
+        self.canvas.useQImageToRender(False)
+
+        if self.project.resolution == "County":
+            self.res_prefix = "co"
+        if self.project.resolution == "Tract":
+            self.res_prefix = "tr"
+        if self.project.resolution == "Blockgroup":
+            self.res_prefix = "bg"
+
+        self.stateCode = self.project.stateCode[self.project.state]
+        resultfilename = self.res_prefix+self.stateCode+"_selected"
+        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+        
+        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+        self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+
+        layerName = self.project.name + '-' + self.project.resolution
+        layerProvider = "ogr"
+        self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
+
+        renderer = self.layer.renderer()
+        renderer.setSelectionColor(QColor(255,255,0))
+
+        symbol = renderer.symbols()[0]
+        symbol.setFillColor(QColor(153,204,0))
+
+        if not self.layer.isValid():
+            return
+        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        self.canvas.setExtent(self.layer.extent())
+        cl = QgsMapCanvasLayer(self.layer)
+        layers = [cl]
+        #self.canvas.setLayerSet(layers)
+
+        self.toolbar = Toolbar(self.canvas, self.layer)
+        self.toolbar.hideDragTool()
+        self.toolbar.hideSelectTool()
+        
+
+        mapLabel = QLabel("Thematic Map")
+
+        
+
+
+
+        createVarWarning = QLabel("""<font color = blue>Note: Enter a mathematical filter expression in the """
+                                  """<b>Filter Expression</b> text edit box to delete rows. """
+                                  """The dialog also allows users to check the """
+                                  """categories under any variable by selecting the variable in the """
+                                  """<b>Variables in Table</b> list box.</font>""")
+
+        createVarWarning.setWordWrap(True)
+        vLayout2 = QVBoxLayout()
+
+        hLayout1 = QHBoxLayout()
+        vLayout3 = QVBoxLayout()
+        vLayout3.addWidget(variableListLabel)
+        vLayout3.addWidget(self.variableListWidget)
+        vLayout4 = QVBoxLayout()
+        vLayout4.addWidget(variableCatsListLabel)
+        vLayout4.addWidget(self.variableCatsListWidget)
+        hLayout1.addLayout(vLayout3)
+        hLayout1.addLayout(vLayout4)
+        vLayout2.addLayout(hLayout1)
+
+        vLayout1 = QVBoxLayout()
+        vLayout1.addWidget(mapLabel)
+        vLayout1.addWidget(self.toolbar)
+        vLayout1.addWidget(self.canvas)
+
+
+        hLayout = QHBoxLayout()
+        hLayout.addLayout(vLayout2)
+        hLayout.addLayout(vLayout1)
+
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addWidget(createVarWarning)
+        layout.addWidget(dialogButtonBox)
+
+        self.setLayout(layout)
+        self.populate()
+
+        self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+        self.connect(self.variableCatsListWidget, SIGNAL("itemSelectionChanged()"), self.displayMap)
+
+
+    def isValid(self):
+        retval = -1
+        if not self.isResolutionValid():
+            retval = 1
+            return retval
+        elif not self.isLayerValid():
+            retval = 2
+            return retval
+        elif not self.isPopSyn():
+            retval = 3
+            return retval
+        else:
+            return retval
+
+    def isResolutionValid(self):
+        return self.project.resolution != "TAZ"
+
+    def isLayerValid(self):
+        res = ResultsGen(self.project)
+        return res.create_hhmap()
+
+    def isPopSyn(self):
+        self.getGeographies()
+        return len(self.geolist)>0
+
+    def getGeographies(self):
+        self.geolist = []
+        for geo in self.project.synGeoIds.keys():
+            geostr = str(geo[0]) + "," + str(geo[1]) + "," + str(geo[3]) + "," + str(geo[4])
+            self.geolist.append(geostr)
+
+
+    def accept(self):
+        self.projectDBC.dbc.close()
+        QDialog.accept(self)
+
+    def reject(self):
+        self.projectDBC.dbc.close()
+        QDialog.reject(self)
+
+
+
+    def makeTempTables(self):
+        varstr = self.variableListWidget.currentItem().text()
+        varcatstr = self.variableCatsListWidget.currentItem().text()
+
+        if self.tablename == 'hhld_sample':
+            fromTable = 'housing_synthetic_data'
+            toTable = 'temphhld'
+
+        if self.tablename == 'gq_sample':
+            fromTable = 'housing_synthetic_data'
+            toTable = 'tempgq'
+        else:
+            fromTable = 'person_synthetic_data'
+            toTable = 'temp'
+
+        query = QSqlQuery(self.projectDBC.dbc)
+        query.exec_(""" DROP TABLE IF EXISTS %s""" %(toTable))
+        if not query.exec_("""CREATE TABLE %s SELECT %s.*,%s FROM %s"""
+                            """ LEFT JOIN %s using (serialno)""" %(toTable, fromTable, varstr, fromTable, self.tablename)):
+            raise FileError, query.lastError().text()
+        if not query.exec_("""select state, county, tract, bg, sum(frequency) from %s where %s = %s """
+                           """group by state, county, tract, bg"""
+                           %(toTable, varstr, varcatstr)):
+            raise FileError, query.lastError().text()
+
+        distDict = {}
+
+        while query.next():
+            state = str(query.value(0).toString())
+            county = str(query.value(1).toString())
+            tract = str(query.value(2).toString())
+            bg = str(query.value(3).toString())
+
+            value = query.value(4).toInt()[0]
+
+            key = (state, county, tract, bg)
+            
+            distDict[key] = value
+
+        return distDict
+
+
+    def displayMap(self):
+
+        distDict = self.makeTempTables()
+        print distDict
+
+
+        self.stateCode = self.project.stateCode[self.project.state]
+        resultfilename = self.res_prefix+self.stateCode+"_selected"
+        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+        
+        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+        self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+
+        layerName = self.project.name + '-' + self.project.resolution
+        layerProvider = "ogr"
+        self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
+
+        # Generating a random number field to the shape files database
+        var =  'random1'
+        f = open(self.dbffileloc, 'rb')
+        db = list(dbfreader(f))
+        f.close()
+        fieldnames, fieldspecs, records = db[0], db[1], db[2:]
+        if var not in fieldnames:
+            fieldnames.append(var)
+            fieldspecs.append(('N',11,0))
+            for rec in records:
+                rec.append(randint(0,100))
+            f = open(self.dbffileloc, 'wb')
+            dbfwriter(f, fieldnames, fieldspecs, records)
+            f.close()
+
+
+
+        self.layer.setRenderer(QgsContinuousColorRenderer(self.layer.vectorType()))
+        r = self.layer.renderer()
+        provider = self.layer.getDataProvider()
+        idx = provider.indexFromFieldName(var)
+
+        r.setClassificationField(idx)
+        min = provider.minValue(idx).toString()
+        max = provider.maxValue(idx).toString()
+        minsymbol = QgsSymbol(self.layer.vectorType(), min, "","")
+        minsymbol.setBrush(QBrush(QColor(255,255,255)))
+        maxsymbol = QgsSymbol(self.layer.vectorType(), max, "","")
+        maxsymbol.setBrush(QBrush(QColor(0,0,0)))
+        r.setMinimumSymbol(minsymbol)
+        r.setMaximumSymbol(maxsymbol)
+        r.setSelectionColor(QColor(255,255,0))
+
+        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+        self.canvas.setExtent(self.layer.extent())
+
+        cl = QgsMapCanvasLayer(self.layer)
+        layers = [cl]
+        self.canvas.setLayerSet(layers)
+
+        self.canvas.refresh()
+
+
+
+
+
+
+    def populateVariableTypeDictionary(self, tablename):
+
+        variableTypeDictionary = {}
+        self.query.exec_("""desc %s""" %tablename)
+
+        FIELD, TYPE, NULL, KEY, DEFAULT, EXTRA = range(6)
+
+        while self.query.next():
+            field = '%s' %self.query.value(FIELD).toString()
+            type = self.query.value(TYPE).toString()
+            null = self.query.value(NULL).toString()
+            key = self.query.value(KEY).toString()
+            default = self.query.value(DEFAULT).toString()
+            extra = self.query.value(EXTRA).toString()
+
+            if not field in ['state', 'pumano', 'hhid', 'serialno', 'pnum']:
+                variableTypeDictionary['%s' %field] = type
+
+        return variableTypeDictionary
+
+
+    def displayCats(self):
+        varname = self.variableListWidget.currentItem().text()
+        varCats = self.categories(varname)
+        self.variableDict['%s' %varname] = varCats
+
+        cats = ['%s' %i for i in self.variableDict['%s' %varname]]
+
+        self.variableCatsListWidget.clear()
+        self.variableCatsListWidget.addItems(cats)
+
+
+
+    def populate(self):
+        self.variableListWidget.addItems(self.variables)
+
+
+    def categories(self, varname):
+        cats = []
+
+        self.query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname))
+
+        CATEGORY = 0
+
+        while self.query.next():
+            cat = unicode(self.query.value(CATEGORY).toString())
+            cats.append(cat)
+        return cats
 
 
 
