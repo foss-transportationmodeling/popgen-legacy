@@ -24,10 +24,11 @@ class OpenProject(QFileDialog):
 
 
 class SaveFile(QFileDialog):
-    def __init__(self, project, fileType, parent=None):
+    def __init__(self, project, fileType, tablename=None, parent=None):
         super(SaveFile, self).__init__(parent)
         self.project = project
         self.fileType = fileType
+        self.tablename = tablename
         if self.fileType == 'csv':
             self.fileSep = ','
         elif self.fileType == 'dat':
@@ -37,7 +38,12 @@ class SaveFile(QFileDialog):
                                                 QFileDialog.ShowDirsOnly)
 
         if not self.folder.isEmpty():
-            self.save()
+            if not self.tablename:
+                self.save()
+            else:
+                self.saveSelectedTable()
+
+
 
 
     def save(self):
@@ -47,23 +53,44 @@ class SaveFile(QFileDialog):
         query = QSqlQuery(projectDBC.dbc)
 
         filename = '%s/housing_synthetic_data.%s' %(self.folder, self.fileType)
-        if self.checkIfFileExists(filename) == 0:
+        check = self.checkIfFileExists(filename)
+        if check == 0:
             os.remove(filename)
-        if self.checkIfFileExists(filename) < 2:
+        elif check < 2:
             if not query.exec_("""select * from housing_synthetic_data into outfile """
                                """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
                                %(self.folder, self.fileType, self.fileSep)):
                 raise FileError, query.lastError().text()
 
         filename = '%s/person_synthetic_data.%s' %(self.folder, self.fileType)
-        if self.checkIfFileExists(filename) == 0:
+        check = self.checkIfFileExists(filename)
+        if check == 0:
             os.remove(filename)
-        if self.checkIfFileExists(filename) < 2:
+        elif check  < 2:
             if not query.exec_("""select * from person_synthetic_data into outfile """
                                """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
                                %(self.folder, self.fileType, self.fileSep)):
                 raise FileError, query.lastError().text()
 
+
+
+        projectDBC.dbc.close()
+
+    def saveSelectedTable(self):
+        projectDBC = createDBC(self.project.db, self.project.name)
+        projectDBC.dbc.open()
+
+        query = QSqlQuery(projectDBC.dbc)
+
+        filename = '%s/%s.%s' %(self.folder, self.tablename, self.fileType)
+        check = self.checkIfFileExists(filename)
+        if check == 0:
+            os.remove(filename)
+        elif check < 2:
+            if not query.exec_("""select * from %s into outfile """
+                               """'%s' fields terminated by '%s'"""
+                               %(self.tablename, filename, self.fileSep)):
+                raise FileError, query.lastError().text()
 
 
         projectDBC.dbc.close()
