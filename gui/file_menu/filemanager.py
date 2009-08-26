@@ -14,6 +14,7 @@ from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.display_data import DisplayTable
 from data_menu.sf_data import AutoImportSFData
+from file_menu.open_project import SaveFile
 from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable, NameDialog, DeleteRows
 
 from misc.errors import *
@@ -49,6 +50,9 @@ class QTreeWidgetCMenu(QTreeWidget):
         copyAction = menuTableEdit.addAction("Copy Table")
         renameAction = menuTableEdit.addAction("Rename Table")
         menuTableEdit.addSeparator()
+        exportActionCSV = menuTableEdit.addAction("Export Table (CSV format)")
+        exportActionTab = menuTableEdit.addAction("Export Table (Tab-delimited format)")
+        menuTableEdit.addSeparator()
         defaultTransforAction = menuTableEdit.addAction("Default Transformation")
 
         self.connect(importDataAction, SIGNAL("triggered()"), self.importData)
@@ -61,13 +65,26 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.connect(copyAction, SIGNAL("triggered()"), self.copyTable)
         self.connect(renameAction, SIGNAL("triggered()"), self.renameTable)
         self.connect(dropAction, SIGNAL("triggered()"), self.dropTable)
+
+        self.connect(exportActionCSV, SIGNAL("triggered()"), self.exportTableCSV)
+        self.connect(exportActionTab, SIGNAL("triggered()"), self.exportTableTab)
         self.connect(defaultTransforAction, SIGNAL("triggered()"), self.defaultTransformations)
+
 
         if self.item.parent() is None:
             menu.exec_(event.globalPos())
         else:
             if self.item.parent().text(0) == 'Data Tables':
                 menuTableEdit.exec_(event.globalPos())
+
+
+    def exportTableCSV(self):
+        tablename = self.item.text(0)
+        fileDlg = SaveFile(self.project, "csv", tablename)
+
+    def exportTableTab(self):
+        tablename = self.item.text(0)
+        fileDlg = SaveFile(self.project, "dat", tablename)
 
 
     def deleteRows(self):
