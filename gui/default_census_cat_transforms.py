@@ -37,6 +37,7 @@ DEFAULT_PERSON_PUMS_QUERIES = [ "alter table person_pums add column agep bigint"
                                 "alter table hhld_sample rename to hhld_sample_temp",
                                 "drop table hhld_sample",
                                 "create table hhld_sample select hhld_sample_temp.*, agep from hhld_sample_temp left join person_sample using(serialno) where relate = 1",
+                                "alter table hhld_sample add index(serialno)",
                                 "update hhld_sample set agep = 1 where agep <=7 ",
                                 "update hhld_sample set agep = 2 where agep >7"]
 
