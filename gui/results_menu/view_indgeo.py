@@ -156,7 +156,7 @@ class Indgeo(Matplot):
                 baseid = currgeo[1]
                 self.selgeog.setText("County - " + currgeo[1])
             elif self.res_prefix == "tr":
-                feattract = attrMap[tractidx].toString().trimmed()
+                feattract = ('%s'%(attrMap[tractidx].toString().trimmed())).ljust(6,'0')
                 compid = '%s' %int(featcounty) + ',' + '%s' %int(feattract)
                 baseid = currgeo[1] + ',' + currgeo[2]
                 self.selgeog.setText("County - " + currgeo[1] + "; Tract - " + currgeo[2])
