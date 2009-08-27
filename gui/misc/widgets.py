@@ -1276,6 +1276,10 @@ class DisplayMapsDlg(QDialog):
 
         self.variableCatsListWidget.clear()
         self.variableCatsListWidget.addItems(cats)
+        
+        layers = []
+        self.canvas.setLayerSet(layers)
+        self.canvas.refresh()
 
 
 
