@@ -1178,7 +1178,7 @@ class DisplayMapsDlg(QDialog):
         self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
 
         # Generating a random number field to the shape files database
-        var =  'random1'
+        var =  'freq'
         f = open(self.dbffileloc, 'rb')
         db = list(dbfreader(f))
         f.close()
@@ -1186,13 +1186,38 @@ class DisplayMapsDlg(QDialog):
         if var not in fieldnames:
             fieldnames.append(var)
             fieldspecs.append(('N',11,0))
-            for rec in records:
-                rec.append(randint(0,100))
-            f = open(self.dbffileloc, 'wb')
-            dbfwriter(f, fieldnames, fieldspecs, records)
-            f.close()
-
-
+            freqidx = -1
+        else:
+            freqidx = fieldnames.index("freq")
+        for rec in records:
+            state = '%s' %int(rec[fieldnames.index("STATE")])
+            if self.res_prefix == "co":
+                coidx = fieldnames.index("COUNTY")
+                compid = state, '%s' %int(rec[coidx].strip()),'0','0'
+            elif self.res_prefix == "tr":
+                coidx = fieldnames.index("COUNTY")
+                tridx = fieldnames.index("TRACT")
+                compid = state,'%s' %int(rec[coidx].strip()), ('%s' %int((rec[tridx].strip()).ljust(6,'0'))),'0'
+            elif self.res_prefix == "bg":
+                coidx = fieldnames.index("COUNTY")
+                tridx = fieldnames.index("TRACT")
+                bgidx = fieldnames.index("BLKGROUP")
+                compid = state, '%s' %int(rec[coidx].strip()) , ('%s' %int((rec[tridx].strip()).ljust(6,'0'))) , '%s' %int(rec[bgidx].strip())
+                
+            if compid in distDict:
+                if freqidx > 0:
+                    rec[freqidx] = distDict[compid]
+                else:
+                    rec.append(distDict[compid])
+            else:
+                if freqidx > 0:
+                    rec[freqidx] = 0
+                else:
+                    rec.append(0)
+                    
+        f = open(self.dbffileloc, 'wb')
+        dbfwriter(f, fieldnames, fieldspecs, records)
+        f.close()
 
         self.layer.setRenderer(QgsContinuousColorRenderer(self.layer.vectorType()))
         r = self.layer.renderer()
@@ -1205,10 +1230,12 @@ class DisplayMapsDlg(QDialog):
         minsymbol = QgsSymbol(self.layer.vectorType(), min, "","")
         minsymbol.setBrush(QBrush(QColor(255,255,255)))
         maxsymbol = QgsSymbol(self.layer.vectorType(), max, "","")
-        maxsymbol.setBrush(QBrush(QColor(0,0,0)))
+        maxsymbol.setBrush(QBrush(QColor(153,204,0)))
+        #maxsymbol.setBrush(QBrush(QColor(0,0,0)))
         r.setMinimumSymbol(minsymbol)
         r.setMaximumSymbol(maxsymbol)
         r.setSelectionColor(QColor(255,255,0))
+        
 
         QgsMapLayerRegistry.instance().addMapLayer(self.layer)
         self.canvas.setExtent(self.layer.extent())
@@ -1218,11 +1245,6 @@ class DisplayMapsDlg(QDialog):
         self.canvas.setLayerSet(layers)
 
         self.canvas.refresh()
-
-
-
-
-
 
     def populateVariableTypeDictionary(self, tablename):
 
