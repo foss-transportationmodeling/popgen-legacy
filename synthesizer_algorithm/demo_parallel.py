@@ -180,12 +180,17 @@ def configure_and_run(fileLoc, geo, varCorrDict, dbList):
     if draw_count >= parameters.synPopDraws:
         print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f'
                %(parameters.synPopDraws, max_p))
+        max_p = p_value
+        max_p_housing_attributes = synthetic_housing_attributes
+        max_p_person_attributes = synthetic_person_attributes
+        min_chi = stat
+        
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
 
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
-    synthesizer_algorithm.drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
+    synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
 
 
 
@@ -245,6 +250,7 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
     for geo, job in jobs:
         job()
     job_server.print_stats()
+    """
 
     db = MySQLdb.connect(host = dbList[0], user = dbList[1],
                          passwd = dbList[2], db = dbList[3])
@@ -259,7 +265,7 @@ def run_parallel(job_server, project, geoIds, dbList, varCorrDict):
 
     os.remove(fileHousing)
     os.remove(filePerson)
-
+    """
     print ' Total time for %d geographies - %.2f, Timing per geography - %.2f' %(len(geoIds), time.time()-start, (time.time()-start)/len(geoIds))
 
 

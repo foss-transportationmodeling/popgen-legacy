@@ -306,6 +306,15 @@ def storing_synthetic_attributes(synthesis_type, attributes, county, tract = 0, 
         f.write('\n')
     f.close()
 
+def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
+    dbc = db.cursor()
+    dummy = [tuple(i) for i in attributes]
+    dbc.execute("""insert into %s_synthetic_data values %s"""
+                % (synthesis_type, str(dummy)[1:-1]))
+    dbc.close()
+    db.commit()
+
+
 def store(db, filePath, tablename):
     dbc = db.cursor()
     dbc.execute("""load data local infile '%s' into table %s  fields terminated by ','""" %(filePath, tablename))
