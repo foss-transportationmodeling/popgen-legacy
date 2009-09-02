@@ -40,7 +40,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         editProjectAction = menu.addAction("&Edit Project")
 
         menuTableEdit = QMenu()
-        displayTableAction = menuTableEdit.addAction("Display Table")
+        displayTableAction = menuTableEdit.addAction("Display")
         menuTableEdit.addSeparator()
         createVarAction = menuTableEdit.addAction("Create New Variable")
         recodeCatsAction = menuTableEdit.addAction("Recode Categories")
