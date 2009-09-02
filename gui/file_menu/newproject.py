@@ -47,7 +47,11 @@ class SelectedVariableDicts(object):
         self.gq = gqVariables
         self.person = personVariables
 
-
+class AdjControlsDicts(object):
+    def __init__(self, hhldAdj=defaultdict(dict), gqAdj=defaultdict(dict), personAdj=defaultdict(dict)):
+        self.hhld = hhldAdj
+        self.gq = gqAdj
+        self.person = personAdj
 
 
 class Geography(object):
@@ -58,65 +62,6 @@ class Geography(object):
         self.bg = bg
         self.puma5 = puma5
 
-    """
-    def gqControlVariables(self):
-        pass
-
-    def hhldControlVariables(self):
-        pass
-
-    def personControlVariables(self):
-        pass
-
-    def gqDimensions(self):
-        pass
-
-    def hhldDimensions(self):
-        pass
-
-    def personDimensions(self):
-        pass
-
-
-    def runIPFHousingNoAdj(self):
-        #return objective freq
-        pass
-
-    def runIPFHousingWithAdj(self):
-        #return constraint freq
-        pass
-
-    def runIPFGqNoAdj(self):
-        #return objective freq
-        pass
-
-    def runIPFGqWithAdj(self):
-        #return constraint freq
-        pass
-
-    def runIPFPersonNoAdj(self):
-        #return objective freq
-        pass
-
-    def runIPFPersonWithAdj(self):
-        #return constraint freq
-        pass
-
-
-    def constraints(self):
-        pass
-
-    def runIPU(self):
-        pass
-
-
-    def createSynPop(self):
-        pass
-
-    def writeSynPop(self):
-        pass
-
-    """
 
 class Parameters(object):
     def __init__(self,
@@ -144,6 +89,7 @@ class NewProject(object):
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
                  db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariableDicts(),
+                 adjControls = AdjControlsDicts(),
                  hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds={}):
         self.name = name
         self.filename = name
@@ -161,6 +107,7 @@ class NewProject(object):
         self.db = db
         self.parameters = parameters
         self.selVariableDicts = controlVariables
+        self.adjControlsDicts = adjControls
         self.hhldVars = hhldVars
         self.hhldDims = hhldDims
         self.gqVars = gqVars
