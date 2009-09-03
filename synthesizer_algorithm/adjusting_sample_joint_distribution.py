@@ -132,11 +132,13 @@ def create_aggregation_string(control_variables):
     return string
 
 
-def adjust_weights(db, synthesis_type, control_variables, varCorrDict, county, pumano=0, tract=0, bg=0, parameters=0):
+def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
+                   state, county, pumano=0, tract=0, bg=0, parameters=0):
 
     dbc = db.cursor()
 
-    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, county, tract, bg)
+    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, 
+                                                   controlAdjDict, state, county, tract, bg)
 
     tol = 1
     iteration = 0
@@ -216,7 +218,8 @@ def tolerance (adjustment_all, adjustment_old, iteration, parameters):
 #        print "Convergence Criterion - %s" %adjustment_convergence_characteristic
         return 0
 
-def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict, county, tract, bg):
+def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
+                              state, county, tract, bg):
 
     dbc = db.cursor()
     marginals = database(db, '%s_marginals'%synthesis_type)
@@ -228,43 +231,50 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         cats = arr(dbc.fetchall(), float)
         #print dummy, cats
 
-        variable_marginals1 = []
-        check_marginal_sum = 0
-        for i in cats:
-            corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
-            dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
-            result = arr(dbc.fetchall(), float)
-            check_marginal_sum = result[0][0] + check_marginal_sum
+        selVar = dummy
+        selGeography = "%s,%s,%s,%s" %(state, county, tract, bg)
+        
+        variable_marginals1=[]
+        try:
+            variable_marginals_adj = controlAdjDict[selGeography][selVar]
+            print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
+            for i in variable_marginals_adj[1]:
+                if i>0:
+                    variable_marginals1.append(i)
+                else:
+                    variable_marginals1.append(0.1)
+            check_marginal_sum = sum(variable_marginals1)
+        except Exception ,e:
+            print e
 
-            if result[0][0] <> 0:
-                variable_marginals1.append(result[0][0])
-            else:
-                variable_marginals1.append(0.1)
-        #print 'new', variable_marginals1
+            check_marginal_sum = 0
+            for i in cats:
+                corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
+                dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
+                result = arr(dbc.fetchall(), float)
+                check_marginal_sum = result[0][0] + check_marginal_sum
+
+                if result[0][0] <> 0:
+                    variable_marginals1.append(result[0][0])
+                else:
+                    variable_marginals1.append(0.1)
 
 
-        #variable_marginals =[]
-        #for i in variable_names:
-        #    if match(dummy, i):
-        #        dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s'%(i, synthesis_type, county, tract, bg))
-        #        result = dbc.fetchall()
-        #        if result[0][0] <> 0:
-        #            variable_marginals.append(result[0][0])
-        #        else:
-        #            variable_marginals.append(0.1)
-        #print 'old', variable_marginals
 
         if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
-            raise Exception, 'The given marginal distribution for a control variable sums to zero.'
+            print 'Exception: The given marginal distribution for a control variable sums to zero.'
+            #raise Exception, 'The given marginal distribution for a control variable sums to zero.'
         control_marginals.append(variable_marginals1)
         control_marginals_sum.append(check_marginal_sum)
     if synthesis_type == 'hhld' or synthesis_type == 'person':
         for i in control_marginals_sum[0:]:
             if i <> control_marginals_sum[0]:
-                raise Exception, 'The marginal distributions for the control variables are not the same.'
+                print 'Exception: The marginal distributions for the control variables are not the same.'
+                #raise Exception, 'The marginal distributions for the control variables are not the same.'
 
     dbc.close()
     db.commit()
+    print 'marginals used', control_marginals
     return control_marginals
 
 

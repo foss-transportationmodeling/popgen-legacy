@@ -309,6 +309,9 @@ def storing_synthetic_attributes(synthesis_type, attributes, county, tract = 0, 
 def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract = 0, bg = 0):
     dbc = db.cursor()
     dummy = [tuple(i) for i in attributes]
+    #print("""insert into %s_synthetic_data values %s"""
+     #           % (synthesis_type, str(dummy)[1:-1]))
+
     dbc.execute("""insert into %s_synthetic_data values %s"""
                 % (synthesis_type, str(dummy)[1:-1]))
     dbc.close()

@@ -19,7 +19,7 @@ import MySQLdb
 import time
 import cPickle
 
-def configure_and_run(project, geo, varCorrDict):
+def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 
 
     f = open('indexMatrix.pkl', 'rb')
@@ -34,7 +34,8 @@ def configure_and_run(project, geo, varCorrDict):
     print '------------------------------------------------------------------'
 
     db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username,
-                         passwd = '%s' %project.db.password, db = '%s' %project.name)
+                         passwd = '%s' %project.db.password, db = '%s%s%s' 
+                         %(project.name, 'scenario', project.scenario))
     dbc = db.cursor()
 
     tii = time.clock()
@@ -74,19 +75,31 @@ def configure_and_run(project, geo, varCorrDict):
 #______________________________________________________________________
 # Running IPF for Households
     print 'Step 1A: Running IPF procedure for Households... '
-    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, hhld_dimensions, county, pumano, tract, bg, parameters)
+    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
+                                                                             controlAdjDict,
+                                                                             hhld_dimensions, 
+                                                                             state, county, pumano, tract, bg, 
+                                                                             parameters)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for GQ
     print 'Step 1B: Running IPF procedure for Gqs... '
-    gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, gq_dimensions, county, pumano, tract, bg, parameters)
+    gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, 
+                                                                         controlAdjDict,
+                                                                         gq_dimensions, 
+                                                                         state, county, pumano, tract, bg, 
+                                                                         parameters)
     print 'IPF procedure for GQ was completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for Persons
     print 'Step 1C: Running IPF procedure for Persons... '
-    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, varCorrDict, person_dimensions, county, pumano, tract, bg, parameters)
+    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, 
+                                                                                 varCorrDict, controlAdjDict,
+                                                                                 person_dimensions, 
+                                                                                 state, county, 
+                                                                                 pumano, tract, bg, parameters)
     print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
@@ -183,8 +196,8 @@ def configure_and_run(project, geo, varCorrDict):
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
-    drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
-    drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
+    #drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
+    #drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
 
     drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
     drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
@@ -205,8 +218,10 @@ def configure_and_run(project, geo, varCorrDict):
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     drawing_households.store_performance_statistics(db, geo, values)
 
-    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, county, tract, bg)
-    gq_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, county, tract, bg)
+    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
+                                                                                    state, county, tract, bg)
+    gq_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, controlAdjDict,
+                                                                                  state, county, tract, bg)
     print 'Number of Synthetic Household/Group quarters - %d' %(sum(max_p_housing_attributes[:,-2]))
     for i in range(len(hhld_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], sum(hhld_marginals[i]))
@@ -215,7 +230,8 @@ def configure_and_run(project, geo, varCorrDict):
         print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], sum(gq_marginals[i]))
 
 
-    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, county, tract, bg)
+    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, controlAdjDict,
+                                                                                      state, county, tract, bg)
     print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
     for i in range(len(person_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], sum(person_marginals[i]))

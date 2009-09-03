@@ -14,8 +14,36 @@ from PyQt4.QtCore import *
 
 def prepare_data(db, project):
 
-#    Processes/ methods to be called at the beginning of the pop_synthesis process
+
     dbc = db.cursor()
+    
+    scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
+    projectDatabase = project.name
+
+
+    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample'
+                %(scenarioDatabase, projectDatabase))
+    dbc.execute('alter table %s.hhld_sample add index(serialno)' %(scenarioDatabase))
+    
+    dbc.execute('create table %s.gq_sample select * from %s.gq_sample'
+                %(scenarioDatabase, projectDatabase))
+    dbc.execute('alter table %s.gq_sample add index(serialno)' %(scenarioDatabase))
+
+    dbc.execute('create table %s.person_sample select * from %s.person_sample'
+                %(scenarioDatabase, projectDatabase))
+    dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
+
+    dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
+                %(scenarioDatabase, projectDatabase))
+
+    dbc.execute('create table %s.gq_marginals select * from %s.gq_marginals'
+                %(scenarioDatabase, projectDatabase))
+
+    dbc.execute('create table %s.person_marginals select * from %s.person_marginals'
+                %(scenarioDatabase, projectDatabase))
+
+#    Processes/ methods to be called at the beginning of the pop_synthesis process
+
 
 # Identifying the number of housing units to build the Master Matrix
     dbc.execute('select * from hhld_sample')
@@ -37,6 +65,10 @@ def prepare_data(db, project):
     print '------------------------------------------------------------------'
     print 'Preparing Data for the Synthesizer Run'
     print '------------------------------------------------------------------'
+
+
+
+
     print 'Dimensions and Control Variables in %.4f' %(time.clock()-ti)
     ti = time.clock()
 
