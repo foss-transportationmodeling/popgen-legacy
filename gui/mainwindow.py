@@ -24,7 +24,7 @@ from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
 from synthesizer_menu.run import RunDialog
 from misc.errors import FileError
-from misc.widgets import DisplayMapsDlg
+from misc.widgets import DisplayMapsDlg, ChangeMargsDlg
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
@@ -118,13 +118,27 @@ class MainWindow(QMainWindow):
         #dataStatisticsAction = self.createAction("&Statistics", self.dataStatistics,  
         #                                         icon="statistics", tip="Conduct descriptive analysis.")
 
-        dataModifyAction = self.createAction("&View and Modify", self.dataModify,  
+        dataModifyAction = self.createAction("&Display", self.dataModify,  
                                              icon="modifydata", tip="View, analyze and modify the input data.")
+        
+        dataMargsHhldAction = self.createAction("&Household-level Distributions", self.dataMargsHhld, 
+                                                tip="Modify the distribution of household variables of interest.")
+        dataMargsGQAction = self.createAction("&Groupquarter-level Distributions", self.dataMargsGQ, 
+                                                tip="Modify the distribution of household variables of interest.")
+        dataMargsPersAction = self.createAction("&Person-level Distributions", self.dataMargsPers, 
+                                                tip="Modify the distribution of household variables of interest.")
+
+        
+
+
 # Adding actions to menu
         self.dataMenu = self.menuBar().addMenu("&Data")
 
         #self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataStatisticsAction, dataModifyAction))
-        self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataModifyAction))
+        self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataModifyAction, None))
+
+        self.dataMargsSubMenu = self.dataMenu.addMenu(QIcon("images/Marginals.png"),"Modify Controls")
+        self.addActions(self.dataMargsSubMenu, (dataMargsHhldAction, dataMargsGQAction, dataMargsPersAction))
 
 # Adding actions to toolbar
         self.dataToolBar = self.addToolBar("Data")
@@ -172,6 +186,16 @@ class MainWindow(QMainWindow):
         self.synthesizerMenu.setDisabled(True)
         self.synthesizerToolBar.setDisabled(True)
 
+        self.scenarioComboBox = QComboBox()
+        scenarioItems = ['Scenario - 1', 'Scenario - 2',
+                         'Scenario - 3', 'Scenario - 4',
+                         'Scenario - 5']
+        self.scenarioComboBox.addItems(scenarioItems)
+
+
+        self.scenarioToolBar = self.addToolBar("Scenario")
+        self.scenarioToolBar.addWidget(self.scenarioComboBox)
+        self.scenarioToolBar.setDisabled(True)
 
 # RESULTS MENU
 # Defining menu/toolbar actions
@@ -350,6 +374,20 @@ class MainWindow(QMainWindow):
         #self.connect(self.fileManager, SIGNAL("itemDoubleClicked(QTreeWidgetItem *,int)"), self.fileManager.editItem)
         self.connect(self.fileManager, SIGNAL("itemClicked(QTreeWidgetItem *,int)"), self.fileManager.click)
         self.connect(self, SIGNAL("Dirty(bool)"), self.windowDirty)
+        self.connect(self.scenarioComboBox, SIGNAL("currentIndexChanged(int)"), self.scenarioChanged)
+
+    def scenarioChanged(self, index):
+        file = (self.project.location + os.path.sep 
+                + self.project.name + os.path.sep 
+                + '%s%s%s.pop' %(self.project.name, 'scenario', index + 1))
+        file = os.path.realpath(file)
+        with open(file, 'rb') as f:
+            self.project = pickle.load(f)
+        self.project.scenario = index + 1
+        self.project.save()
+        self.fileManager.project = self.project
+        self.fileManager.populate()
+        
 
     def windowDirty(self, value):
         print 'entering dirty %s' %value
@@ -411,6 +449,8 @@ class MainWindow(QMainWindow):
         self.resultsMenu.setEnabled(option)
         #self.resultsToolBar.setEnabled(option)
 
+        self.scenarioToolBar.setEnabled(option)
+
     def projectOpen(self):
         project = OpenProject()
 
@@ -431,6 +471,7 @@ class MainWindow(QMainWindow):
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         self.enableFunctions(True)
+                        self.scenarioComboBox.setCurrentIndex((self.project.scenario - 1))
                         #PopulateFileManager(self.project, self.fileManager)
 
             else:
@@ -440,6 +481,7 @@ class MainWindow(QMainWindow):
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     self.enableFunctions(True)
+                    self.scenarioComboBox.setCurrentIndex(self.project.scenario - 1)
                     #PopulateFileManager(self.project, self.fileManager)
                     
 
@@ -503,14 +545,31 @@ class MainWindow(QMainWindow):
             print "Please highlight a valid table to display or use the context menu to bring up a table."
             
 
+    def dataMargsHhld(self):
+        margsModHhld = ChangeMargsDlg(self.project, 'hhld', 'Modify Control Distributions')
+        margsModHhld.exec_()
+
+    def dataMargsGQ(self):
+        margsModGQ = ChangeMargsDlg(self.project, 'gq', 'Modify Control Distributions')
+        margsModGQ.exec_()
+
+
+    def dataMargsPers(self):
+        margsModPers = ChangeMargsDlg(self.project, 'person', 'Modify Control Distributions')
+        margsModPers.exec_()
+
+
     def synthesizerControlVariables(self):
         QMessageBox.information(self, "Synthesizer", "Select control variables", QMessageBox.Ok)
 
 
     def synthesizerSetCorrBetVariables(self):
         #Set the correspondence between variables
-        reqTables = ['hhld_sample', 'hhld_sample', 'person_marginals', 'person_sample']
-        if self.checkIfTablesExist(reqTables):
+        reqTables = ['hhld_sample', 'hhld_marginals', 'person_marginals', 'person_sample']
+        print self.project.name
+        tableList = self.tableList(self.project.name)
+        print tableList
+        if self.checkIfTablesExist(reqTables, tableList):
             vars = SetCorrDialog(self.project)
             if vars.exec_():
                 self.project = vars.project
@@ -519,32 +578,28 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Synthesizer", "Import and process tables before setting variable correspondence.", QMessageBox.Ok)
 
-    def checkIfTablesExist(self, reqTables):
-
-        tables = self.tableList()
-
-        #print tables
-
+    def checkIfTablesExist(self, reqTables, tableList):
         for i in reqTables:
             try:
-                tables.index(i)
+                tableList.index(i)
             except:
                 return False
         return True
          
             
-    def tableList(self):
-        self.projectDBC = createDBC(self.project.db, self.project.name)
-        self.projectDBC.dbc.open()
-        self.query = QSqlQuery(self.projectDBC.dbc)
+    def tableList(self, database):
+
+        projectDBC = createDBC(self.project.db, database)
+        projectDBC.dbc.open()
+        query = QSqlQuery(projectDBC.dbc)
 
         tables = []
 
-        if not self.query.exec_("""show tables"""):
-            raise FileError, self.query.lastError.text()
-        while self.query.next():
-            tables.append('%s' %self.query.value(0).toString())
-        self.projectDBC.dbc.close()
+        if not query.exec_("""show tables"""):
+            raise FileError, query.lastError.text()
+        while query.next():
+            tables.append('%s' %query.value(0).toString())
+        projectDBC.dbc.close()
         return tables
     
 
@@ -607,7 +662,9 @@ class MainWindow(QMainWindow):
         
     def resultsCSVExport(self):
         reqTables = ['housing_synthetic_data', 'person_synthetic_data']
-        if self.checkIfTablesExist(reqTables):
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        tableList = self.tableList(scenarioDatabase)
+        if self.checkIfTablesExist(reqTables, tableList):
             fileDlg = SaveFile(self.project, "csv")
         else:
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
@@ -615,7 +672,9 @@ class MainWindow(QMainWindow):
 
     def resultsTabExport(self):
         reqTables = ['housing_synthetic_data', 'person_synthetic_data']
-        if self.checkIfTablesExist(reqTables):
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        tableList = self.tableList(scenarioDatabase)
+        if self.checkIfTablesExist(reqTables, tableList):
             fileDlg = SaveFile(self.project, "dat")
         else:
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 

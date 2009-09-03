@@ -37,6 +37,7 @@ class RunDialog(QDialog):
 
         self.project = project
 
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
@@ -45,6 +46,8 @@ class RunDialog(QDialog):
         self.runGeoIds = []
 
         self.dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+
+
 
         selGeographiesLabel = QLabel("Selected Geographies")
         self.selGeographiesList = ListWidget()
@@ -120,21 +123,29 @@ class RunDialog(QDialog):
             preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'person_0_joint_dist']            
 
+        databaseName = self.project.name + 'scenario' + str(self.project.scenario)
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()
+        
         query = QSqlQuery(self.projectDBC.dbc)
         if not query.exec_("""show tables"""):
             raise FileError, self.query.lastError().text()
 
-
-
+        
         varCorrDict = {}
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
-        
         if self.gqAnalyzed:
             varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
-
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
 
 
+        print self.project.adjControlsDicts.hhld
+
+        controlAdjDict = {}
+        controlAdjDict.update(self.project.adjControlsDicts.hhld)
+        if self.gqAnalyzed:
+            controlAdjDict.update(self.project.adjControlsDicts.gq)
+        controlAdjDict.update(self.project.adjControlsDicts.person)
 
         projectTables = []
         missingTables = []
@@ -148,6 +159,11 @@ class RunDialog(QDialog):
             except:
                 missingTablesString = missingTablesString + ', ' + i
                 missingTables.append(i)
+
+        print missingTables
+
+        self.projectDBC.dbc.setDatabaseName(self.project.name)
+        self.projectDBC.dbc.open()
 
         if len(missingTables) > 0:
             QMessageBox.warning(self, "Prepare Data", "The program will now prepare the data for population synthesis." )
@@ -168,14 +184,17 @@ class RunDialog(QDialog):
             reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
                                           """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
 
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
             for i in self.runGeoIds:
                 ti = time.time()
-                if not query.exec_("""delete from housing_synthetic_data where state = %s and county = %s """
-                                   """ and tract = %s and bg = %s  """ %(i[0], i[1], i[3], i[4])):
+                if not query.exec_("""delete from %s.housing_synthetic_data where state = %s and county = %s """
+                                   """ and tract = %s and bg = %s  """ 
+                                   %(scenarioDatabase, i[0], i[1], i[3], i[4])):
                     raise FileError, query.lastError().text()
 
-                if not query.exec_("""delete from person_synthetic_data where state = %s and county = %s """
-                                   """ and tract = %s and bg = %s  """ %(i[0], i[1], i[3], i[4])):
+                if not query.exec_("""delete from %s.person_synthetic_data where state = %s and county = %s """
+                                   """ and tract = %s and bg = %s  """ 
+                                   %(scenarioDatabase, i[0], i[1], i[3], i[4])):
                     raise FileError, query.lastError().text()
                 a = self.project.synGeoIds.pop(i, -99)
 
@@ -203,10 +222,10 @@ class RunDialog(QDialog):
                 for i in index:
                     if self.gqAnalyzed:
                         demo_parallel.run_parallel(self.job_server, self.project, 
-                                                   self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
+                                                   self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
                     else:
                         demo_parallel_nogqs.run_parallel(self.job_server, self.project, 
-                                                         self.runGeoIds[i[0]:i[1]], dbList, varCorrDict)
+                                                         self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
@@ -230,9 +249,9 @@ class RunDialog(QDialog):
                                              %(geo.state, geo.county, geo.tract, geo.bg))
                     try:
                         if self.gqAnalyzed:
-                            demo.configure_and_run(self.project, geo, varCorrDict)
+                            demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
                         else:
-                            demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+                            demo_nogqs.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
                     except Exception, e:
                         self.outputWindow.append("\t- Error in the Synthesis for geography")
                         print ('Exception: %s' %e)
@@ -377,10 +396,10 @@ class RunDialog(QDialog):
 
     def prepareData(self):
         self.project.synGeoIds = {}
-
+        
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
 
         try:
             if self.gqAnalyzed:
@@ -424,7 +443,7 @@ class RunDialog(QDialog):
     def readData(self):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
         dbc = db.cursor()
 
         dbc.execute("""select * from index_matrix_%s""" %(0))

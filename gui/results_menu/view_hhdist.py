@@ -19,7 +19,8 @@ class Hhdist(Matplot):
         self.valid = False
         if self.isValid():
             self.valid = True
-            self.projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
             self.hhldvariables = self.project.selVariableDicts.hhld.keys()
             self.gqvariables = self.project.selVariableDicts.gq.keys()
@@ -124,6 +125,8 @@ class Hhdist(Matplot):
         actTotal = []
         estTotal = []
         self.catlabels = []
+
+        print self.project.adjControlsDicts
 
         for i in self.categories:
             variable = seldict[self.current][i]

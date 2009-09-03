@@ -54,7 +54,8 @@ class Pval(Matplot):
             self.canvas.draw()
 
     def retrieveResults(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
         projectDBC.dbc.open()
 
         # Get p-values from performance statistics

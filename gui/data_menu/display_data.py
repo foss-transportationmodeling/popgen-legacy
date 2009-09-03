@@ -14,11 +14,17 @@ from misc.widgets import *
 from misc.errors import *
 
 class DisplayTable(QDialog):
-    def __init__(self, project, tablename, parent=None):
+    def __init__(self, project, tablename, treeParent, parent=None):
         super(DisplayTable, self).__init__(parent)
 
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+
+        if treeParent == 'Project Tables':
+            databaseName = self.project.name
+        else:
+            databaseName = self.project.name + 'scenario' + str(self.project.scenario)
+
+        self.projectDBC = createDBC(self.project.db, databaseName)
         self.projectDBC.dbc.open()
 
         self.tablename = tablename

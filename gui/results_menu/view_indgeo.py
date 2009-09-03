@@ -39,8 +39,8 @@ class Indgeo(Matplot):
             self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
 
             self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
-
-            self.projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
             self.makeComboBox()
             self.makeMapWidget()
@@ -304,7 +304,8 @@ class Indgeo(Matplot):
 
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
-
+        self.projectDBC.dbc.setDatabaseName(self.project.name)
+        self.projectDBC.dbc.open()
         if not geo.puma5:
             if self.project.resolution == 'County':
                 geo.puma5 = 0
@@ -321,7 +322,9 @@ class Indgeo(Matplot):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
-
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        self.projectDBC.dbc.setDatabaseName(scenarioDatabase)
+        self.projectDBC.dbc.open()
         return geo
 
 

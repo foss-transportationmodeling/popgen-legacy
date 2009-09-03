@@ -19,7 +19,8 @@ class Ppdist(Matplot):
         self.valid = False
         if self.isValid():
             self.valid = True
-            self.projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+            self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
             self.variables = self.project.selVariableDicts.person.keys()
             self.variables.sort()

@@ -88,11 +88,11 @@ class NewProject(object):
                  region="", state="", countyCode="", stateCode="", stateAbb="",
                  resolution="", geocorrUserProv=Geocorr(),
                  sampleUserProv=Sample(), controlUserProv=Control(),
-                 db=DBInfo(), parameters=Parameters(), controlVariables=SelectedVariableDicts(),
+                 db=DBInfo(), scenario=1, parameters=Parameters(), controlVariables=SelectedVariableDicts(),
                  adjControls = AdjControlsDicts(),
                  hhldVars=None, hhldDims=None, gqVars=None, gqDims=None, personVars=None, personDims=None, geoIds={}):
         self.name = name
-        self.filename = name
+        self.filename = name + 'scenario' + str(scenario)
         self.location = location
         self.description = description
         self.region = region
@@ -105,6 +105,7 @@ class NewProject(object):
         self.sampleUserProv = sampleUserProv
         self.controlUserProv = controlUserProv
         self.db = db
+        self.scenario = scenario
         self.parameters = parameters
         self.selVariableDicts = controlVariables
         self.adjControlsDicts = adjControls
@@ -117,10 +118,8 @@ class NewProject(object):
         self.synGeoIds = geoIds
 
     def save(self):
-        if len(self.filename) < 1:
-            self.filename = self.name
-            print 'filename - %s' %self.filename
-            print 'name - %s' %self.name
+        self.filename = self.name + 'scenario' + str(self.scenario)
+        print self.filename
 
         with open('%s/%s/%s.pop' %(self.location, self.name, self.filename),
                   'wb') as f:
@@ -129,6 +128,7 @@ class NewProject(object):
 
     def update(self):
         pass
+
 
 
 if __name__ == "__main__":

@@ -115,7 +115,8 @@ class Matplot(QDialog):
 
 
     def tableList(self):
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)        
+        self.projectDBC = createDBC(self.project.db, scenarioDatabase)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
 

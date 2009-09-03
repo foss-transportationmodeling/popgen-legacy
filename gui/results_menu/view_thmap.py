@@ -42,7 +42,8 @@ class Thmap(Matplot):
             self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
             self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
 
-            self.projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
             self.makeComboBox()
             self.makeMapWidget()

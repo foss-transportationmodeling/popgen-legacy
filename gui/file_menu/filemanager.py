@@ -74,7 +74,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         if self.item.parent() is None:
             menu.exec_(event.globalPos())
         else:
-            if self.item.parent().text(0) == 'Data Tables':
+            if self.item.parent().text(0) == 'Project Tables' or self.item.parent().text(0) == 'Scenario Tables':
                 menuTableEdit.exec_(event.globalPos())
 
 
@@ -90,7 +90,10 @@ class QTreeWidgetCMenu(QTreeWidget):
     def deleteRows(self):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
-        projectDBC = createDBC(self.project.db, self.project.name)
+
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
         projectDBC.dbc.open()
 
         deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
@@ -121,7 +124,8 @@ class QTreeWidgetCMenu(QTreeWidget):
         copyNameDialog = NameDialog("Copy Table - %s" %tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
-            projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            projectDBC = createDBC(self.project.db, scenarioDatabase)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -136,7 +140,9 @@ class QTreeWidgetCMenu(QTreeWidget):
         renameNameDialog = NameDialog("Rename Table - %s" %tablename)
         if renameNameDialog.exec_():
             newTablename = renameNameDialog.nameLineEdit.text()
-            projectDBC = createDBC(self.project.db, self.project.name)
+
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            projectDBC = createDBC(self.project.db, scenarioDatabase)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -151,7 +157,9 @@ class QTreeWidgetCMenu(QTreeWidget):
         reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?",
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
-            projectDBC = createDBC(self.project.db, self.project.name)
+            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+            projectDBC = createDBC(self.project.db, scenarioDatabase)
+
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -165,7 +173,9 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.item = item
 
     def createVariable(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
+
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
@@ -195,11 +205,13 @@ class QTreeWidgetCMenu(QTreeWidget):
     def displayTable(self):
         tablename = self.item.text(0)
 
-        disp = DisplayTable(self.project, "%s" %tablename)
+        disp = DisplayTable(self.project, "%s" %tablename, self.item.parent().text(0))
         disp.exec_()
 
     def modifyCategories(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
+
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
@@ -210,8 +222,9 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def deleteColumns(self):
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
 
-        projectDBC = createDBC(self.project.db, self.project.name)
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
         projectDBC.dbc.open()
@@ -278,7 +291,8 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def populateVariableDictionary(self, tablename):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
         projectDBC.dbc.open()
 
         self.variableTypeDictionary = {}
@@ -420,8 +434,11 @@ class QTreeWidgetCMenu(QTreeWidget):
             child = QTreeWidgetItem(dbParent, [QString(i), QString(j)])
 
 
-        self.tableParent = QTreeWidgetItem(projectAncestor, [QString("Data Tables")])
-        self.tableChildren()
+        projectTableParent = QTreeWidgetItem(projectAncestor, [QString("Project Tables")])
+        scenarioTableParent = QTreeWidgetItem(projectAncestor, [QString("Scenario Tables")])
+
+        self.tableChildren(projectTableParent, 0)
+        self.tableChildren(scenarioTableParent, 1)
 
         self.expandItem(projectAncestor)
         self.expandSort(informationParent, 0)
@@ -429,7 +446,8 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.expandSort(sampleParent, 0)
         self.expandSort(controlParent, 0)
         self.expandSort(dbParent, 0)
-        self.expandSort(self.tableParent, 0)
+        self.expandSort(projectTableParent, 0)
+        self.expandSort(scenarioTableParent, 0)
 
 
     def userProvText(self, text):
@@ -440,9 +458,14 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
 
-    def tableChildren(self):
+    def tableChildren(self, parent, scenario=0):
 
-        projectDBC = createDBC(self.project.db, self.project.name)
+        if scenario > 0:
+            databaseName = self.project.name + 'scenario' + str(self.project.scenario)
+        else:
+            databaseName = self.project.name
+
+        projectDBC = createDBC(self.project.db, databaseName)
 
         projectDBC.dbc.open()
 
@@ -461,7 +484,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         tableItems.sort()
 
         for i in tableItems:
-            child = QTreeWidgetItem(self.tableParent, [QString(i)])
+            child = QTreeWidgetItem(parent, [QString(i)])
 
     def expandSort(self, item, index):
         self.expandItem(item)

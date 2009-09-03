@@ -9,12 +9,13 @@ from PyQt4.QtSql import *
 from qgis.core import *
 from qgis.gui import *
 from misc.map_toolbar import *
-import re
+import re, math, copy
 from gui.misc.errors import *
 from gui.results_menu.results_preprocessor import *
 from gui.misc.dbf import *
 from numpy.random import randint
 from database.createDBConnection import createDBC
+from collections import defaultdict
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -325,6 +326,7 @@ class ListWidget(QListWidget):
     def rowOf(self, text):
         for i in range(self.count()):
             if self.item(i).text() == text:
+                
                 return i
         return -1
 
@@ -966,8 +968,8 @@ class DisplayMapsDlg(QDialog):
         if check:
             self.emit(SIGNAL("rejected()"))
             
-
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
+        self.projectDBC = createDBC(self.project.db, scenarioDatabase)
         self.projectDBC.dbc.open()
         self.query = QSqlQuery(self.projectDBC.dbc)
         self.variableDict = {}
@@ -1261,7 +1263,12 @@ class DisplayMapsDlg(QDialog):
             default = self.query.value(DEFAULT).toString()
             extra = self.query.value(EXTRA).toString()
 
-            if not field in ['state', 'pumano', 'hhid', 'serialno', 'pnum']:
+            unanalyVars = ['state', 'pumano', 'hhid', 
+                         'serialno', 'pnum', 'hhlduniqueid', 
+                         'personuniqueid', 'gquniqueid', 'hhtype']
+
+
+            if not field in unanalyVars:
                 variableTypeDictionary['%s' %field] = type
 
         return variableTypeDictionary
@@ -1299,6 +1306,541 @@ class DisplayMapsDlg(QDialog):
             cats.append(cat)
         return cats
 
+
+class ChangeMargsDlg(DisplayMapsDlg):
+    def __init__(self, project, tabletype, title="", icon="", parent=None):
+        super(DisplayMapsDlg, self).__init__(parent)
+
+        self.setMinimumSize(QSize(1100, 700))
+
+        self.setWindowTitle("Modify Control Variable Distributions")
+        self.setWindowIcon(QIcon("./images/marginals.png"))
+
+        self.tabletype = tabletype
+        self.tablename = "%s_sample" %tabletype
+        self.mtablename = "%s_marginals" %tabletype
+
+        self.project = project
+        
+        check = self.isValid()
+        
+        if check:
+            self.emit(SIGNAL("rejected()"))
+            
+
+        self.projectDBC = createDBC(self.project.db, self.project.name)
+        self.projectDBC.dbc.open()
+        self.query = QSqlQuery(self.projectDBC.dbc)
+        self.variableDict = {}
+        self.variableTypeDict = self.populateVariableTypeDictionary(self.tablename)
+        self.variables = self.variableTypeDict.keys()
+
+        self.totalControl = 0
+        self.totalAdj = 0
+
+        self.adjDict = defaultdict(dict)
+
+        geographyLabel = QLabel("Geography ID")
+        self.geographyComboBox = QComboBox()
+        geoids = self.allGeographyids()
+        self.geographyComboBox.addItems(geoids.keys())
+        
+        
+
+
+        variableListLabel = QLabel("Variables in Table")
+        self.variableListWidget = ListWidget()
+        self.variableListWidget.setMaximumWidth(200)
+
+        self.totalDisplay = TotalLabelBox()
+        
+
+        self.sliderSpace = QWidget()
+        sliderSpaceLabel = QLabel("Modify")
+        self.sliderSpace.setMinimumSize(QSize(650, 475))
+
+        
+        self.listWidget = ListWidget()
+        #addScenarioButton = QPushButton("Add Scenario")
+        #delScenarioButton = QPushButton("Delete Scenario")
+        
+        addToScenarioButton = QPushButton("Add to Scenario")
+        delFromScenarioButton = QPushButton("Delete from Scenario")
+        
+
+        hLayout2 = QHBoxLayout()
+        #hLayout2.addWidget(addScenarioButton)
+        #hLayout2.addWidget(delScenarioButton)
+        hLayout2.addItem(QSpacerItem(100, 10))
+        hLayout2.addWidget(addToScenarioButton)
+        hLayout2.addWidget(delFromScenarioButton)
+        hLayout2.addItem(QSpacerItem(100, 10))
+        
+
+
+        vLayout4 = QVBoxLayout()
+        vLayout4.addWidget(sliderSpaceLabel)
+        vLayout4.addWidget(self.sliderSpace)
+
+        vLayout2 = QVBoxLayout()
+
+        hLayout1 = QHBoxLayout()
+        vLayout3 = QVBoxLayout()
+        
+        vLayout3.addWidget(geographyLabel)
+        vLayout3.addWidget(self.geographyComboBox)
+        vLayout3.addWidget(variableListLabel)
+        vLayout3.addWidget(self.variableListWidget)
+        vLayout3.addWidget(self.totalDisplay)
+
+        hLayout1.addLayout(vLayout3)
+        vLayout2.addLayout(hLayout1)
+
+
+        hLayout = QHBoxLayout()
+        hLayout.addLayout(vLayout2)
+        hLayout.addLayout(vLayout4)
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+
+        layout = QVBoxLayout()
+        layout.addLayout(hLayout)
+        layout.addLayout(hLayout2)
+        layout.addWidget(self.listWidget)
+        layout.addWidget(dialogButtonBox)
+
+        self.sliders = []
+
+        self.setLayout(layout)
+        self.populate()
+        self.displaySliders()
+
+        #self.variableListWidget.setItemSelected(self.variableListWidget.item(0), True)
+
+
+        self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.unhideSliders)
+        self.connect(self.geographyComboBox, SIGNAL("currentIndexChanged(int)"), self.unhideSliders)
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+
+        for j in range(len(self.sliders)):
+            self.connect(self.sliders[j].sliderAdj.slider, SIGNAL("sliderMoved(int)"), self.updateTotals)
+            self.connect(self.sliders[j].sliderAdj.valueBox, SIGNAL("valueChanged(int)"), self.updateTotals)
+
+
+        self.connect(addToScenarioButton, SIGNAL("clicked()"), self.addToScenario)
+        self.connect(delFromScenarioButton, SIGNAL("clicked()"), self.delFromScenario)
+
+
+    def addToScenario(self):
+        if self.checkTotals():
+            if self.controlDistribution == self.controlDistributionAdj:
+                QMessageBox.information(self, "Modify Control Variable Distributions", 
+                                        """No changes made to the control Variable Distributions for the selected"""
+                                        """ geography.""", QMessageBox.Ok)
+            else:
+                selGeography = '%s' %self.geographyComboBox.currentText()
+                selVar = '%s' %self.variableListWidget.currentItem().text()
+                adjText = "%s;%s-%s-->%s" %(selGeography, selVar, self.controlDistribution, self.controlDistributionAdj) 
+                
+                if selVar in self.adjDict[selGeography].keys():
+                    reply = QMessageBox.question(self, "Modify Control Variable Distributions",
+                                                 """Adjustment for the Control Variable Distributions already exists"""
+                                                 """ for geography - %s. Do you wish to replace?""" %(selGeography),
+                                                 QMessageBox.Yes|QMessageBox.No)
+                    if reply == QMessageBox.Yes:
+                        adjToRemove = self.adjDict[selGeography][selVar]
+                        textToRemove = "%s;%s-%s-->%s" %(selGeography, selVar, adjToRemove[0], adjToRemove[1])
+                        row = self.listWidget.rowOf(textToRemove)
+                        self.listWidget.takeItem(row)
+                        self.adjDict[selGeography][selVar] = [self.controlDistribution, self.controlDistributionAdj]
+                        self.listWidget.addItem(adjText)
+                else:
+                    self.adjDict[selGeography][selVar] = [self.controlDistribution, self.controlDistributionAdj]
+                    self.listWidget.addItem(adjText)
+        else:
+            QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                """The adjusted control variable distribution total must be equal to """
+                                """the actual control variable distribution total.""",
+                                QMessageBox.Ok)                                    
+
+    def delFromScenario(self):
+        removeText = self.listWidget.currentItem().text()
+        row = self.listWidget.rowOf(removeText)
+        self.listWidget.takeItem(row)
+        splitRemoveText = re.split("[;\-\>]", removeText)
+        selGeography = ('%s' %splitRemoveText[0])
+        selVar = ('%s' %splitRemoveText[1])
+
+        del(self.adjDict[selGeography][selVar])
+
+
+    def addToScenario1(self):
+        if self.checkTotals():
+            if self.controlDistribution == self.controlDistributionAdj:
+                QMessageBox.information(self, "Modify Control Variable Distributions", 
+                                        """No changes made to the control Variable Distributions for the selected"""
+                                        """ geography.""", QMessageBox.Ok)
+            else:
+
+                selGeography = '%s' %self.geographyComboBox.currentText()
+                selVar = '%s' %self.variableListWidget.currentItem().text()
+                tabIndex = self.scenarioTabWidget.currentIndex()
+                tabText = '%s' %self.scenarioTabWidget.tabText(tabIndex)
+                adjText = "%s;%s-%s-->%s" %(selGeography, selVar, self.controlDistribution, self.controlDistributionAdj) 
+
+                adjKeyText = '%s' %(selVar)
+
+                if selGeography in self.adjDict[adjKeyText].keys():
+                    reply = QMessageBox.question(self, "Modify Control Variable Distributions",
+                                                 """Adjustment for the Control Variable Distributions already exists"""
+                                                 """ for geography - %s. Do you wish to replace?""" %(selGeography),
+                                                 QMessageBox.Yes|QMessageBox.No)
+                    if reply == QMessageBox.Yes:
+                        adjToRemove = self.adjDict[adjKeyText][selGeography]
+                        textToRemove = "%s;%s-%s-->%s" %(selGeography, selVar, adjToRemove[0], adjToRemove[1])
+                        print textToRemove, 'tabIndex', tabIndex
+
+                        row = self.scenarioTabWidget.widget(tabIndex).rowOf(textToRemove)
+
+                        print 'row', row
+                        self.scenarioTabWidget.widget(tabIndex).takeItem(row)
+                        self.adjDict[adjKeyText][selGeography] = [self.controlDistribution, self.controlDistributionAdj]
+                        self.scenarioTabWidget.widget(tabIndex).addItem(adjText)
+                        
+                else:
+                    self.adjDict[adjKeyText][selGeography] = [self.controlDistribution, self.controlDistributionAdj]
+                    self.scenarioTabWidget.widget(tabIndex).addItem(adjText)                
+
+
+        else:
+            QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                """The adjusted control variable distribution total must be equal to """
+                                """the actual control variable distribution total.""",
+                                QMessageBox.Ok)                        
+
+    def delFromScenario1(self):
+        tabIndex = self.scenarioTabWidget.currentIndex()
+        tabText = '%s' %self.scenarioTabWidget.tabText(tabIndex)
+
+        removeText = self.scenarioTabWidget.widget(tabIndex).currentItem().text()
+        
+        row = self.scenarioTabWidget.widget(tabIndex).rowOf(removeText)
+        self.scenarioTabWidget.widget(tabIndex).takeItem(row)
+
+        splitRemoveText = re.split("[;\-\>]", removeText)
+
+        selGeography = ('%s' %splitRemoveText[0])
+        selVar = ('%s' %splitRemoveText[1])
+
+        adjKeyText = "%s;%s" %(tabText, selVar)
+
+        controlDistribution = ('%s' %splitRemoveText[2])
+        controlDistributionAdj = ('%s' %splitRemoveText[-1])
+        del(self.adjDict[adjKeyText][selGeography])
+
+
+
+    def accept(self):
+        self.projectDBC.dbc.close()
+        QDialog.accept(self)
+        if self.tabletype == 'hhld':
+            self.project.adjControlsDicts.hhld = self.adjDict
+        elif self.tabletype == 'gq':
+            self.project.adjControlsDicts.gq = self.adjDict
+        elif self.tabletype == 'person':
+            self.project.adjControlsDicts.person = self.adjDict
+
+        self.project.save()
+
+
+    def reject(self):
+        self.projectDBC.dbc.close()
+        QDialog.reject(self)
+
+
+    def checkTotals(self):
+        return self.totalControl == self.totalAdj
+
+
+    def unhideSliders(self):
+
+        self.varname = self.variableListWidget.selectedItems()[0].text()
+        self.selVarCategories = self.categories(self.varname)
+
+        self.controlDistribution = self.retrieveControlDistribution()
+        self.totalControl = sum(self.controlDistribution)
+
+        # Trying to get the layout for the sliders
+        self.numCategories = len(self.selVarCategories)
+        
+        if self.numCategories > 10:
+            QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                """Only control variable distributions of variables with 10 or fewer """
+                                """categories can be modified. Please select another variable.""",
+                                QMessageBox.Ok)
+            self.variableListWidget.clearSelection()
+            self.variableListWidget.clearFocus()
+
+            self.variableListWidget.setItemSelected(self.variableListWidget.item(0), True)
+            return
+
+        for j in range(self.numCategories):
+            self.sliders[j].sliderGiven.slider.setRange(0, self.totalControl)
+            self.sliders[j].sliderGiven.valueBox.setRange(0, self.totalControl)
+
+            self.sliders[j].sliderAdj.slider.setRange(0, self.totalControl)
+            self.sliders[j].sliderAdj.valueBox.setRange(0, self.totalControl)
+
+            self.sliders[j].sliderGiven.slider.setValue(self.controlDistribution[j])
+            self.sliders[j].sliderGiven.valueBox.setValue(self.controlDistribution[j])
+
+            self.sliders[j].sliderAdj.slider.setValue(self.controlDistribution[j])
+            self.sliders[j].sliderAdj.valueBox.setValue(self.controlDistribution[j])
+            
+            self.sliders[j].setHidden(False)
+            self.sliders[j].labelWidget.setText('Category - %s' %self.selVarCategories[j])
+
+        for j in range(10 - self.numCategories):
+            self.sliders[j+self.numCategories].setHidden(True)
+        
+
+    def updateTotals(self):
+        self.totalDisplay.actualTotal.setText("Actual Total - %s" %self.totalControl)
+        
+        self.totalAdj = 0
+        self.controlDistributionAdj = []
+
+        for j in range(self.numCategories):
+            dummy = self.sliders[j].sliderAdj.slider.value()
+            self.totalAdj = self.totalAdj + dummy
+            self.controlDistributionAdj.append(dummy)
+        
+        self.totalDisplay.adjustedTotal.setText("Adjusted Total - %s" %self.totalAdj)
+
+
+    def retrieveControlDistribution(self):
+        marginals = []
+        selGeoidText = self.geographyComboBox.currentText()
+        
+        self.selGeoid = re.split("[,]", selGeoidText)
+
+        state, county, tract, bg = self.selGeoid
+        for j in self.selVarCategories:
+            catText = '%s, Category %s' %(self.varname, j)
+            corrControlVar = self.variablesCorrDict['%s' %self.varname][catText]
+
+            if not self.query.exec_("""select %s from %s where state = %s and county = %s """
+                                       """and tract = %s and bg = %s""" 
+                                       %(corrControlVar, self.mtablename, state, county, tract, bg)):
+                raise FileError, self.query.lastError().text()
+            while self.query.next():
+                marginalVal = self.query.value(0).toInt()[0]
+
+            marginals.append(marginalVal)
+
+        return marginals
+            
+
+        
+
+    def displaySliders(self):
+        # Trying to get the layout for the sliders
+        cols = 5
+        rows = 2
+        
+        hLayout = QHBoxLayout()
+        for j in range(cols):
+            vLayout = QVBoxLayout()
+            for i in range(rows):
+                slider = self.slider()
+                self.sliders.append(slider)
+                vLayout.addWidget(slider)
+                slider.setHidden(True)
+            hLayout.addLayout(vLayout)
+        self.sliderSpace.setLayout(hLayout)
+
+    def slider(self, category=None):
+        # we also need a label and list box at the bottom
+        # they should be attached to each other so that if one changes the other reflects the change
+        return SliderBoxCombo(category)
+
+    def populate(self):
+        if self.tabletype == 'hhld':
+            self.variablesCorrDict = self.project.selVariableDicts.hhld
+            self.adjDict = copy.deepcopy(self.project.adjControlsDicts.hhld)
+        elif self.tabletype == 'gq':
+            self.variablesCorrDict = self.project.selVariableDicts.gq
+            self.adjDict = copy.deepcopy(self.project.adjControlsDicts.gq)
+        elif self.tabletype == 'person':
+            self.variablesCorrDict = self.project.selVariableDicts.person
+            self.adjDict = copy.deepcopy(self.project.adjControlsDicts.person)
+
+        self.variables = self.variablesCorrDict.keys()
+        self.variableListWidget.addItems(self.variables)
+
+        for i in self.adjDict.keys():
+            for j in self.adjDict[i].keys():
+                
+                geography = i
+                selVar = j
+                controlDistribution = self.adjDict[i][j][0]
+                controlDistributionAdj = self.adjDict[i][j][1]
+                text = "%s;%s-%s-->%s" %(geography, selVar, controlDistribution, controlDistributionAdj)
+                
+                self.listWidget.addItem(text)
+
+
+    def categories(self, varname):
+        cats = []
+
+        self.query.exec_("""select %s from %s group by %s""" %(varname, self.tablename, varname))
+
+        CATEGORY = 0
+
+        while self.query.next():
+            cat = unicode(self.query.value(CATEGORY).toString())
+            cats.append(cat)
+        return cats 
+
+    def allGeographyids(self):
+
+        allGeoids = {}
+        for i in self.project.region.keys():
+            countyName = i
+            stateName = self.project.region[i]
+            countyText = '%s,%s' %(countyName, stateName)
+            countyCode = self.project.countyCode[countyText]
+            stateCode = self.project.stateCode[stateName]
+
+            if self.project.resolution == 'County':
+                if not self.query.exec_("""select state, county from geocorr where state = %s and county = %s"""
+                                   """ group by state, county"""
+                                   %(stateCode, countyCode)):
+                    raise FileError, self.query.lastError().text()
+            elif self.project.resolution == 'Tract':
+                if not self.query.exec_("""select state, county, tract from geocorr where state = %s and county = %s"""
+                                   """ group by state, county, tract"""
+                                   %(stateCode, countyCode)):
+                    raise FileError, self.query.lastError().text()
+            else:
+                if not self.query.exec_("""select state, county, tract, bg from geocorr where state = %s and county = %s"""
+                                   """ group by state, county, tract, bg"""
+                                   %(stateCode, countyCode)):
+                    raise FileError, self.query.lastError().text()
+        #return a dictionary of all VALID geographies
+
+            STATE, COUNTY, TRACT, BG = range(4)
+
+
+            tract = 0
+            bg = 0
+
+            while self.query.next():
+                state = self.query.value(STATE).toInt()[0]
+                county = self.query.value(COUNTY).toInt()[0]
+
+                if self.project.resolution == 'Tract' or self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
+                    tract = self.query.value(TRACT).toInt()[0]
+                if self.project.resolution == 'Blockgroup' or self.project.resolution == 'TAZ':
+                    bg = self.query.value(BG).toInt()[0]
+
+                id = '%s,%s,%s,%s' %(state, county, tract, bg)
+                idText = 'State - %s, County - %s, Tract - %s, Block Group - %s' %(state, county, tract, bg)
+
+                allGeoids[id] = idText
+
+        return allGeoids
+
+
+class TotalLabelBox(QWidget):
+    def __init__(self, parent=None):
+        super(TotalLabelBox, self).__init__(parent)
+        
+        self.actualTotal = QLabel()
+        self.adjustedTotal = QLabel()
+
+        groupBox = QGroupBox()
+        
+        layout = QVBoxLayout()
+        layout.addWidget(self.actualTotal)
+        layout.addWidget(self.adjustedTotal)
+        groupBox.setLayout(layout)
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(groupBox)
+        
+        self.setLayout(hLayout)
+        
+
+
+class ScenarioTab(QTabWidget):
+    def __init__(self, label, parent=None):
+        super(ScenarioTab, self).__init__(parent)
+
+        
+
+
+
+
+class SliderBoxCombo(QWidget):
+    def __init__(self, label, parent=None):
+        super(SliderBoxCombo, self).__init__(parent)
+        
+        self.labelWidget = QLabel()
+        self.sliderGiven = SliderBox('Act')
+        self.sliderGiven.slider.setEnabled(False)
+        self.sliderGiven.valueBox.setEnabled(False)
+        
+        self.sliderAdj = SliderBox('Adj')
+
+        groupBox = QGroupBox()
+
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.sliderGiven)
+        hLayout.addWidget(self.sliderAdj)
+        
+        groupBox.setLayout(hLayout)
+        
+        vLayout = QVBoxLayout()
+        vLayout.addWidget(self.labelWidget)
+        vLayout.addWidget(groupBox)
+
+        self.setMaximumSize(200, 235)
+
+        self.setLayout(vLayout)
+
+
+class SliderBox(QWidget):
+    def __init__(self, label, parent=None):
+        super(SliderBox, self).__init__(parent)
+
+        self.setMaximumWidth(75)
+        self.setMinimumHeight(125)
+
+        sliderLabel = QLabel(label)
+        self.slider = QSlider()
+        self.valueBox = QSpinBox()
+
+        hLayout1 = QHBoxLayout()
+        hLayout1.addWidget(self.slider)
+        
+        vLayout1 = QVBoxLayout()
+        vLayout1.addWidget(sliderLabel)
+        vLayout1.addLayout(hLayout1)
+        vLayout1.addWidget(self.valueBox)
+        
+        self.setLayout(vLayout1)
+
+        self.connect(self.slider, SIGNAL("sliderMoved(int)"), self.sliderMoved)
+        self.connect(self.valueBox, SIGNAL("valueChanged(int)"), self.valueChanged)
+
+    def sliderMoved(self, value):
+        self.valueBox.setValue(value)
+        
+    def valueChanged(self, value):
+        self.slider.setValue(value)
+        
+        
 
 
 if __name__ == "__main__":

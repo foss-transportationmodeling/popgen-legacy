@@ -159,7 +159,10 @@ class Wizard(QWizard):
 
 
     def accept(self):
-        self.project.save()
+        for i in range(5):
+            self.project.scenario = i + 1
+            self.project.save()
+        self.project.scenario = 1
         QWizard.accept(self)
 
 
