@@ -1342,8 +1342,9 @@ class ChangeMargsDlg(DisplayMapsDlg):
 
         geographyLabel = QLabel("Geography ID")
         self.geographyComboBox = QComboBox()
-        geoids = self.allGeographyids()
-        self.geographyComboBox.addItems(geoids.keys())
+        geoids = self.allGeographyids().keys()
+        geoids.sort()
+        self.geographyComboBox.addItems(geoids)
         
         
 
