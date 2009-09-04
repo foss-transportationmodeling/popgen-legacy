@@ -7,6 +7,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
+from gui.misc.errors import *
 import numpy as np
 
 from coreplot import *
@@ -91,16 +92,25 @@ class Hhdist(Matplot):
         selgeog = '%s' %self.geobox.getCurrentText()
         if self.current in self.hhldvariables:
             self.categories = self.project.selVariableDicts.hhld[self.current].keys()
-            self.corrControlVariables =  self.project.selVariableDicts.hhld[self.current].values()
+            #self.corrControlVariables =  self.project.selVariableDicts.hhld[self.current].values()
             tableAct = "hhld_marginals"
             tableEst = "temphhld"
             seldict = self.project.selVariableDicts.hhld
+            seladjdict = self.project.adjControlsDicts.hhld
         elif self.current in self.gqvariables:
             self.categories = self.project.selVariableDicts.gq[self.current].keys()
-            self.corrControlVariables =  self.project.selVariableDicts.gq[self.current].values()
+            #self.corrControlVariables =  self.project.selVariableDicts.gq[self.current].values()
             tableAct = "gq_marginals"
             tableEst = "tempgq"
             seldict = self.project.selVariableDicts.gq
+            seladjdict = self.project.adjControlsDicts.gq
+            
+        selsorteddict = {}
+        for i in self.categories:
+            catsplit = i.split()
+            newkey = int(catsplit[len(catsplit)-1])
+            selsorteddict[newkey] = seldict[self.current][i]
+        self.categories = selsorteddict.keys()
         self.categories.sort()
 
         filterAct = ""
@@ -126,23 +136,43 @@ class Hhdist(Matplot):
         estTotal = []
         self.catlabels = []
 
-        print self.project.adjControlsDicts
+        #print self.project.adjControlsDicts.hhld
 
         for i in self.categories:
-            variable = seldict[self.current][i]
+            variable = selsorteddict[i]
             self.catlabels.append(variable)
             variableAct = "sum(%s)" %variable
-            queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
-            if queryAct:
-                while queryAct.next():
-                    value = queryAct.value(0).toInt()[0]
-                    actTotal.append(value)
-            else:
-                break
+            try:
+                sumdiff = 0
+                if selgeog != 'All':
+                    #actlist = seladjdict[selgeog][self.current][0]
+                    adjlist = seladjdict[selgeog][self.current][1]
+                    actTotal.append(adjlist[i-1])
+                else:
+                    for j in seladjdict.keys():
+                        try:
+                            actlist = seladjdict[j][self.current][0]
+                            adjlist = seladjdict[j][self.current][1]
+                            sumdiff = sumdiff + adjlist[i-1] - actlist[i-1]
+                        except:
+                            pass
+                    raise FileError, "Overrides"
+            except:
+                #print 'No overrides in scenario'
+                queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
+                if queryAct:
+                    while queryAct.next():
+                        value = queryAct.value(0).toInt()[0]
+                        #print value, sumdiff
+                        value = value + sumdiff
+                        #print value
+                        actTotal.append(value)
+                else:
+                    break
 
-            category = "%s" %i
-            category = category.split()[-1]
-            filterEst = self.current + " = %s" % category
+            #category = "%s" %i
+            #category = category.split()[-1]
+            filterEst = self.current + " = %s" % i
             if selgeog != 'All':
                 filterEst = filterEst + ' and ' + filterAct
             variableEst = "sum(frequency)"

@@ -7,6 +7,7 @@ from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from qgis.core import *
 from qgis.gui import *
+from gui.misc.errors import *
 import numpy as np
 
 from coreplot import *
@@ -72,8 +73,16 @@ class Ppdist(Matplot):
         self.current = '%s' %self.attrbox.getCurrentText()
         selgeog = '%s' %self.geobox.getCurrentText()
         self.categories = self.project.selVariableDicts.person[self.current].keys()
+        seladjdict = self.project.adjControlsDicts.person
+        
+        selsorteddict = {}
+        for i in self.categories:
+            catsplit = i.split()
+            newkey = int(catsplit[len(catsplit)-1])
+            selsorteddict[newkey] = self.project.selVariableDicts.person[self.current][i]
+        self.categories = selsorteddict.keys()        
         self.categories.sort()
-        self.corrControlVariables =  self.project.selVariableDicts.person[self.current].values()
+        #self.corrControlVariables =  self.project.selVariableDicts.person[self.current].values()
 
         filterAct = ""
         #self.countyCodes = []
@@ -103,18 +112,32 @@ class Ppdist(Matplot):
         self.catlabels = []
         tableAct = "person_marginals"
         for i in self.categories:
-            variable = self.project.selVariableDicts.person[self.current][i]
+            variable = selsorteddict[i]
             self.catlabels.append(variable)
             variableAct = "sum(%s)" %variable
-            queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
-            while queryAct.next():
-                value = queryAct.value(0).toInt()[0]
-                actTotal.append(value)
+            try:
+                sumdiff = 0
+                if selgeog != 'All':
+                    adjlist = seladjdict[selgeog][self.current][1]
+                    actTotal.append(adjlist[i-1])
+                else:
+                    for j in seladjdict.keys():
+                        try:
+                            actlist = seladjdict[j][self.current][0]
+                            adjlist = seladjdict[j][self.current][1]
+                            sumdiff = sumdiff + adjlist[i-1] - actlist[i-1]
+                        except:
+                            pass
+                    raise FileError, "Overrides"
+            except:
+                queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
+                while queryAct.next():
+                    value = queryAct.value(0).toInt()[0]
+                    value = value + sumdiff
+                    actTotal.append(value)
 
-            category = "%s" %i
-            category = category.split()[-1]
             tableEst = "temp"
-            filterEst = self.current + " = %s" % category
+            filterEst = self.current + " = %s" % i
             if selgeog != 'All':
                 filterEst = filterEst + ' and ' + filterAct
             variableEst = "sum(frequency)"
