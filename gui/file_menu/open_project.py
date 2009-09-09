@@ -24,11 +24,12 @@ class OpenProject(QFileDialog):
 
 
 class SaveFile(QFileDialog):
-    def __init__(self, project, fileType, tablename=None, parent=None):
+    def __init__(self, project, fileType, tablename=None, treeParent=None, parent=None):
         super(SaveFile, self).__init__(parent)
         self.project = project
         self.fileType = fileType
         self.tablename = tablename
+        self.treeParent = treeParent
         if self.fileType == 'csv':
             self.fileSep = ','
         elif self.fileType == 'dat':
@@ -43,11 +44,13 @@ class SaveFile(QFileDialog):
             else:
                 self.saveSelectedTable()
 
-
+    def saveSummaryStats(self):
+        pass
 
 
     def save(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)
@@ -77,7 +80,12 @@ class SaveFile(QFileDialog):
         projectDBC.dbc.close()
 
     def saveSelectedTable(self):
-        projectDBC = createDBC(self.project.db, self.project.name)
+        if self.treeParent == "Project Tables":
+            database = self.project.name
+        if self.treeParent == "Scenario Tables":
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+
+        projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)
