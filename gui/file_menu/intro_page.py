@@ -19,7 +19,7 @@ class IntroPage(QWizardPage):
         self.nameDummy = True
         self.locationDummy = True
         self.regionDummy = False
-
+        self.parent = None
         self.setTitle("Step 1: Region")
 
         # Project Description
@@ -122,7 +122,7 @@ class IntroPage(QWizardPage):
         self.connect(self.locationComboBox, SIGNAL("activated(int)"), self.locationComboBox.browseFolder)
         self.connect(self.nameLineEdit, SIGNAL("textEdited(const QString&)"), self.nameCheck)
         self.connect(self.locationComboBox, SIGNAL("currentIndexChanged(int)"), self.locationCheck)
-        self.connect(self.countySelectTree, SIGNAL("itemSelectionChanged()"), self.regionCheck)
+        self.connect(self.countySelectTree, SIGNAL("itemPressed(QTreeWidgetItem *,int)"), self.regionCheck)
 
 
     def nameCheck(self, text):
@@ -136,36 +136,50 @@ class IntroPage(QWizardPage):
             self.locationDummy = True
         self.emit(SIGNAL("completeChanged()"))
 
-    def regionCheck(self):
+    def regionCheck(self, item):
+        try:
+            item.parent().text(0)
+            if self.parent is None:
+                self.parent = item.parent()
+                print 'current parent', self.parent.text(0)
+            elif self.parent <> item.parent():
+                self.parent = item.parent()
+                self.clearOtherParentSelection()
+        except Exception, e:
+            print e
+            self.parent = item
+            print 'county selected parent is ', self.parent.text(0)
+            self.clearOtherParentSelection()
+            self.selectParentBranch()
+
         self.selectedCounties = {}
-        items = self.countySelectTree.selectedItems()
-        if items is not None:
-
-            parent = None
-            for i in range(len(items)):
-                selection = items[i]
-                if selection.parent() is None:
-                    selection.setSelected(False)
-                    self.regionDummy = False
-                else:
-                    if parent <> selection.parent():
-                        parent = selection.parent()
-                        for j in range(i):
-                            items[j].setSelected(False)
-                    self.regionDummy = True
-        else:
-            self.regionDummy = False
-        self.emit(SIGNAL("completeChanged()"))
-
         for i in self.countySelectTree.selectedItems():
             self.selectedCounties[i.text(0)] = i.parent().text(0)
+
+        if len(self.selectedCounties.keys()) > 0:
+            self.regionDummy = True
+        else:
+            self.regionDummy = False
 
         if self.canvas.isHidden():
             self.mapwidget.clear()
             self.mapwidget.setHidden(True)
             self.toolbar.setHidden(False)
             self.canvas.setHidden(False)
-        self.highlightSelectedCounties()
+        self.highlightSelectedCounties()        
+
+        self.emit(SIGNAL("completeChanged()"))
+
+
+    def selectParentBranch(self):
+        for i in range(self.parent.childCount()):
+            self.parent.child(i).setSelected(True)
+
+    def clearOtherParentSelection(self):
+        items = self.countySelectTree.selectedItems()
+        for i in items:
+            i.setSelected(False) 
+            
 
     def highlightSelectedCounties(self):
         self.layer.removeSelection()
