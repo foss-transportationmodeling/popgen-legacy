@@ -106,7 +106,7 @@ class MainWindow(QMainWindow):
         self.fileToolBar = self.addToolBar("File")
         self.fileToolBar.setObjectName("FileToolBar")
         #self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAction, self.projectSaveAsAction))
-        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAsAction))
+        self.addActions(self.fileToolBar, (projectNewAction, projectOpenAction, self.projectSaveAction))
         
 
 # DATA MENU 
@@ -240,6 +240,13 @@ class MainWindow(QMainWindow):
                                                 self.resultsTabExport, 
                                                 tip = "Export results into a tab-delimited file")
 
+
+        resultsExportSummaryAction = self.createAction("Summary Statistics", 
+                                                       self.resultsExportSummary,
+                                                       tip = "Export summary statistics for the synthetic population")
+
+
+
         thematicMapsHhldAction = self.createAction("Household",
                                                    self.thematicMapsHhld, 
                                                    tip = """Display thematic maps of the synthetic population for """
@@ -270,7 +277,7 @@ class MainWindow(QMainWindow):
         self.addActions(self.resultsMenu, (None, ))
 
         self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Results")
-        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction))
+        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction, resultsExportSummaryAction))
 
 
 
@@ -508,7 +515,6 @@ class MainWindow(QMainWindow):
 
     
     def projectClose(self):
-        QMessageBox.information(self, "Information", "Close project", QMessageBox.Ok)
         self.fileManager.clear()
         self.fileManager.setEnabled(False)
         self.enableFunctions(False)
@@ -679,6 +685,28 @@ class MainWindow(QMainWindow):
         else:
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
                                 QMessageBox.Ok)
+
+
+    def resultsExportSummary(self):
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        tableList = self.tableList(scenarioDatabase)
+        if self.checkIfTablesExist(reqTables, tableList):
+            fileDlg = SaveFile(self.project, "dat")
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
+                                QMessageBox.Ok)
+
+
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        projectDBC.dbc.open()
+        query = QSqlQuery(projectDBC.dbc)
+
+
+        
+
+        projectDBC.dbc.close()
+
 
 
     def thematicMapsHhld(self):
