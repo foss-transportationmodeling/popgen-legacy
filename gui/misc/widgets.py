@@ -57,7 +57,7 @@ class ComboBoxFile(QComboBox):
 
     def browseFile(self, index):
         if index == self.count()-1:
-            file = QFileDialog.getOpenFileName(self, QString("Browse to select file"), "/home", "Data Files (*.dat *.txt *.csv)")
+            file = QFileDialog.getOpenFileName(self, QString("Browse to select file"), "/home", "Data Files (*.dat *.csv)")
             if not file.isEmpty():
                 indexOfFile = self.isPresent(file)
                 if indexOfFile is None:
