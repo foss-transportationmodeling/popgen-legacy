@@ -80,11 +80,11 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def exportTableCSV(self):
         tablename = self.item.text(0)
-        fileDlg = SaveFile(self.project, "csv", tablename)
+        fileDlg = SaveFile(self.project, "csv", tablename, self.item.parent().text(0))
 
     def exportTableTab(self):
         tablename = self.item.text(0)
-        fileDlg = SaveFile(self.project, "dat", tablename)
+        fileDlg = SaveFile(self.project, "dat", tablename, self.item.parent().text(0))
 
 
     def deleteRows(self):
