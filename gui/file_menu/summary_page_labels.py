@@ -250,6 +250,10 @@ class SummaryPage(QWizardPage):
                 projectDBC.dbc.close()
                 self.projectDatabaseDummy =  False
         else:
+            for i in range(5):
+                if not query.exec_("""Create Database %s%s%s""" %(projectName, 'scenario', str(i + 1))):
+                    print "FileError: %s" %(query.lastError().text())
+                    self.projectDatabaseDummy = False
             projectDBC.dbc.close()
             self.projectDatabaseDummy = True
 
