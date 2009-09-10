@@ -10,6 +10,7 @@ from qgis.core import *
 from qgis.gui import *
 from misc.map_toolbar import *
 import countydata
+from numpy.random import randint
 
 
 class IntroPage(QWizardPage):
@@ -76,7 +77,46 @@ class IntroPage(QWizardPage):
         layerProvider = "ogr"
         self.layer = QgsVectorLayer(layerPath, layerName, layerProvider)
 
+        #self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
         renderer = self.layer.renderer()
+        
+        provider = self.layer.getDataProvider()
+        
+        idx = provider.indexFromFieldName('STATE')
+        #renderer.setClassificationField(idx)
+        #provider.getUniqueValues(idx, uniquestates)
+        #print provider.minValue(idx).toString()
+        #min = int(provider.minValue(idx))
+        #max = int(provider.maxValue(idx))
+        #step = int(250/(max - min))
+        #step = 2
+        #r = 0
+        #b = 2
+        #g = 5
+        #colors = {}
+        #for i in range(1,100):
+            #r = randint(0,255)
+            #b = randint(0,255)
+            #g = randint(0,255)
+            #if i%3 == 1:
+            #    r = r+2
+            #if i%3 == 2:
+            #    b = b+2
+            #    g = 255 - g
+            #else:
+            #    g = g+2
+            #colors[i] = QColor(r,b,g)
+        
+        allAttrs = provider.allAttributesList()
+        provider.select(allAttrs,QgsRect())
+        feat = QgsFeature()
+        #while provider.getNextFeature(feat):
+            #attrMap = feat.attributeMap()
+            #state = attrMap[idx].toString().trimmed()
+            #statecode = int(state)
+            #symbol = QgsSymbol(self.layer.vectorType(),state,"","",colors[statecode])
+            #renderer.insertValue(state,symbol)
+        
         renderer.setSelectionColor(QColor(255,255,0))
 
         symbol = renderer.symbols()[0]
@@ -90,6 +130,7 @@ class IntroPage(QWizardPage):
         cl = QgsMapCanvasLayer(self.layer)
         layers = [cl]
         self.canvas.setLayerSet(layers)
+        self.canvas.refresh()
 
 
         # Vertical layout of project description elements
