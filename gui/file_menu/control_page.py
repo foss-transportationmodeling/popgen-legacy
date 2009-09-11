@@ -15,6 +15,7 @@ class ControlDataPage(QWizardPage):
 
         self.controlHHLocationDummy = True
         self.controlPersonLocationDummy = True
+        self.sourceDummy = False
 
         self.setTitle("Step 4: Marginal Totals")
 
@@ -51,6 +52,14 @@ class ControlDataPage(QWizardPage):
                                        """ to generate a representative synthetic population. </font>""")
         controlUserProvWarning.setWordWrap(True)
 
+
+        sourceGroupBox = QGroupBox("b. Choose the Census data source you want PopGen to use.")
+        self.sourceComboBox = QComboBox()
+
+        sourceLayout = QHBoxLayout()
+        sourceLayout.addWidget(self.sourceComboBox)
+        sourceGroupBox.setLayout(sourceLayout)
+
         self.controlUserProvGroupBox = QGroupBox("b. User provided")
         controlVLayout = QVBoxLayout()
         controlVLayout.addWidget(controlHHLocationLabel)
@@ -60,11 +69,13 @@ class ControlDataPage(QWizardPage):
         controlVLayout.addWidget(controlPersonLocationLabel)
         controlVLayout.addWidget(self.controlPersonLocationComboBox)
         self.controlUserProvGroupBox.setLayout(controlVLayout)
+
         self.controlUserProvGroupBox.setEnabled(False)
 
         vLayout = QVBoxLayout()
         vLayout.addWidget(self.controlGroupBox)
         vLayout.addWidget(controlWarning)
+        vLayout.addWidget(sourceGroupBox)
         vLayout.addWidget(self.controlUserProvGroupBox)
         vLayout.addWidget(controlUserProvWarning)
         self.setLayout(vLayout)
@@ -72,11 +83,25 @@ class ControlDataPage(QWizardPage):
         self.connect(self.controlHHLocationComboBox, SIGNAL("activated(int)"), self.controlHHCheck)
         self.connect(self.controlGQLocationComboBox, SIGNAL("activated(int)"), self.controlGQLocationComboBox.browseFile)
         self.connect(self.controlPersonLocationComboBox, SIGNAL("activated(int)"), self.controlPersonCheck)
+        self.connect(self.sourceComboBox, SIGNAL("activated(int)"), self.sourceCheck)
+
         self.connect(self.controlAutoRadio, SIGNAL("clicked()"), self.controlAutoAction)
         self.connect(self.controlUserProvRadio, SIGNAL("clicked()"), self.controlUserProvAction)
         self.connect(self, SIGNAL("resolutionChanged"), self.resolutionAction)
 
     def resolutionAction(self, resolution):
+        if resolution <> 'County':
+            self.sourceComboBox.clear()
+            self.sourceComboBox.addItems([QString(""), 
+                                          QString("Census 2000")])
+        else:
+            self.sourceComboBox.clear()
+            self.sourceComboBox.addItems([QString(""), 
+                                          QString("Census 2000"), 
+                                          QString("ACS 2005-2007")])
+
+
+
         if resolution == 'TAZ':
             self.controlUserProvRadio.setChecked(True)
             self.controlUserProvRadio.emit(SIGNAL("clicked()"))
@@ -90,8 +115,11 @@ class ControlDataPage(QWizardPage):
         self.controlHHLocationComboBox.setCurrentIndex(0)
         self.controlGQLocationComboBox.setCurrentIndex(0)
         self.controlPersonLocationComboBox.setCurrentIndex(0)
+        self.sourceComboBox.setEnabled(True)
+        self.sourceComboBox.setCurrentIndex(0)
         self.controlPersonLocationDummy = True
         self.controlHHLocationDummy = True
+        self.sourceDummy = False
         self.emit(SIGNAL("completeChanged()"))
 
     def controlUserProvAction(self):
@@ -106,6 +134,9 @@ class ControlDataPage(QWizardPage):
         else:
             self.controlPersonLocationDummy = True
 
+        self.sourceComboBox.setEnabled(False)
+        self.sourceComboBox.setCurrentIndex(0)
+        self.sourceDummy = True
 
         self.emit(SIGNAL("completeChanged()"))
 
@@ -128,9 +159,19 @@ class ControlDataPage(QWizardPage):
 
         self.emit(SIGNAL("completeChanged()"))
 
+    def sourceCheck(self, index):
+        if index>0:
+            self.sourceDummy = True
+        else:
+            self.sourceDummy = False
+
+        self.emit(SIGNAL("completeChanged()"))
+
 
     def isComplete(self):
-        validate = self.controlHHLocationDummy and self.controlPersonLocationDummy
+        if self.sampleUserProvRadio.isChecked():
+            self.sourceDummy = True
+        validate = self.controlHHLocationDummy and self.controlPersonLocationDummy and self.sourceDummy
         if validate:
             return True
         else:
