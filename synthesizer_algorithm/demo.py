@@ -188,10 +188,11 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
     if draw_count >= parameters.synPopDraws:
         print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f'
                %(parameters.synPopDraws, max_p))
-        max_p = p_value
-        max_p_housing_attributes = synthetic_housing_attributes
-        max_p_person_attributes = synthetic_person_attributes
-        min_chi = stat
+        if max_p == 0:
+            max_p = p_value
+            max_p_housing_attributes = synthetic_housing_attributes
+            max_p_person_attributes = synthetic_person_attributes
+            min_chi = stat
 
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
@@ -202,19 +203,6 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
     drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
     drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
 
-    """
-    import os
-    fileHousing = '%s/%s/results/housingdata.txt' %(project.location, project.name)
-    fileHousing = fileHousing.replace('\\', '/')
-    filePerson = '%s/%s/results/persondata.txt' %(project.location, project.name)
-    filePerson = filePerson.replace('\\', '/')
-
-    drawing_households.store(db, fileHousing, 'housing_synthetic_data')
-    drawing_households.store(db, filePerson, 'person_synthetic_data')
-
-    os.remove(fileHousing)
-    os.remove(filePerson)
-    """
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     drawing_households.store_performance_statistics(db, geo, values)
 
