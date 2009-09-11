@@ -20,6 +20,15 @@ def prepare_data(db, project):
     scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
     projectDatabase = project.name
 
+    try:
+        dbc.execute('drop table %s.hhld_sample' %(scenarioDatabase))
+        dbc.execute('drop table %s.gq_sample' %(scenarioDatabase))
+        dbc.execute('drop table %s.person_sample' %(scenarioDatabase))
+        dbc.execute('drop table %s.hhld_marginals' %(scenarioDatabase))
+        dbc.execute('drop table %s.gq_marginals' %(scenarioDatabase))
+        dbc.execute('drop table %s.person_marginals' %(scenarioDatabase))
+    except:
+        pass
 
     dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample'
                 %(scenarioDatabase, projectDatabase))
@@ -41,6 +50,7 @@ def prepare_data(db, project):
 
     dbc.execute('create table %s.person_marginals select * from %s.person_marginals'
                 %(scenarioDatabase, projectDatabase))
+
 
 #    Processes/ methods to be called at the beginning of the pop_synthesis process
 
