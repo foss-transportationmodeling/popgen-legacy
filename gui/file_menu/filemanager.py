@@ -89,11 +89,16 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def deleteRows(self):
         tablename = self.item.text(0)
+
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+            
         self.populateVariableDictionary(tablename)
 
-        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
         deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
@@ -121,10 +126,15 @@ class QTreeWidgetCMenu(QTreeWidget):
     def copyTable(self):
         tablename = self.item.text(0)
 
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
         copyNameDialog = NameDialog("Copy Table - %s" %tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
-            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
             projectDBC = createDBC(self.project.db, scenarioDatabase)
             projectDBC.dbc.open()
 
@@ -136,13 +146,17 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def renameTable(self):
         tablename = self.item.text(0)
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
         renameNameDialog = NameDialog("Rename Table - %s" %tablename)
         if renameNameDialog.exec_():
             newTablename = renameNameDialog.nameLineEdit.text()
 
-            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-            projectDBC = createDBC(self.project.db, scenarioDatabase)
+            projectDBC = createDBC(self.project.db, database)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
@@ -154,11 +168,16 @@ class QTreeWidgetCMenu(QTreeWidget):
     def dropTable(self):
         tablename = self.item.text(0)
 
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
         reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?",
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
-            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-            projectDBC = createDBC(self.project.db, scenarioDatabase)
+            projectDBC = createDBC(self.project.db, database)
 
             projectDBC.dbc.open()
 
@@ -173,8 +192,13 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.item = item
 
     def createVariable(self):
-        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
+        projectDBC = createDBC(self.project.db, database)
 
         projectDBC.dbc.open()
 
@@ -209,8 +233,12 @@ class QTreeWidgetCMenu(QTreeWidget):
         disp.exec_()
 
     def modifyCategories(self):
-        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+        projectDBC = createDBC(self.project.db, database)
 
         projectDBC.dbc.open()
 
@@ -222,8 +250,13 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def deleteColumns(self):
-        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        parent = self.item.parent().text(0)
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
+        projectDBC = createDBC(self.project.db, database)
 
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
