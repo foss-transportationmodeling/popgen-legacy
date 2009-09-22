@@ -6,8 +6,8 @@
 from __future__ import with_statement
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from pums_data import AutoImportPUMSData, UserImportSampleData
-from sf_data import AutoImportSFData, UserImportControlData
+from pums_data import AutoImportPUMS2000Data, AutoImportPUMSACSData, UserImportSampleData
+from sf_data import AutoImportSF2000Data, AutoImportSFACSData, UserImportControlData
 from geocorr_data import AutoImportGeocorrData, UserImportGeocorrData
 from shape_data import Shapes
 from misc.errors import FileError
@@ -17,7 +17,7 @@ class DataDialog(QDialog):
     def __init__(self, project, parent = None):
         super(DataDialog, self).__init__(parent)
         self.project = project
-        self.setFixedSize(QSize(600, 300))
+        self.setFixedSize(QSize(600, 400))
         self.setWindowTitle("Import")
         self.setWindowIcon(QIcon("./images/fileimport.png"))
 
@@ -39,7 +39,7 @@ class DataDialog(QDialog):
         self.SamplePersonLayout = CheckLabel("c. Processing person sample data", "incomplete")
         self.ControlHousingLayout = CheckLabel("d. Processing housing marginals data", "incomplete")
         self.ControlPersonLayout = CheckLabel("e. Processing person marginals data", "incomplete")
-        self.RegionShapeLayout = CheckLabel("f. Processing regional shape files", "incomplete")
+        
 
         importWarning = QLabel("""<font color = blue>Note: Please click on <b>Start</b> to begin importing data."""
                                """</font>""")
@@ -47,13 +47,44 @@ class DataDialog(QDialog):
         #self.detailsTextEdit = QTextEdit()
         #self.detailsTextEdit.setMinimumHeight(250)
 
+        self.geocorrGroupBox = QGroupBox("Geographic Correspondence Data")
+        self.geocorrGroupBox.setCheckable(True)
+        self.sampleGroupBox = QGroupBox("Sample Data")
+        self.sampleGroupBox.setCheckable(True)
+        self.controlGroupBox = QGroupBox("Marginals Data")
+        self.controlGroupBox.setCheckable(True)
+        self.shapesGroupBox = QGroupBox("Shape File Data")
+        self.shapesGroupBox.setCheckable(True)
+
         layout = QVBoxLayout()
-        layout.addLayout(self.GeocorrHousingLayout)
-        layout.addLayout(self.SampleHousingLayout)
-        layout.addLayout(self.SamplePersonLayout)
-        layout.addLayout(self.ControlHousingLayout)
-        layout.addLayout(self.ControlPersonLayout)
-        layout.addLayout(self.RegionShapeLayout)
+
+        layout1 = QVBoxLayout()
+        layout1.addLayout(self.GeocorrHousingLayout)
+        self.geocorrGroupBox.setLayout(layout1)
+        layout.addWidget(self.geocorrGroupBox)
+
+        layout2 = QVBoxLayout()
+        layout2.addLayout(self.SampleHousingLayout)
+        layout2.addLayout(self.SamplePersonLayout)
+        self.sampleGroupBox.setLayout(layout2)
+        layout.addWidget(self.sampleGroupBox)
+
+
+        layout3 = QVBoxLayout()
+        layout3.addLayout(self.ControlHousingLayout)
+        layout3.addLayout(self.ControlPersonLayout)
+        self.controlGroupBox.setLayout(layout3)
+        layout.addWidget(self.controlGroupBox)
+
+
+        if self.project.resolution <> 'TAZ':
+            self.RegionShapeLayout = CheckLabel("f. Processing regional shape files", "incomplete")
+            layout4 = QVBoxLayout()
+            layout4.addLayout(self.RegionShapeLayout)
+            self.shapesGroupBox.setLayout(layout4)
+            layout.addWidget(self.shapesGroupBox)
+
+
         layout.addWidget(importWarning)
         #layout.addWidget(self.detailsTextEdit)
         layout.addWidget(self.dialogButtonBox)
@@ -64,7 +95,6 @@ class DataDialog(QDialog):
         self.connect(self.dialogButtonBox, SIGNAL("clicked(QAbstractButton *)"), self.start)
         self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
-
     def start(self, button):
         for i in self.dialogButtonBox.buttons():
             if i.text() == "Start" or i.text() == "Cancel":
@@ -73,10 +103,15 @@ class DataDialog(QDialog):
                 i.setEnabled(True)
 
         if button.text() == 'Start':
-            self.geocorr()
-            self.sample()
-            self.control()
-            self.shapes()
+            if self.geocorrGroupBox.isChecked():
+                self.geocorr()
+            if self.sampleGroupBox.isChecked():
+                self.sample()
+            if self.controlGroupBox.isChecked():
+                self.control()
+            if self.project.resolution <> 'TAZ':
+                if self.shapesGroupBox.isChecked():
+                    self.shapes()
 
         if button.text() == 'Ok':
             self.close()
@@ -139,9 +174,12 @@ class DataDialog(QDialog):
             self.importSampleInstance.projectDBC.dbc.close()
 
         else:
-            # IMPORTING FILES AUTOMATICALLY
-            self.importPUMSInstance = AutoImportPUMSData(self.project)
-            # Housing PUMS
+            if self.project.sampleUserProv.defSource == "Census 2000":
+                # IMPORTING FILES AUTOMATICALLY
+                self.importPUMSInstance = AutoImportPUMS2000Data(self.project)
+            else:
+                self.importPUMSInstance = AutoImportPUMSACSData(self.project)
+                # Housing PUMS
             try:
                 self.importPUMSInstance.checkHousingPUMSTable()
                 self.SampleHousingLayout.changeStatus(True)
@@ -155,6 +193,7 @@ class DataDialog(QDialog):
             except FileError, e:
                 print e
                 self.SamplePersonLayout.changeStatus(False)
+
             self.importPUMSInstance.projectDBC.dbc.close()
 
     def control(self):
@@ -181,25 +220,25 @@ class DataDialog(QDialog):
             self.importControlInstance.projectDBC.dbc.close()
 
         else:
-            # IMPORTING FILES AUTOMATICALLY
-            self.importSFInstance = AutoImportSFData(self.project)
-            # Housing Controls/Marginals
+            if self.project.controlUserProv.defSource == "Census 2000":
+                # IMPORTING FILES AUTOMATICALLY
+                self.importSFInstance = AutoImportSF2000Data(self.project)
+            else:
+                self.importSFInstance = AutoImportSFACSData(self.project)
+                # Housing/Person Controls/Marginals
+            self.importSFInstance.downloadSFData()
+            self.importSFInstance.createRawSFTable()
+            self.importSFInstance.createMasterSFTable()
+            self.importSFInstance.createMasterSubSFTable()
+            self.ControlHousingLayout.changeStatus(True)
+            self.ControlPersonLayout.changeStatus(True)
             try:
-                self.importSFInstance.downloadSFData()
-                self.importSFInstance.createRawSFTable()
-                self.importSFInstance.createMasterSFTable()
-                self.importSFInstance.createMasterSubSFTable()
-                self.ControlHousingLayout.changeStatus(True)
+                pass
             except FileError, e:
                 print e
                 self.ControlHousingLayout.changeStatus(False)
-
-            # Person Controls/Marginals
-            try:
-                self.ControlPersonLayout.changeStatus(True)
-            except FileError, e:
-                print e
                 self.ControlPersonLayout.changeStatus(False)
+
             self.importSFInstance.projectDBC.dbc.close()
 
 
