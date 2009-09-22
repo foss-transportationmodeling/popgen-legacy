@@ -97,14 +97,14 @@ class UserImportControlData():
                 raise FileError, self.query.lastError().text()
             return 1
 
-class AutoImportSFData():
+class AutoImportSF2000Data():
     def __init__(self, project):
         self.project = project
         self.state = self.project.state
         self.stateAbb = self.project.stateAbb
         self.stateCode = self.project.stateCode
 
-        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SF'
+        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SF2000'
         self.loc = os.path.realpath(self.loc)
 
         self.countiesSelected = self.project.region.keys()
@@ -114,9 +114,9 @@ class AutoImportSFData():
 
         self.query = QSqlQuery(self.projectDBC.dbc)
 
-        self.rawSF = RAW_SUMMARY_FILES
+        self.rawSF = RAW_SUMMARY2000_FILES
 
-        self.rawSFNamesNoExt = RAW_SUMMARY_FILES_NOEXT
+        self.rawSFNamesNoExt = RAW_SUMMARY2000_FILES_NOEXT
 
         #self.downloadSFData()
         #self.createRawSFTable()
@@ -196,7 +196,7 @@ class AutoImportSFData():
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
-            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid float, """
+            if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
                 raise FileError, self.query.lastError().text()
@@ -209,6 +209,8 @@ class AutoImportSFData():
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
             if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set geocomp = mid(raw, 12, 2)""" %self.stateAbb[self.state]):
                 raise FileError, self.query.lastError().text()
             if not self.query.exec_("""update %sgeo set sfgeoid = mid(raw, 19, 7)""" %self.stateAbb[self.state]):
                 raise FileError, self.query.lastError().text()
@@ -247,10 +249,10 @@ class AutoImportSFData():
 
 
 
-    def variableNames(self, filenumber = None, tablenumber = None):
+    def variableNames(self, filenumber=None, tablenumber=None):
         import copy
-        variables = copy.deepcopy(RAW_SUMMARY_FILES_COMMON_VARS)
-        variabletypes = copy.deepcopy(RAW_SUMMARY_FILES_COMMON_VARS_TYPE)
+        variables = copy.deepcopy(RAW_SUMMARY2000_FILES_COMMON_VARS)
+        variabletypes = copy.deepcopy(RAW_SUMMARY2000_FILES_COMMON_VARS_TYPE)
 
         filenumber = str(filenumber).rjust(5, '0')
 
@@ -260,8 +262,8 @@ class AutoImportSFData():
                 raise FileError, self.query.lastError().text()
         if tablenumber is not None:
             if not self.query.exec_("""select tablenumber, numcat from sf3filestablescorr"""
-                                    """ where tablenumber = %s""" %tablenumber):
-                raise FIleError, self.query.lastError().text()
+                                    """ where filenumber = %s and includeflag = 1""" %filenumber):
+                raise FileError, self.query.lastError().text()
         if filenumber is None and tablenumber is None:
             raise FileError, "Insufficient parameters supplied"
 
@@ -294,11 +296,17 @@ class AutoImportSFData():
                 raise FileError, self.query.lastError().text()
 
             for j in self.rawSFNamesNoExt[1:]:
-                var2, var2types = self.variableNames('%s' %j)
-                var1 = var1 + var2[5:]
+                var2, var2types = self.variableNames('%s' %j, 1)
+                var1 = var1 + var2[6:]
+                
+                print 'number of variables in the table', len(var1)
+
                 var1string = self.createVariableString(var1)
 
                 tablename = '%s%s' %(self.stateAbb[self.state], j)
+
+                print ("""create table temp2 select %s from temp1, %s"""
+                                        """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename))
 
                 if not self.query.exec_("""create table temp2 select %s from temp1, %s"""
                                         """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename)):
@@ -315,8 +323,6 @@ class AutoImportSFData():
     def createMasterSubSFTable(self):
         #Based on the resolution import a summary file table for only that resolution
 
-
-
         if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
             print self.project.resolution
             if self.project.resolution == 'Blockgroup':
@@ -324,9 +330,9 @@ class AutoImportSFData():
             if self.project.resolution == 'Tract':
                 sumlev = 140
             if self.project.resolution == 'County':
-                sumlev = 510
+                sumlev = 50
             if not self.query.exec_("""create table mastersftable%s """
-                                    """select * from mastersftable where sumlev = %s """
+                                    """select * from mastersftable where sumlev = %s and geocomp = 00"""
                                     %(self.project.resolution, sumlev)):
                 raise FileError, self.query.lastError().text()
 
@@ -340,36 +346,159 @@ class AutoImportSFData():
         return variableString[:-2]
 
 
-    def createHousingSFTable(self):
+class AutoImportSFACSData(AutoImportSF2000Data):
+    def __init__(self, project):
+        AutoImportSF2000Data.__init__(self, project)
+        self.project = project
 
-        HousingTables = HOUSING_SUMMARY_TABLES
+        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SFACS'
+        self.loc = os.path.realpath(self.loc)
+        
+        self.rawSF = RAW_SUMMARYACS_FILES
 
+        self.rawSFNamesNoExt = RAW_SUMMARYACS_FILES_NOEXT
+
+    def retrieveAndStoreSF(self, state):
+        web_state = '%s' %state
+        web_state = web_state.replace(' ','')
+        
+        for i in self.rawSF:
+            j = i %(self.stateAbb[self.state])
+            sf_loc = self.loc + os.path.sep + j
+            urllib.urlretrieve("""ftp://ftp2.census.gov/acs2005_2007_3yr/summaryfile/%s/%s"""
+                               %(web_state, j), sf_loc)
+
+    def extractSF(self, state):
+        for i in self.rawSF[1:]:
+            j = i %(self.stateAbb[self.state])
+            file = UnzipFile(self.loc, j)
+            file.unzip()
+
+    def createRawSFTable(self):
+        # Create raw SF tables which can then be used to create the required summary file tables for use
+        # population synthesis
+
+        # First create the state geo table
+
+
+        if self.checkIfTableExists('sfacsfilestablescorr'):
+            sfacsFilesTablesCorrTable = ImportUserProvData("sfacsfilestablescorr",
+                                                         "./data/sfacsfilestablescorr.csv",
+                                                         [], [], True, True)
+            if not self.query.exec_(sfacsFilesTablesCorrTable.query1):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_(sfacsFilesTablesCorrTable.query2):
+                raise FileError, self.query.lastError().text()
+
+        tablename = '%sgeo' %(self.stateAbb[self.state])
+
+        if self.checkIfTableExists(tablename):
+            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid float, """
+                                    """state float, county float, tract  float, bg float, logrecno float)"""
+                                    %tablename):
+                raise FileError, self.query.lastError().text()
+
+            geo_loc = self.loc + os.path.sep + self.rawSF[0] %(self.stateAbb[self.state])
+            geo_loc = geo_loc.replace("\\", "/")
+
+
+            if not self.query.exec_("""load data local infile '%s'"""
+                                    """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set sfgeoid = mid(raw, 12, 2)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set state = mid(raw, 26, 2)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set county = mid(raw, 28, 3)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set tract = mid(raw, 41, 6)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set bg = mid(raw, 47, 1)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""update %sgeo set logrecno = mid(raw, 14, 7)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""alter table %sgeo modify logrecno int""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_("""alter table %sgeo add primary key (logrecno)""" %self.stateAbb[self.state]):
+                raise FileError, self.query.lastError().text()
+
+        # Load the other necessary tables
+
+        for j in range(len(self.rawSFNamesNoExt[1:])):
+            
+            filenumber = self.rawSFNamesNoExt[j + 1]
+            variables, variabletypes = self.variableNames(filenumber)
+            tablename = "%s%s" %(self.stateAbb[self.state], filenumber)
+            filename = ('e' + (self.rawSF[j+1]) %(self.stateAbb[self.state])).replace('zip', 'txt')
+            
+            sf_loc = (self.loc 
+                      + os.path.sep + 'tab4' 
+                      + os.path.sep + 'sumfile'
+                      + os.path.sep + 'prod'
+                      + os.path.sep + '2005thru2007'
+                      + os.path.sep + 'data'
+                      + os.path.sep + filename)
+
+            sffile = ImportUserProvData(tablename,
+                                        sf_loc,
+                                        variables, variabletypes, False, False)
+
+
+            if self.checkIfTableExists(tablename):
+                if not self.query.exec_(sffile.query1):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_(sffile.query2):
+                    raise FileError, self.query.lastError().text()
+                if not self.query.exec_("alter table %s add primary key (logrecno)" %tablename):
+                    raise FileError, self.query.lastError().text()
+        
+        
+    def variableNames(self, filenumber=None, tablenumber=None):
         import copy
-        var = copy.deepcopy(MASTER_SUMMARY_FILE_VARS)
+        variables = copy.deepcopy(RAW_SUMMARYACS_FILES_COMMON_VARS)
+        variabletypes = copy.deepcopy(RAW_SUMMARYACS_FILES_COMMON_VARS_TYPE)
 
-        for i in HousingTables:
-            var1, var1types = self.variableNames(tablenumber = i)
-            var = var + var1[5:]
+        if tablenumber is None and filenumber is not None:
+            if not self.query.exec_("""select tablenumber, numcat from sfacsfilestablescorr"""
+                                    """ where filenumber = %s order by tablenumber""" %filenumber):
+                raise FileError, self.query.lastError().text()
+        if tablenumber is not None:
+            if not self.query.exec_("""select tablenumber, numcat from sfacsfilestablescorr"""
+                                    """ where filenumber = %s and includeflag = 1""" %filenumber):
+                raise FileError, self.query.lastError().text()
+        if filenumber is None and tablenumber is None:
+            raise FileError, "Insufficient parameters supplied"
 
-        varstring = self.createVariableString(var)
 
-        if not self.query.exec_("""create table housing_marginals_%s select %s from mastersftable_%s"""
-                                %(self.stateAbb[self.state], varstring, self.stateAbb[self.state])):
+        while self.query.next():
+            tablenumber = str(self.query.value(0).toString()).ljust(9, '0')
+            numcat = self.query.value(1).toInt()[0]
 
-            raise FileError, self.query.lastError().text()
+            for i in range(numcat):
+                colname = tablenumber + str(i+1).rjust(3, '0')
+                variables.append(colname)
+                variabletypes.append('bigint')
+                #print colname
 
-    def createPersonSFTable(self):
-        PersonTables = PERSON_SUMMARY_TABLES
+        return variables, variabletypes
 
-        import copy
-        var = copy.deepcopy(MASTER_SUMMARY_FILE_VARS)
 
-        for i in PersonTables:
-            var1, var1types = self.variableNames(tablenumber = i)
-            var = var + var1[5:]
+    def createMasterSubSFTable(self):
+        #Based on the resolution import a summary file table for only that resolution
 
-        varstring = self.createVariableString(var)
+        if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
+            print self.project.resolution
+            if self.project.resolution == 'County':
+                sumlev = 50
+                print  'resolution is county and summayr level is --' ,  sumlev
+                                
 
-        if not self.query.exec_("""create table person_marginals_%s select %s from mastersftable_%s"""
-                                %(self.stateAbb[self.state], varstring, self.stateAbb[self.state])):
-            raise FileError, self.query.lastError().text()
+            print ("""create table mastersftable%s """
+                                    """select * from mastersftable where sumlev = %s """
+                                    %(self.project.resolution, sumlev))
+            if not self.query.exec_("""create table mastersftable%s """
+                                    """select * from mastersftable where sumlev = %s """
+                                    %(self.project.resolution, sumlev)):
+                raise FileError, self.query.lastError().text()

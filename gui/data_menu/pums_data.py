@@ -116,7 +116,9 @@ class UserImportSampleData():
                 raise FileError, self.query.lastError().text()
             return 1
 
-class AutoImportPUMSData():
+
+
+class AutoImportPUMS2000Data():
     def __init__(self, project):
         self.project = project
         self.state = self.project.state
@@ -124,7 +126,7 @@ class AutoImportPUMSData():
         self.stateCode = self.project.stateCode
 
 
-        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS'
+        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS2000'
         self.loc = os.path.realpath(self.loc)
 
         self.projectDBC = createDBC(self.project.db, self.project.name)
@@ -482,6 +484,217 @@ class AutoImportPUMSData():
 
         string = string[:-1] + '\n'
         return string
+
+
+class AutoImportPUMSACSData(AutoImportPUMS2000Data):
+    def __init__(self, project):
+        AutoImportPUMS2000Data.__init__(self, project)
+        self.project = project
+
+        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMSACS'
+        self.loc = os.path.realpath(self.loc)
+
+
+    def pumsVariableTable(self):
+        check = self.checkIfTableExists('PUMSACSVariableList')
+        if check:
+            PUMSVariableDefTable = ImportUserProvData("PUMSACSVariableList",
+                                                      "./data/PUMSACS_Variables.csv",
+                                                      [], [],True, True)
+            if not self.query.exec_(PUMSVariableDefTable.query1):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_(PUMSVariableDefTable.query2):
+                raise FileError, self.query.lastError().text()
+
+
+    def checkHousingPUMSTable(self):
+        if self.checkIfTableExists('housing_pums'):
+            self.downloadPUMSData('H')
+            self.housingVarDicts()
+            self.housingDefVar()
+            self.housingSelVars()
+            self.createHousingPUMSTable()
+
+    def checkPersonPUMSTable(self):
+        if self.checkIfTableExists('person_pums'):
+            self.downloadPUMSData('P')
+            self.personVarDicts()
+            self.personDefVar()
+            self.personSelVars()
+            self.createPersonPUMSTable()
+
+    def createHousingPUMSTable(self):
+        web_stabb = self.project.stateAbb[self.state]
+        hMasterFile = self.loc + os.path.sep + 'ss07h%s.csv' %web_stabb
+
+        hMasterVariablesTypes = ['bigint'] * HACS_VARCOUNT
+        
+        hMasterPUMSTableQuery = ImportUserProvData("housing_raw", hMasterFile, 
+                                                   varTypes=hMasterVariablesTypes, 
+                                                   varNamesFileDummy=True, 
+                                                   varTypesFileDummy=False)
+
+        if self.checkIfTableExists('housing_raw'):
+
+            if not self.query.exec_(hMasterPUMSTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(hMasterPUMSTableQuery.query2):
+                raise FileError, self.query.lastError().text()
+
+
+        dummyString = ''
+        for i in self.housingVariablesSelected:
+            dummyString = dummyString + i + ','
+            
+        dummyString = dummyString[:-1]
+        print dummyString
+        
+        
+
+        if not self.query.exec_("""create table housing_pums select %s from housing_raw"""
+                                %(dummyString)):
+            raise FileError, self.query.lastError().text()
+
+
+    def createPersonPUMSTable(self):
+        web_stabb = self.project.stateAbb[self.state]
+        pMasterFile = self.loc + os.path.sep + 'ss07p%s.csv' %web_stabb
+
+        pMasterVariablesTypes = ['bigint'] * PACS_VARCOUNT
+        
+        pMasterPUMSTableQuery = ImportUserProvData("person_raw", pMasterFile, 
+                                                   varTypes=pMasterVariablesTypes, 
+                                                   varNamesFileDummy=True, 
+                                                   varTypesFileDummy=False)
+
+        import time
+        ti = time.time()
+        if self.checkIfTableExists('person_raw'):
+
+            if not self.query.exec_(pMasterPUMSTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(pMasterPUMSTableQuery.query2):
+                raise FileError, self.query.lastError().text()
+
+
+        dummyString = ''
+        for i in self.personVariablesSelected:
+            dummyString = dummyString + i + ','
+            
+        dummyString = dummyString[:-1]
+        print dummyString
+
+        print 'time for creating the raw person table - ', time.time()-ti
+
+        ti = time.time()
+
+
+        if not self.query.exec_("""create table person_pums select %s from person_raw"""
+                                %(dummyString)):
+            raise FileError, self.query.lastError().text()
+
+        print 'time for creating the small person table - ', time.time()-ti
+
+        
+
+    def downloadPUMSData(self, filetype):
+        web_stabb = self.project.stateAbb[self.state]
+        filename = self.loc + os.path.sep + 'csv_%s%s.zip' %(filetype, web_stabb)
+
+        try:
+            os.makedirs(self.loc)
+        except WindowsError, e:
+            print e
+
+
+        try:
+            
+            open(filename)
+            reply = QMessageBox.question(None, "Import",
+                                         QString("""Cannot download data when the data already exists.\n\n"""
+                                                 """Would you like to keep the existing files?"""
+                                                 """\nSelect No if you would like to download the files again."""),
+                                         QMessageBox.Yes|QMessageBox.No)
+            if reply == QMessageBox.No:
+                confirm = QMessageBox.question(None, "Import",
+                                               QString("""Would you like to continue?"""),
+                                               QMessageBox.Yes|QMessageBox.No)
+                if confirm == QMessageBox.Yes:
+                    self.retrieveAndStorePUMS(filetype)
+        except IOError, e:
+            self.retrieveAndStorePUMS(filetype)
+
+        self.extractPUMS(filetype)    
+
+
+
+    def retrieveAndStorePUMS(self, filetype):
+        web_stabb = self.project.stateAbb[self.state]
+        
+        if filetype == 'H':
+            h_download_location = self.loc + os.path.sep + 'csv_h%s.zip' %(web_stabb)
+            urllib.urlretrieve("""http://www2.census.gov/acs2007_3yr/pums/csv_h%s.zip""" %(web_stabb),
+                               h_download_location)
+        else:
+            p_download_location = self.loc + os.path.sep + 'csv_p%s.zip' %(web_stabb)
+            urllib.urlretrieve("""http://www2.census.gov/acs2007_3yr/pums/csv_p%s.zip""" %(web_stabb),
+                               p_download_location)
+
+    def extractPUMS(self, filetype):
+        web_stabb = self.project.stateAbb[self.state]
+        
+        if filetype == 'H':
+            hfile = UnzipFile(self.loc, "csv_h%s.zip" %(web_stabb))
+            hfile.unzip()
+        else:
+            pfile = UnzipFile(self.loc, "csv_p%s.zip" %(web_stabb))
+            pfile.unzip()        
+
+
+    def housingVarDicts(self):
+        # Reading the list of PUMS housing variable names
+        if not self.query.exec_("""select variablename, description from """
+                                """pumsACSvariablelist where type = 'H'"""):
+            raise FileError, self.query.lastError().text()
+        else:
+            self.housingVariableDict = {}
+            while (self.query.next()):
+                self.housingVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
+
+    def housingDefVar(self):
+        # Reading the list of PUMS default housing variable names
+        if not self.query.exec_("""select variablename from pumsACSvariablelist where type = 'H' and defaultvar = 1"""):
+            raise FileError, self.query.lastError().text()
+        else:
+            self.housingDefaultVariables = []
+            while (self.query.next()):
+                self.housingDefaultVariables.append(self.query.value(0).toString())
+
+        
+
+
+    def personVarDicts(self):
+        # Reading the list of PUMS person variable names
+        if not self.query.exec_("""select variablename, description from """
+                                """pumsACSvariablelist where type = 'P'"""):
+            raise FileError, self.query.lastError().text()
+        else:
+            self.personVariableDict = {}
+            while (self.query.next()):
+                self.personVariableDict['%s'%self.query.value(0).toString()] = '%s'%self.query.value(1).toString()
+
+
+
+    def personDefVar(self):
+        # Reading the list of PUMS default person variable names
+        if not self.query.exec_("""select variablename from pumsACSvariablelist where type = 'P' and defaultvar = 1"""):
+            raise FileError, self.query.lastError().text()
+        else:
+            self.personDefaultVariables = []
+            while (self.query.next()):
+                self.personDefaultVariables.append(self.query.value(0).toString())
 
 
 if __name__ == "__main__":
