@@ -71,7 +71,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         variable_list = variable_list + i + ', '
     variable_list = variable_list + 'frequency'
 
-    if pumano ==0:
+    if pumano == 99 or pumano == 0:
         dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         #print ('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         result = arr(dbc.fetchall(), int)
@@ -259,10 +259,17 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
                 else:
                     variable_marginals1.append(0.1)
 
+        exceptionStatus = False
 
+        if check_marginal_sum == 0 and (synthesis_type == 'hhld'):
+            exceptionStatus = True
+        if check_marginal_sum == 0 and (synthesis_type == 'person'):
+            exceptionStatus = True
 
-        if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
-            print 'Exception: The given marginal distribution for a control variable sums to zero.'
+            
+
+        #if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
+        #    print 'Exception: The given marginal distribution for a control variable sums to zero.'
             #raise Exception, 'The given marginal distribution for a control variable sums to zero.'
         control_marginals.append(variable_marginals1)
         control_marginals_sum.append(check_marginal_sum)
@@ -271,6 +278,9 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
             if i <> control_marginals_sum[0]:
                 print 'Exception: The marginal distributions for the control variables are not the same.'
                 #raise Exception, 'The marginal distributions for the control variables are not the same.'
+
+    if exceptionStatus:
+        print Exception, 'The marginal distributions for a control variable sums to zero.'
 
     dbc.close()
     db.commit()
