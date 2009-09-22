@@ -247,6 +247,8 @@ class RunDialog(QDialog):
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
+                    demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                    """
                     try:
                         if self.gqAnalyzed:
                             demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
@@ -255,6 +257,7 @@ class RunDialog(QDialog):
                     except Exception, e:
                         self.outputWindow.append("\t- Error in the Synthesis for geography")
                         print ('Exception: %s' %e)
+                    """
                 self.selGeographiesButton.setEnabled(False)
             else:
                 self.runGeoIds = []
@@ -268,7 +271,7 @@ class RunDialog(QDialog):
 
         if not geo.puma5:
             if self.project.resolution == 'County':
-                geo.puma5 = 0
+                geo.puma5 = 99
 
             elif self.project.resolution == 'Tract':
                 if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
