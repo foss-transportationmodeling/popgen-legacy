@@ -141,24 +141,24 @@ class SummaryPage(QWizardPage):
         self.geocorrUserProv.setText(self.formatText(text))
         self.geocorrUserProvLocation.setText(self.formatText(self.project.geocorrUserProv.location))
 
-        text = self.convertBoolToString(self.project.sampleUserProv.userProv)
+        text = self.convertBoolToString(self.project.sampleUserProv.userProv, self.project.sampleUserProv.defSource)
         self.sampleUserProv.setText(self.formatText(text))
         self.sampleHHLocation.setText(self.formatText(self.project.sampleUserProv.hhLocation))
         self.sampleGQLocation.setText(self.formatText(self.project.sampleUserProv.gqLocation))
         self.samplePersonLocation.setText(self.formatText(self.project.sampleUserProv.personLocation))
 
-        text = self.convertBoolToString(self.project.controlUserProv.userProv)
+        text = self.convertBoolToString(self.project.controlUserProv.userProv, self.project.controlUserProv.defSource)
         self.controlUserProv.setText(self.formatText(text))
         self.controlHHLocation.setText(self.formatText(self.project.controlUserProv.hhLocation))
         self.controlGQLocation.setText(self.formatText(self.project.controlUserProv.gqLocation))
         self.controlPersonLocation.setText(self.formatText(self.project.controlUserProv.personLocation))
 
 
-    def convertBoolToString(self, value):
+    def convertBoolToString(self, value, source='default'):
         if value:
             text = 'Yes'
         else:
-            text = 'No, default data will be used'
+            text = 'No, %s data will be used' %source
         return text
 
     def formatText(self, text):

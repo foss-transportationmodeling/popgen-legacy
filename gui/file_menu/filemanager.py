@@ -13,7 +13,7 @@ from database.createDBConnection import createDBC
 from summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.display_data import DisplayTable
-from data_menu.sf_data import AutoImportSFData
+from data_menu.sf_data import AutoImportSF2000Data
 from file_menu.open_project import SaveFile
 from misc.widgets import RecodeDialog, VariableSelectionDialog, CreateVariable, NameDialog, DeleteRows
 
@@ -251,6 +251,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
     def deleteColumns(self):
         parent = self.item.parent().text(0)
+
         if parent == 'Project Tables':
             database = self.project.name
         elif parent == 'Scenario Tables':
@@ -290,12 +291,20 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         if not self.project.sampleUserProv.userProv:
             if tablename == 'housing_pums':
-                queries = DEFAULT_HOUSING_PUMS_QUERIES
-                checkPUMSTableTransforms = True
+                if self.project.sampleUserProv.defSource == 'Census 2000':
+                    queries = DEFAULT_HOUSING_PUMS2000_QUERIES
+                    checkPUMSTableTransforms = True
+                else:
+                    queries = DEFAULT_HOUSING_PUMSACS_QUERIES
+                    checkPUMSTableTransforms = True
 
             if tablename == 'person_pums':
-                queries = DEFAULT_PERSON_PUMS_QUERIES
-                checkPUMSTableTransforms = True
+                if self.project.sampleUserProv.defSource == 'Census 2000':
+                    queries = DEFAULT_PERSON_PUMS2000_QUERIES
+                    checkPUMSTableTransforms = True
+                else:
+                    queries = DEFAULT_PERSON_PUMSACS_QUERIES
+                    checkPUMSTableTransforms = True
 
             if checkPUMSTableTransforms:
                 for i in queries:
@@ -311,7 +320,12 @@ class QTreeWidgetCMenu(QTreeWidget):
                 checkSFTableTransforms = True
 
             if checkSFTableTransforms:
-                for i in DEFAULT_SF_QUERIES:
+                if self.project.controlUserProv.defSource == 'Census 2000':
+                    queries = DEFAULT_SF2000_QUERIES
+                else:
+                    queries = DEFAULT_SFACS_QUERIES
+
+                for i in queries:
                     print "Executing Query: %s" %i
                     if not query.exec_(i %tablename):
                         print "FileError: %s" %query.lastError().text()
@@ -324,8 +338,15 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def populateVariableDictionary(self, tablename):
-        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        parent = self.item.parent().text(0)
+
+        if parent == 'Project Tables':
+            database = self.project.name
+        elif parent == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
+
+        projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
         self.variableTypeDictionary = {}
@@ -380,7 +401,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if not check2 and not self.project.controlUserProv.userProv:
 
                 print 'Project resolution changed'
-                autoImportSFDataInstance = AutoImportSFData(self.project)
+                autoImportSFDataInstance = AutoImportSF2000Data(self.project)
                 autoImportSFDataInstance.createMasterSubSFTable()
                 autoImportSFDataInstance.projectDBC.dbc.close()
                 tablename = 'mastersftable%s' %(self.page.projectResolutionComboBox.currentText())
@@ -439,7 +460,8 @@ class QTreeWidgetCMenu(QTreeWidget):
             child = QTreeWidgetItem(geocorrParent, [i, QString("%s"%j)])
 
         sampleParent = QTreeWidgetItem(projectAncestor, [QString("Sample")])
-        sampleUserProvText = self.userProvText(self.project.sampleUserProv.userProv)
+        sampleUserProvText = self.userProvText(self.project.sampleUserProv.userProv, 
+                                               self.project.sampleUserProv.defSource)
         sampleItems = {"User Provided":sampleUserProvText,
                        "Household Data Location": self.project.sampleUserProv.hhLocation,
                        "GQ Data Location": self.project.sampleUserProv.gqLocation,
@@ -449,7 +471,8 @@ class QTreeWidgetCMenu(QTreeWidget):
             child = QTreeWidgetItem(sampleParent, [i, QString("%s"%j)])
 
         controlParent = QTreeWidgetItem(projectAncestor, [QString("Control")])
-        controlUserProvText = self.userProvText(self.project.controlUserProv.userProv)
+        controlUserProvText = self.userProvText(self.project.controlUserProv.userProv,
+                                                self.project.controlUserProv.defSource)
         controlItems = {"User Provided":controlUserProvText,
                        "Household Data Location": self.project.controlUserProv.hhLocation,
                        "GQ Data Location": self.project.controlUserProv.gqLocation,
@@ -483,11 +506,11 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.expandSort(scenarioTableParent, 0)
 
 
-    def userProvText(self, text):
+    def userProvText(self, text, source='default'):
         if text:
             return "Yes"
         else:
-            return "No, default data will be used"
+            return "No, %s data will be used" %source
 
 
 

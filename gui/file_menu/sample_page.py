@@ -20,8 +20,8 @@ class SampleDataPage(QWizardPage):
         self.setTitle("Step 3: Population Sample")
 
         self.sampleGroupBox = QGroupBox("""a. Will you provide sample data?""")
-        sampleWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, US Census Public Use """
-                               """Microdata Sample (PUMS) for year 2000 will be used. </font>""")
+        sampleWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, please select the US Census data source """
+                               """ to use for population synthesis. Note that . </font>""")
         self.sampleUserProvRadio = QRadioButton("Yes")
         self.sampleAutoRadio = QRadioButton("No")
         self.sampleAutoRadio.setChecked(True)
@@ -55,13 +55,17 @@ class SampleDataPage(QWizardPage):
 
         sourceGroupBox = QGroupBox("b. Choose the Census data source you want PopGen to use.")
         self.sourceComboBox = QComboBox()
+        self.sourceComboBox.addItems([QString(""), 
+                                      QString("Census 2000"), 
+                                      QString("ACS 2005-2007")])
+
 
         sourceLayout = QHBoxLayout()
         sourceLayout.addWidget(self.sourceComboBox)
         sourceGroupBox.setLayout(sourceLayout)
         
 
-        self.sampleUserProvGroupBox = QGroupBox("b. User provided")
+        self.sampleUserProvGroupBox = QGroupBox("c. User provided")
         sampleVLayout = QVBoxLayout()
         sampleVLayout.addWidget(sampleHHLocationLabel)
         sampleVLayout.addWidget(self.sampleHHLocationComboBox)
@@ -95,18 +99,6 @@ class SampleDataPage(QWizardPage):
 
 
     def resolutionAction(self, resolution):
-        if resolution <> 'County':
-            self.sourceComboBox.clear()
-            self.sourceComboBox.addItems([QString(""), 
-                                          QString("Census 2000")])
-        else:
-            self.sourceComboBox.clear()
-            self.sourceComboBox.addItems([QString(""), 
-                                          QString("Census 2000"), 
-                                          QString("ACS 2005-2007")])
-
-
-
         if resolution == 'TAZ':
             self.sampleUserProvRadio.setChecked(True)
             self.sampleUserProvRadio.emit(SIGNAL("clicked()"))

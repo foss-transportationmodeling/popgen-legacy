@@ -60,7 +60,7 @@ class ControlDataPage(QWizardPage):
         sourceLayout.addWidget(self.sourceComboBox)
         sourceGroupBox.setLayout(sourceLayout)
 
-        self.controlUserProvGroupBox = QGroupBox("b. User provided")
+        self.controlUserProvGroupBox = QGroupBox("c. User provided")
         controlVLayout = QVBoxLayout()
         controlVLayout.addWidget(controlHHLocationLabel)
         controlVLayout.addWidget(self.controlHHLocationComboBox)
@@ -169,7 +169,7 @@ class ControlDataPage(QWizardPage):
 
 
     def isComplete(self):
-        if self.sampleUserProvRadio.isChecked():
+        if self.controlUserProvRadio.isChecked():
             self.sourceDummy = True
         validate = self.controlHHLocationDummy and self.controlPersonLocationDummy and self.sourceDummy
         if validate:

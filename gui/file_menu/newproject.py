@@ -20,15 +20,17 @@ class Geocorr(object):
         self.location = geocorrLocation
 
 class Sample(object):
-    def __init__(self, userprov=None, sampleHHLocation="", sampleGQLocation="", samplePersonLocation=""):
+    def __init__(self, userprov=None, defSource="", sampleHHLocation="", sampleGQLocation="", samplePersonLocation=""):
         self.userProv = userprov
+        self.defSource = defSource
         self.hhLocation = sampleHHLocation
         self.gqLocation = sampleGQLocation
         self.personLocation = samplePersonLocation
 
 class Control(object):
-    def __init__(self, userprov=None, controlHHLocation="", controlGQLocation="", controlPersonLocation=""):
+    def __init__(self, userprov=None, defSource="", controlHHLocation="", controlGQLocation="", controlPersonLocation=""):
         self.userProv = userprov
+        self.defSource = defSource
         self.hhLocation = controlHHLocation
         self.gqLocation = controlGQLocation
         self.personLocation = controlPersonLocation
@@ -42,10 +44,12 @@ class DBInfo(object):
 
 
 class SelectedVariableDicts(object):
-    def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict)):
+    def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict),
+                 persControl=True):
         self.hhld = hhldVariables
         self.gq = gqVariables
         self.person = personVariables
+        self.persControl = persControl
 
 class AdjControlsDicts(object):
     def __init__(self, hhldAdj=defaultdict(dict), gqAdj=defaultdict(dict), personAdj=defaultdict(dict)):

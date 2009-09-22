@@ -119,6 +119,7 @@ class Wizard(QWizard):
             sampleGQLocation = self.page3.sampleGQLocationComboBox.currentText()
             samplePersonLocation = self.page3.samplePersonLocationComboBox.currentText()
             sampleUserProv = newproject.Sample(self.page3.sampleUserProvRadio.isChecked(),
+                                               self.page3.sourceComboBox.currentText(),
                                                sampleHHLocation,
                                                sampleGQLocation,
                                                samplePersonLocation)
@@ -127,6 +128,7 @@ class Wizard(QWizard):
             controlGQLocation = self.page4.controlGQLocationComboBox.currentText()
             controlPersonLocation = self.page4.controlPersonLocationComboBox.currentText()
             controlUserProv = newproject.Control(self.page4.controlUserProvRadio.isChecked(),
+                                                 self.page4.sourceComboBox.currentText(),
                                                  controlHHLocation,
                                                  controlGQLocation,
                                                  controlPersonLocation)
