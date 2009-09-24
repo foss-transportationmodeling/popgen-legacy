@@ -390,6 +390,7 @@ class MainWindow(QMainWindow):
         file = os.path.realpath(file)
         with open(file, 'rb') as f:
             self.project = pickle.load(f)
+            self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
         self.project.scenario = index + 1
         self.project.save()
         self.fileManager.project = self.project
@@ -435,7 +436,7 @@ class MainWindow(QMainWindow):
         if self.wizard.exec_():
             #print "complete"
             self.project = self.wizard.project
-            self.setWindowTitle("PopGen: Version-1.0 (%s)" %(self.project.filename))
+            self.setWindowTitle("PopGen: Version-1.0 (%s)" %(self.project.name))
             self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
@@ -474,7 +475,7 @@ class MainWindow(QMainWindow):
                         SaveProject(self.project)
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
-                        self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
+                        self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         self.enableFunctions(True)
@@ -484,7 +485,7 @@ class MainWindow(QMainWindow):
             else:
                 with open(project.file, 'rb') as f:
                     self.project = pickle.load(f)
-                    self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
+                    self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     self.enableFunctions(True)
@@ -511,7 +512,7 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes:
                 self.project.filename = filename
                 self.project.save()
-                self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.filename)
+                self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
 
     
     def projectClose(self):
@@ -571,18 +572,32 @@ class MainWindow(QMainWindow):
 
     def synthesizerSetCorrBetVariables(self):
         #Set the correspondence between variables
-        reqTables = ['hhld_sample', 'hhld_marginals', 'person_marginals', 'person_sample']
-        print self.project.name
+
+        if len(self.project.controlUserProv.personLocation) == 0 and self.project.controlUserProv.userProv == True:
+            self.project.selVariableDicts.persControl = False
+            self.project.save()
+            vars = SetCorrDialog(self.project)
+            vars.persControlNo.setChecked(True)
+            vars.persControlGroupBox.setEnabled(False)
+            reqTables = ['hhld_sample', 'hhld_marginals', 'person_sample']
+        else:
+            reqTables = ['hhld_sample', 'hhld_marginals', 'person_marginals', 'person_sample']
+            vars = SetCorrDialog(self.project)
+
+
         tableList = self.tableList(self.project.name)
         print tableList
         if self.checkIfTablesExist(reqTables, tableList):
-            vars = SetCorrDialog(self.project)
             if vars.exec_():
                 self.project = vars.project
                 self.project.save()
                 self.fileManager.populate()
         else:
             QMessageBox.warning(self, "Synthesizer", "Import and process tables before setting variable correspondence.", QMessageBox.Ok)
+
+        
+        print reqTables
+        print 'person control in corr dialog- ', self.project.selVariableDicts.persControl
 
     def checkIfTablesExist(self, reqTables, tableList):
         for i in reqTables:
@@ -616,22 +631,33 @@ class MainWindow(QMainWindow):
             self.project.save()
 
     def synthesizerRun(self):
-        filename = '%s/%s/%s.pop' %(self.project.location, self.project.name, self.project.filename)
-        with open(filename, 'rb') as f:
-            self.project = pickle.load(f)
+        #filename = '%s/%s/%s.pop' %(self.project.location, self.project.name, self.project.name)
+        #with open(filename, 'rb') as f:
+        #    self.project = pickle.load(f)
 
-        if len(self.project.selVariableDicts.hhld) > 0 and len(self.project.selVariableDicts.person) > 0:
+        print 'person control - ', self.project.selVariableDicts.persControl
+        
+
+        if self.project.selVariableDicts.persControl:
+            if len(self.project.selVariableDicts.hhld) > 0 and len(self.project.selVariableDicts.person) > 0:
+                self.runDialogShow(True)
+            else:
+                self.runDialogShow(False)
+        else:
+            self.runDialogShow(True)
+
+        #for i in self.project.synGeoIds:
+        #    print i
+
+    def runDialogShow(self, show):
+        if show:
             runDia = RunDialog(self.project, self.job_server)
             runDia.exec_()
             self.fileManager.populate()
             self.project.save()
         else:
             QMessageBox.warning(self, "Synthesizer", "Define variable correspondence before synthesizing population.", QMessageBox.Ok)
-
-        #for i in self.project.synGeoIds:
-        #    print i
-
-
+            
         
     def synthesizerStop(self):
         QMessageBox.information(self, "Synthesizer", "Stop the synthesizer", QMessageBox.Ok)
@@ -702,8 +728,20 @@ class MainWindow(QMainWindow):
         projectDBC.dbc.open()
         query = QSqlQuery(projectDBC.dbc)
 
+        if not query.exec_("""create table hhldsum select state, county, tract, bg, sum(frequency) from temphhld"""
+                           """ group by state, county, tract, bg"""):
+            raise FileError, self.query.lastError().text()
 
+        if not query.exec_("""create table gqsum select state, county, tract, bg, sum(frequency) from tempgq"""
+                           """ group by state, county, tract, bg"""):
+            raise FileError, self.query.lastError().text()
+
+        if not query.exec_("""create table personsum select state, county, tract, bg, sum(frequency) from temp"""
+                           """ group by state, county, tract, bg"""):
+            raise FileError, self.query.lastError().text()
         
+        
+
 
         projectDBC.dbc.close()
 
