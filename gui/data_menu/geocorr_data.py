@@ -70,7 +70,7 @@ class AutoImportGeocorrData():
         check = self.checkIfTableExists('geocorr')
 
         if check:
-            if self.project.controlUserProv.defSource == 'Census 2000':
+            if self.project.controlUserProv.defSource <> 'ACS 2005-2007':
                 geocorrTableQuery = ImportUserProvData('geocorr',
                                                        "./data/us2000geocorr.csv",
                                                        [], [], True, True)
