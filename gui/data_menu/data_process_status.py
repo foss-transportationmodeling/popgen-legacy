@@ -214,7 +214,7 @@ class DataDialog(QDialog):
             try:
                 self.importControlInstance.createPersonTable()
                 self.ControlPersonLayout.changeStatus(True)
-            except FileError, e:
+            except Exception, e:
                 print e
                 self.ControlPersonLayout.changeStatus(False)
             self.importControlInstance.projectDBC.dbc.close()
