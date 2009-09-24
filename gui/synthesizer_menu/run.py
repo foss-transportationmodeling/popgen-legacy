@@ -14,10 +14,21 @@ from PyQt4.QtSql import *
 
 from database.createDBConnection import createDBC
 from synthesizer_algorithm.prepare_data import prepare_data
+from synthesizer_algorithm.prepare_data_noper import prepare_data_noper
 from synthesizer_algorithm.prepare_data_nogqs import prepare_data_nogqs
+from synthesizer_algorithm.prepare_data_nogqs_noper import prepare_data_nogqs_noper
 from synthesizer_algorithm.drawing_households import person_index_matrix
 import synthesizer_algorithm.demo as demo
 import synthesizer_algorithm.demo_nogqs as demo_nogqs
+import synthesizer_algorithm.demo_noper as demo_noper
+import synthesizer_algorithm.demo_nogqs_noper as demo_nogqs_noper
+
+import synthesizer_algorithm.demo_parallel as demo_parallel
+import synthesizer_algorithm.demo_parallel_nogqs as demo_parallel_nogqs
+import synthesizer_algorithm.demo_parallel_noper as demo_parallel_noper
+import synthesizer_algorithm.demo_parallel_nogqs_noper as demo_parallel_nogqs_noper
+
+
 import synthesizer_algorithm.demo_parallel as demo_parallel
 import synthesizer_algorithm.demo_parallel_nogqs as demo_parallel_nogqs
 from gui.file_menu.newproject import Geography
@@ -116,12 +127,18 @@ class RunDialog(QDialog):
         self.outputWindow.append("Project Name - %s" %(self.project.name))
         self.outputWindow.append("Population Synthesized at %s:%s:%s on %s" %(ti[3], ti[4], ti[5], date))
 
-        if self.gqAnalyzed:
+        if self.gqAnalyzed and self.project.selVariableDicts.persControl:
             preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
-        else:
+        if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+                                    'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist']
+        if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
             preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'person_0_joint_dist']            
+        if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+                                    'performance_statistics', 'hhld_0_joint_dist']            
 
         databaseName = self.project.name + 'scenario' + str(self.project.scenario)
         self.projectDBC.dbc.setDatabaseName(databaseName)
@@ -139,13 +156,12 @@ class RunDialog(QDialog):
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
 
 
-        print self.project.adjControlsDicts.hhld
-
         controlAdjDict = {}
         controlAdjDict.update(self.project.adjControlsDicts.hhld)
         if self.gqAnalyzed:
             controlAdjDict.update(self.project.adjControlsDicts.gq)
-        controlAdjDict.update(self.project.adjControlsDicts.person)
+        if self.project.selVariableDicts.persControl:
+            controlAdjDict.update(self.project.adjControlsDicts.person)
 
         projectTables = []
         missingTables = []
@@ -159,8 +175,6 @@ class RunDialog(QDialog):
             except:
                 missingTablesString = missingTablesString + ', ' + i
                 missingTables.append(i)
-
-        print missingTables
 
         self.projectDBC.dbc.setDatabaseName(self.project.name)
         self.projectDBC.dbc.open()
@@ -220,12 +234,27 @@ class RunDialog(QDialog):
 
 
                 for i in index:
+                    
+                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo_parallel.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                    if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_parallel_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                    if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                    if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                    """
                     if self.gqAnalyzed:
                         demo_parallel.run_parallel(self.job_server, self.project, 
                                                    self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
                     else:
                         demo_parallel_nogqs.run_parallel(self.job_server, self.project, 
                                                          self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
+                    """
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
@@ -247,17 +276,25 @@ class RunDialog(QDialog):
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-                    demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
-                    """
+
+
                     try:
-                        if self.gqAnalyzed:
+                        if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                            print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                             demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
-                        else:
+                        if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                            print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                            demo_noper.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                        if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                            print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                             demo_nogqs.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                        if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                            print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                            demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
                     except Exception, e:
                         self.outputWindow.append("\t- Error in the Synthesis for geography")
                         print ('Exception: %s' %e)
-                    """
+
                 self.selGeographiesButton.setEnabled(False)
             else:
                 self.runGeoIds = []
@@ -397,7 +434,10 @@ class RunDialog(QDialog):
         return allGeoids
 
 
+
+
     def prepareData(self):
+        self.removeTables()
         self.project.synGeoIds = {}
         
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
@@ -405,10 +445,15 @@ class RunDialog(QDialog):
                              db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
 
         try:
-            if self.gqAnalyzed:
+            if self.gqAnalyzed and self.project.selVariableDicts.persControl:
                 prepare_data(db, self.project)
-            else:
+            if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                prepare_data_noper(db, self.project)
+            if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
                 prepare_data_nogqs(db, self.project)
+            if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                prepare_data_nogqs_noper(db, self.project)
+                pass
         except KeyError, e:
             QMessageBox.warning(self, "Run Synthesizer", QString("""Check the <b>hhid, serialno</b> columns in the """
                                                                  """data. If you wish not to synthesize groupquarters, make"""
@@ -423,6 +468,34 @@ class RunDialog(QDialog):
             self.dialogButtonBox.emit(SIGNAL("accepted()"))
         db.commit()
         db.close()
+
+
+    def removeTables(self):
+        databaseName = self.project.name + 'scenario' + str(self.project.scenario)
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()
+
+        tables = self.tableList()
+        print tables
+        query = QSqlQuery(self.projectDBC.dbc)
+        for i in tables:
+            if not query.exec_("""drop table %s""" %i):
+                print "Warning: %s" %query.lastError().text()
+
+
+        self.projectDBC.dbc.setDatabaseName(self.project.name)
+        self.projectDBC.dbc.open()
+
+    def tableList(self):
+        tables = []
+
+        query = QSqlQuery(self.projectDBC.dbc)
+        if not query.exec_("""show tables"""):
+            raise FileError, query.lastError.text()
+        while query.next():
+            tables.append('%s' %query.value(0).toString())
+            
+        return tables
 
 
     def isGqAnalyzed(self):

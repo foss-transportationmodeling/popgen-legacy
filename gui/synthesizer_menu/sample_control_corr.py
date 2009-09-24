@@ -28,6 +28,18 @@ class SetCorrDialog(QDialog):
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
 
+        self.persControlGroupBox = QGroupBox("""a. Do you wish to match distributions of both Persons """
+                                             """and Household attributes of interest?""")
+        self.persControlYes = QRadioButton("Yes")
+        self.persControlNo = QRadioButton("No")
+        self.persControlYes.setChecked(True)
+        hLayout = QHBoxLayout()
+        hLayout.addWidget(self.persControlYes)
+        hLayout.addWidget(self.persControlNo)
+        self.persControlGroupBox.setLayout(hLayout)
+        
+        setCorrespondenceLabel = QLabel("""b. Set the correspondence between """
+                                        """the sample variable categories and the columns in the Marginals table""")
         self.tabWidget = SetCorrTabWidget(self.project)
 
         dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
@@ -41,6 +53,9 @@ class SetCorrDialog(QDialog):
         correspondenceWarning.setWordWrap(True)
 
         layout = QVBoxLayout()
+        layout.addWidget(self.persControlGroupBox)
+        layout.addWidget(Separator())
+        layout.addWidget(setCorrespondenceLabel)
         layout.addWidget(self.tabWidget)
         layout.addWidget(correspondenceWarning)
         layout.addWidget(dialogButtonBox)
@@ -48,16 +63,29 @@ class SetCorrDialog(QDialog):
 
         hhldSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.hhld)
         self.populate(hhldSelVariableDicts, self.tabWidget.housingTab)
-        personSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.person)
-        self.populate(personSelVariableDicts, self.tabWidget.personTab)
+        if self.tabWidget.personAnalyzed:
+            personSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.person)
+            self.populate(personSelVariableDicts, self.tabWidget.personTab)
         if self.tabWidget.gqAnalyzed:
             gqSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.gq)
             self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
 
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+        self.connect(self.persControlYes, SIGNAL("clicked()"), self.persControlYesAction)
+        self.connect(self.persControlNo, SIGNAL("clicked()"), self.persControlNoAction)
+
+    def persControlYesAction(self):
+        print 'Yes clicked'
+        self.tabWidget.personTab.setEnabled(True)
+        self.project.selVariableDicts.persControl = True
 
 
+    def persControlNoAction(self):
+        print 'No clicked'
+        self.tabWidget.personTab.setEnabled(False)
+        self.project.selVariableDicts.persControl = False
+        
 
     def populate(self, selVariable, tab):
         for i in selVariable.keys():
@@ -89,40 +117,37 @@ class SetCorrDialog(QDialog):
                 cats.append(sampleVarCat)
             tab.sampleVarsDict[i] = cats
 
+        if self.tabWidget.personAnalyzed:
+            if self.project.selVariableDicts.persControl:
+                self.tabWidget.personTab.setEnabled(True)
+                self.persControlYes.setChecked(True)
+            else:
+                self.tabWidget.personTab.setEnabled(False)
+                self.persControlNo.setChecked(True)
+
 
 
     def accept(self):
         if self.tabWidget.housingTab.check():
-            if self.tabWidget.personTab.check():
-                if self.tabWidget.isGqAnalyzed():
-                    if self.tabWidget.gqTab.checkNumRelationsDefined():
-                        if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
-                            self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
-                            self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
-                            self.clearTables('hhld')
-                        if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
-                            self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
-                            self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
-                            self.clearTables('person')
-                        if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
-                            self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
-                            self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-                            self.clearTables('gq')
-                        self.projectDBC.dbc.close()
-                        QDialog.hide(self)
-                        QDialog.accept(self)
-                else:
-                    if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
-                        self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
-                        self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
-                        self.clearTables('hhld')
+            if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
+                self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
+                self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+                self.clearTables('hhld')
+            if self.tabWidget.personAnalyzed:
+                if self.tabWidget.personTab.check():
                     if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
                         self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
-                        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person)
+                        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person, True)
                         self.clearTables('person')
-                    self.projectDBC.dbc.close()
-                    QDialog.hide(self)
-                    QDialog.accept(self)                    
+            if self.tabWidget.gqAnalyzed:
+                if self.tabWidget.gqTab.checkNumRelationsDefined():
+                    if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
+                        self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
+                        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+                        self.clearTables('gq')
+            self.projectDBC.dbc.close()
+            QDialog.hide(self)
+            QDialog.accept(self)
 
     def clearTables(self, tableNamePrefix):
         #print "variable relations modified - %s" %(tableNamePrefix)
@@ -169,10 +194,14 @@ class SetCorrTabWidget(QTabWidget):
         tablesProject = self.tables()
 
         self.housingTab = TabWidgetItems(self.project, 'Household', 'hhld_marginals', 'hhld_sample')
-        self.personTab = TabWidgetItems(self.project, 'Person', 'person_marginals', 'person_sample')
+
 
         self.addTab(self.housingTab, 'Household Variables')
-        self.addTab(self.personTab, 'Person Variables')
+
+        self.personAnalyzed = self.isPersonAnalyzed()
+        if self.personAnalyzed:
+            self.personTab = TabWidgetItems(self.project, 'Person', 'person_marginals', 'person_sample')
+            self.addTab(self.personTab, 'Person Variables')
 
         self.gqAnalyzed = self.isGqAnalyzed()
         if self.gqAnalyzed:
@@ -180,6 +209,15 @@ class SetCorrTabWidget(QTabWidget):
             self.addTab(self.gqTab, 'Groupquarters Variables')
 
         self.setLayout(layout)
+
+
+
+    def isPersonAnalyzed(self):
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.personLocation == "":
+            return False
+        else:
+            return True
+
 
 
     def isGqAnalyzed(self):
@@ -347,6 +385,8 @@ class TabWidgetItems(QWidget):
 
 
     def checkSelectedVariables(self):
+        if (not self.project.selVariableDicts.persControl) and self.controlType == 'Person':
+            return True
         if not (self.selSampleVarListWidget.count() > 0):
             QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
                                 """No variable was selected for %s control."""
