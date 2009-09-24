@@ -171,6 +171,10 @@ class ControlDataPage(QWizardPage):
     def isComplete(self):
         if self.controlUserProvRadio.isChecked():
             self.sourceDummy = True
+        # the code for checking the person file location still exists, the following line kinda overrides that
+        # this change was made to accomodate the case where the user wants to run the synthesis using only 
+        # housing variables because marginals for the person variables are not available
+        self.controlPersonLocationDummy = True
         validate = self.controlHHLocationDummy and self.controlPersonLocationDummy and self.sourceDummy
         if validate:
             return True
