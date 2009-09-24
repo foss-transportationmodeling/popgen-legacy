@@ -7,6 +7,7 @@ import MySQLdb
 import numpy
 import adjusting_sample_joint_distribution
 import drawing_households
+import psuedo_sparse_matrix
 import psuedo_sparse_matrix_nogqs
 import time
 
@@ -14,8 +15,39 @@ from PyQt4.QtCore import *
 
 def prepare_data_nogqs(db, project):
 
-#    Processes/ methods to be called at the beginning of the pop_synthesis process
     dbc = db.cursor()
+    scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
+    projectDatabase = project.name
+
+    try:
+        dbc.execute('drop table %s.hhld_sample' %(scenarioDatabase))
+        dbc.execute('drop table %s.person_sample' %(scenarioDatabase))
+        dbc.execute('drop table %s.hhld_marginals' %(scenarioDatabase))
+        dbc.execute('drop table %s.person_marginals' %(scenarioDatabase))
+
+    except:
+        pass
+
+    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample'
+                %(scenarioDatabase, projectDatabase))
+    dbc.execute('alter table %s.hhld_sample add index(serialno)' %(scenarioDatabase))
+    
+    dbc.execute('create table %s.person_sample select * from %s.person_sample'
+                %(scenarioDatabase, projectDatabase))
+    dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
+
+    dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
+                %(scenarioDatabase, projectDatabase))
+
+    try:
+        dbc.execute('create table %s.person_marginals select * from %s.person_marginals'
+                    %(scenarioDatabase, projectDatabase))
+    except Exception, e:
+        print e
+        pass
+
+
+#    Processes/ methods to be called at the beginning of the pop_synthesis process
 
 # Identifying the number of housing units to build the Master Matrix
     dbc.execute('select * from hhld_sample')
@@ -51,12 +83,12 @@ def prepare_data_nogqs(db, project):
     ti = time.clock()
 
 # Sparse representation of the Master Matrix
-    ps_sp_matrix = psuedo_sparse_matrix_nogqs.psuedo_sparse_matrix(db, populated_matrix, 0)
+    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 0)
     print 'Psuedo Sparse Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
 #Creating Index Matrix
-    index_matrix = psuedo_sparse_matrix_nogqs.generate_index_matrix(db, 0)
+    index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 0)
     print 'Index Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
     dbc.close()

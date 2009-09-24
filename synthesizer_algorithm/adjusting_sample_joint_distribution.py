@@ -225,7 +225,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
     marginals = database(db, '%s_marginals'%synthesis_type)
     variable_names = marginals.variables()
     control_marginals = []
-    control_marginals_sum = []
+    #control_marginals_sum = []
     for dummy in control_variables:
         dbc.execute('select %s from %s_sample group by %s' %(dummy, synthesis_type, dummy))
         cats = arr(dbc.fetchall(), float)
@@ -237,34 +237,34 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         variable_marginals1=[]
         try:
             variable_marginals_adj = controlAdjDict[selGeography][selVar]
-            print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
+            #print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
             for i in variable_marginals_adj[1]:
                 if i>0:
                     variable_marginals1.append(i)
                 else:
                     variable_marginals1.append(0.1)
-            check_marginal_sum = sum(variable_marginals1)
+            #check_marginal_sum = sum(variable_marginals1)
         except Exception ,e:
-            print e
+            pass
 
-            check_marginal_sum = 0
+            #check_marginal_sum = 0
             for i in cats:
                 corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
                 dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
                 result = arr(dbc.fetchall(), float)
-                check_marginal_sum = result[0][0] + check_marginal_sum
+                #check_marginal_sum = result[0][0] + check_marginal_sum
 
                 if result[0][0] <> 0:
                     variable_marginals1.append(result[0][0])
                 else:
                     variable_marginals1.append(0.1)
 
-        exceptionStatus = False
+        #exceptionStatus = False
 
-        if check_marginal_sum == 0 and (synthesis_type == 'hhld'):
-            exceptionStatus = True
-        if check_marginal_sum == 0 and (synthesis_type == 'person'):
-            exceptionStatus = True
+        #if check_marginal_sum == 0 and (synthesis_type == 'hhld'):
+        #    exceptionStatus = True
+        #if check_marginal_sum == 0 and (synthesis_type == 'person'):
+        #    exceptionStatus = True
 
             
 
@@ -272,20 +272,100 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         #    print 'Exception: The given marginal distribution for a control variable sums to zero.'
             #raise Exception, 'The given marginal distribution for a control variable sums to zero.'
         control_marginals.append(variable_marginals1)
-        control_marginals_sum.append(check_marginal_sum)
-    if synthesis_type == 'hhld' or synthesis_type == 'person':
-        for i in control_marginals_sum[0:]:
-            if i <> control_marginals_sum[0]:
-                print 'Exception: The marginal distributions for the control variables are not the same.'
+        #control_marginals_sum.append(check_marginal_sum)
+   # if synthesis_type == 'hhld' or synthesis_type == 'person':
+   #     for i in control_marginals_sum[0:]:
+   #         if i <> control_marginals_sum[0]:
+   #             print """Warning: The totals from the marginal distributions for the control variables are not the same. The program """
+   #             """will proceed but the results will depend on the the last control variable's distribution. The last control variable """
+   #             """is last variable obtained by alphabetically sorting the variable names.""" 
                 #raise Exception, 'The marginal distributions for the control variables are not the same.'
 
-    if exceptionStatus:
-        print Exception, 'The marginal distributions for a control variable sums to zero.'
+    #if exceptionStatus:
+    #    print 'Warning: The marginal distribution for the control variable sums to zero.'
 
     dbc.close()
     db.commit()
-    print 'marginals used', control_marginals
+    #print 'marginals used', control_marginals
     return control_marginals
+
+def check_marginals(marginals, control_variables):
+    check_for_zero_marginaltotals(marginals, control_variables)
+    check_for_unequal_marginaltotals(marginals, control_variables)
+    
+
+
+def check_for_zero_marginaltotals(marginals, control_variables):
+    for i in range(len(marginals)):
+        j = marginals[i]
+        try:
+            while(1):
+                j.remove(0.1)
+        except:
+            pass
+        if sum(j) == 0:
+            print ("Warning: The marginals distribution sum of the %s control variable is zero."
+                   %control_variables[i])
+            
+def check_for_unequal_marginaltotals(marginals, control_variables):
+    i = marginals[0]
+    try:
+        while(1):
+            i.remove(0.1)
+    except:
+        pass
+    ref_sum = sum(i)
+    for i in range(len(marginals[1:])):
+        j = marginals[1+i]
+        try:
+            while(1):
+                j.remove(0.1)
+        except:
+            pass
+        if ref_sum <> sum(j):
+            print ("Warning: The marginals distribution sum of %s and %s variables are not the same."
+                   %(control_variables[0], control_variables[1+i]))
+                      
+        
+def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
+    checkHhld = 0
+    checkGq = 0
+    for i in hhld_marginals:
+        try:
+            while(1):
+                i.remove(0.1)
+        except:
+            pass
+        if len(i) <> 0:
+            checkHhld = checkHhld + 1
+    if not gq_marginals is None:
+        for i in gq_marginals:
+            try:
+                while(1):
+                    i.remove(0.1)
+            except:
+                pass
+            if len(i) <> 0:
+                checkGq = checkGq + 1
+
+    if checkHhld == 0 and checkGq == 0:
+        raise Exception, "There are no households/groupquarters in the geography to synthesize data"
+
+
+def check_for_zero_person_totals(person_marginals):
+    checkPers = 0
+    for i in person_marginals:
+        try:
+            while(1):
+                i.remove(0.1)
+        except:
+            pass
+        if len(i) <> 0:
+            checkPers = checkPers + 1
+    if checkPers == 0:
+        raise Exception, "There are no persons in the geography to synthesize data"
+
+
 
 
 def create_matching_string(table_name1, table_name2, control_variables):

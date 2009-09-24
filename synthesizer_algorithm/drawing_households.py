@@ -125,6 +125,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
     hh_colno = hhld_colno + gq_colno
     synthetic_population=[]
     j = 0
+    
     for i in index_matrix[:hh_colno,:]:
         if i[1] == i[2] and frequencies[j]>0:
             synthetic_population.append([sp_matrix[i[1]-1, 2] + 1, frequencies[j], i[0]])
@@ -278,7 +279,7 @@ def synthetic_population_properties(db, geo, synthetic_population, person_index_
 
 def checking_against_joint_distribution(objective_frequency, attributes, dimensions, pumano = 0, tract = 0, bg = 0):
 
-    estimated_frequency = zeros((dimensions.prod(),1))
+    estimated_frequency = zeros((dimensions,1))
 
     for i in attributes[:,-2:]:
         #print i
@@ -316,6 +317,20 @@ def storing_synthetic_attributes1(db, synthesis_type, attributes, county, tract 
                 % (synthesis_type, str(dummy)[1:-1]))
     dbc.close()
     db.commit()
+
+def storing_synthetic_attributes2(db, synthesis_type, attributes, county, tract = 0, bg = 0):
+    dbc = db.cursor()
+    #dummy = [tuple(i) for i in attributes]
+    #print("""insert into %s_synthetic_data values %s"""
+     #           % (synthesis_type, str(dummy)[1:-1]))
+
+    for i in attributes:
+        dbc.execute("""insert into %s_synthetic_data values %s"""
+                    % (synthesis_type, str(tuple(i))))
+    dbc.close()
+    db.commit()
+
+
 
 
 def store(db, filePath, tablename):

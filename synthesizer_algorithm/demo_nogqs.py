@@ -19,7 +19,7 @@ import MySQLdb
 import time
 import cPickle
 
-def configure_and_run(project, geo, varCorrDict):
+def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 
 
     f = open('indexMatrix.pkl', 'rb')
@@ -29,12 +29,13 @@ def configure_and_run(project, geo, varCorrDict):
 
     state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
     print '------------------------------------------------------------------'
-    print 'Geography: PUMA ID- %s, Tract ID- %0.2f, BG ID- %s' \
-                                                                         %(pumano, float(tract)/100, bg)
+    print 'Geography: County - %s, PUMA ID- %s, Tract ID- %0.2f, BG ID- %s' \
+                                                                         %(county, pumano, float(tract)/100, bg)
     print '------------------------------------------------------------------'
 
     db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username,
-                         passwd = '%s' %project.db.password, db = '%s' %project.name)
+                         passwd = '%s' %project.db.password, db = '%s%s%s' 
+                         %(project.name, 'scenario', project.scenario))
     dbc = db.cursor()
 
     tii = time.clock()
@@ -60,26 +61,50 @@ def configure_and_run(project, geo, varCorrDict):
     hhld_dimensions = project.hhldDims
     person_dimensions = project.personDims
 
+# Checking marginal totals
+    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
+                                                                                    state, county, tract, bg)
+    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, controlAdjDict,
+                                                                                      state, county, tract, bg)
+    print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
+    print '\tChecking household variables'
+    adjusting_sample_joint_distribution.check_marginals(hhld_marginals, hhld_control_variables)
 
+    print '\tChecking person variables\n'
+    adjusting_sample_joint_distribution.check_marginals(person_marginals, person_control_variables)
+    
+    print 'Step 1B: Checking if the geography has any housing units to synthesize...\n'
+    adjusting_sample_joint_distribution.check_for_zero_housing_totals(hhld_marginals)
+
+    print 'Step 1C: Checking if the geography has any persons to synthesize...\n'
+    adjusting_sample_joint_distribution.check_for_zero_person_totals(person_marginals)
 
 # Reading the parameters
     parameters = project.parameters
 
 #______________________________________________________________________
 # Running IPF for Households
-    print 'Step 1A: Running IPF procedure for Households... '
-    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, hhld_dimensions, county, pumano, tract, bg, parameters)
+    print 'Step 2A: Running IPF procedure for Households... '
+    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
+                                                                             controlAdjDict, 
+                                                                             hhld_dimensions, 
+                                                                             state, county, pumano, tract, bg, 
+                                                                             parameters)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for Persons
-    print 'Step 1C: Running IPF procedure for Persons... '
-    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, varCorrDict, person_dimensions, county, pumano, tract, bg, parameters)
+    print 'Step 2B: Running IPF procedure for Persons... '
+    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, 
+                                                                                 varCorrDict, controlAdjDict, 
+                                                                                 person_dimensions, 
+                                                                                 state, county, pumano, tract, bg, 
+                                                                                 parameters)
     print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
 # Creating the weights array
-    print 'Step 2: Running IPU procedure for obtaining weights that satisfy Household and Person type constraints... '
+    print 'Step 3: Running IPU procedure for obtaining weights that satisfy Household and Person type constraints... '
     dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(0))
     result = numpy.asarray(dbc.fetchall())[:,0]
     weights = numpy.ones((1,housing_units), dtype = float)[0] * -99
@@ -103,7 +128,7 @@ def configure_and_run(project, geo, varCorrDict):
     print 'IPU procedure was completed in %.2f sec\n'%(time.clock()-ti)
     ti = time.clock()
 #_________________________________________________________________
-    print 'Step 3: Creating the synthetic households and individuals...'
+    print 'Step 4: Creating the synthetic households and individuals...'
 # creating whole marginal values
     hhld_order_dummy = adjusting_sample_joint_distribution.create_aggregation_string(hhld_control_variables)
     hhld_frequencies = drawing_households.create_whole_frequencies(db, 'hhld', hhld_order_dummy, pumano, tract, bg, parameters)
@@ -143,7 +168,7 @@ def configure_and_run(project, geo, varCorrDict):
 
 
         synth_person_stat, count_person, person_estimated_frequency = drawing_households.checking_against_joint_distribution(person_objective_frequency,
-                                                                                                                             synthetic_person_attributes, person_dimensions,
+                                                                                                                             synthetic_person_attributes, person_dimensions.prod(),
                                                                                                                              pumano, tract, bg)
         stat = synth_person_stat
         dof = count_person - 1
@@ -160,6 +185,7 @@ def configure_and_run(project, geo, varCorrDict):
     if draw_count >= parameters.synPopDraws:
         print ('Max Iterations (%d) reached for drawing households with the best draw having a p-value of %.4f'
                %(parameters.synPopDraws, max_p))
+    if max_p == 0:
         max_p = p_value
         max_p_housing_attributes = synthetic_housing_attributes
         max_p_person_attributes = synthetic_person_attributes
@@ -168,33 +194,22 @@ def configure_and_run(project, geo, varCorrDict):
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
-    drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
-    drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
+    if max_p_housing_attributes.shape[0] < 2500:
+        drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
+        drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
+    else:
+        drawing_households.storing_synthetic_attributes2(db, 'housing', max_p_housing_attributes, county, tract, bg)
+        drawing_households.storing_synthetic_attributes2(db, 'person', max_p_person_attributes, county, tract, bg)
+        
 
-    """
-    import os
-    fileHousing = '%s/%s/results/housingdata.txt' %(project.location, project.name)
-    fileHousing = fileHousing.replace('\\', '/')
-    filePerson = '%s/%s/results/persondata.txt' %(project.location, project.name)
-    filePerson = filePerson.replace('\\', '/')
-
-    drawing_households.store(db, fileHousing, 'housing_synthetic_data')
-    drawing_households.store(db, filePerson, 'person_synthetic_data')
-
-    os.remove(fileHousing)
-    os.remove(filePerson)
-    """
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     drawing_households.store_performance_statistics(db, geo, values)
-
-    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, county, tract, bg)
 
     print 'Number of Synthetic Household/Group quarters - %d' %(sum(max_p_housing_attributes[:,-2]))
     for i in range(len(hhld_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], sum(hhld_marginals[i]))
 
 
-    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, county, tract, bg)
     print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
     for i in range(len(person_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], sum(person_marginals[i]))
