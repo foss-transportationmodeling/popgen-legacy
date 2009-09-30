@@ -276,7 +276,7 @@ class MainWindow(QMainWindow):
 
         self.addActions(self.resultsMenu, (None, ))
 
-        self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Results")
+        self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Synthetic Population Tables")
         self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction, resultsExportSummaryAction))
 
 
@@ -674,19 +674,24 @@ class MainWindow(QMainWindow):
         hhdist = Hhdist(self.project)
         if hhdist.valid:
             hhdist.exec_()
+            self.fileManager.populate()
     def resultsRegionalPersDist(self):
         ppdist = Ppdist(self.project)
         if ppdist.valid:
             ppdist.exec_()    
-        
+            self.fileManager.populate()
     def resultsRegional(self):
         QMessageBox.information(self, "Results", "Regional Performance Statistics", QMessageBox.Ok)
     
     def resultsIndividual(self):
         #res = ResultsGen(self.project)
-        indgeo = Indgeo(self.project)
-        if indgeo.valid:
-            indgeo.exec_()    
+        if self.project.selVariableDicts.persControl:
+            indgeo = Indgeo(self.project)
+            if indgeo.valid:
+                indgeo.exec_()    
+        else:
+            QMessageBox.warning(self, "Results", """This option cannot be used because """
+                                """person variables are not controlled.""", QMessageBox.Ok)
             
     def resultsViewHH(self):
         res = Hhmap(self.project)
