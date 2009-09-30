@@ -196,6 +196,9 @@ class AutoImportSF2000Data():
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
+            print self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
+                                    """state float, county float, tract  float, bg float, logrecno float)"""
+                                    %tablename)
             if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
@@ -283,6 +286,8 @@ class AutoImportSF2000Data():
     def createMasterSFTable(self):
         import copy
         var1 = copy.deepcopy(MASTER_SUMMARY_FILE_VARS)
+        if self.project.controlUserProv.defSource <> 'Census 2000':
+            var1.remove('geocomp')
         var1string = self.createVariableString(var1)
 
         var1.remove('logrecno')
