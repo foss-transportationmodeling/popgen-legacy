@@ -18,12 +18,13 @@ class Ppdist(Matplot):
         self.setFixedSize(800,600)
         self.project = project
         self.valid = False
+        self.variables = self.project.selVariableDicts.person.keys()
+
         if self.isValid():
             self.valid = True
             scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
             self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
-            self.variables = self.project.selVariableDicts.person.keys()
             self.variables.sort()
             #self.dimensions = [len(project.selVariableDicts.person[i].keys()) for i in self.variables]
 
@@ -46,14 +47,30 @@ class Ppdist(Matplot):
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
             self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         else:
-            QMessageBox.warning(self, "Results", "A table with name - person_synthetic_data does not exist.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", """If you have supplied a person marginals table, """
+                                """and wish to compare person distributions irrespective of whether """
+                                """you controlled for person variables or not, """
+                                """make sure that the correspondence between person variable """
+                                """categories and the columns in the person marginals table are defined. """
+                                """If you have not supplied or if the person marginals table is missing """
+                                """then this option cannot be used.""", QMessageBox.Ok)
+            self.projectDBC.dbc.close()
 
     def isValid(self):
-        return self.checkIfTableExists("person_synthetic_data")
+        return (self.checkIfTableExists("person_synthetic_data") and 
+                self.checkIfTableExists("person_marginals") and 
+                len(self.variables) > 0)
 
-    def reject(self):
+    def accept(self):
+        query = QSqlQuery(self.projectDBC.dbc)
+        if not query.exec_("""drop table temp"""):
+            raise FileError, query.lastError().text()
+
         self.projectDBC.dbc.close()
         QDialog.reject(self)
+
+    def reject(self):
+        self.accept()
 
     def makeTempTables(self):
         varstr = ""
