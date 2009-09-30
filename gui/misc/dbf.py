@@ -42,6 +42,7 @@ def dbfreader(f):
             continue                        # deleted record
         result = []
         for (name, typ, size, deci), value in itertools.izip(fields, record):
+            #print (name, typ, size, deci), value
             if name == 'DeletionFlag':
                 continue
             if typ == "N":
@@ -51,7 +52,8 @@ def dbfreader(f):
                 elif deci:
                     value = decimal.Decimal(value)
                 else:
-                    value = int(value)
+                    pass
+                    #value = int(value)
             elif typ == 'D':
                 y, m, d = int(value[:4]), int(value[4:6]), int(value[6:8])
                 value = datetime.date(y, m, d)
