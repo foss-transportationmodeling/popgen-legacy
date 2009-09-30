@@ -45,14 +45,28 @@ class Hhdist(Matplot):
             self.connect(self.attrbox, SIGNAL("currSelChanged"), self.on_draw)
             self.connect(self.geobox, SIGNAL("currSelChanged"), self.on_draw)
         else:
-            QMessageBox.warning(self, "Results", "A table with name - housing_synthetic_data does not exist.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", """The option cannot be used because either """
+                                """no household variables are selected for creating a synthetic population or """
+                                """the synthetic data table is missing or not generated. """, QMessageBox.Ok)
+            self.projectDBC.dbc.close()
 
     def isValid(self):
         return self.checkIfTableExists("housing_synthetic_data")
 
-    def reject(self):
+    def accept(self):
+        query = QSqlQuery(self.projectDBC.dbc)
+        if not query.exec_("""drop table temphhld"""):
+            raise FileError, query.lastError().text()
+
+        if self.project.gqVars:
+            if not query.exec_("""drop table tempgq"""):
+                raise FileError, query.lastError().text()
+
         self.projectDBC.dbc.close()
         QDialog.reject(self)
+
+    def reject(self):
+        self.accept()
 
     def makeTempTables(self):
         hhldvarstr = ""
