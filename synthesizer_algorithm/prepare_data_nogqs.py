@@ -24,7 +24,8 @@ def prepare_data_nogqs(db, project):
         dbc.execute('drop table %s.person_sample' %(scenarioDatabase))
         dbc.execute('drop table %s.hhld_marginals' %(scenarioDatabase))
         dbc.execute('drop table %s.person_marginals' %(scenarioDatabase))
-
+        if project.sampleUserProv.defSource == 'ACS 2005-2007':
+            dbc.execute('drop table %s.serialcorr' %(scenarioDatabase))
     except:
         pass
 
@@ -38,6 +39,10 @@ def prepare_data_nogqs(db, project):
 
     dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
                 %(scenarioDatabase, projectDatabase))
+
+    if project.sampleUserProv.defSource == 'ACS 2005-2007':
+        dbc.execute('create table %s.serialcorr select * from %s.serialcorr'
+                    %(scenarioDatabase, projectDatabase))
 
     try:
         dbc.execute('create table %s.person_marginals select * from %s.person_marginals'
