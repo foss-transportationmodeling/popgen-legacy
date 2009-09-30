@@ -61,8 +61,9 @@ class SaveFile(QFileDialog):
         if check == 0:
             os.remove(filename)
         if check < 2:
-            hhldVariables = self.getVariables('hhld_sample', query)
-            hhldSelVariables = self.getSelectedVariables(hhldVariables, self.project.hhldVars, 
+            hhldVariablesDict, hhldVariables = self.getVariables('hhld_sample', query)
+            hhldVariablesDict = self.deleteDictEntries(hhldVariablesDict)
+            hhldSelVariables = self.getSelectedVariables(hhldVariablesDict, self.project.hhldVars, 
                                                          "Select Household Variables to Add to Synthetic Data")
             hhldvarstr = ""
             for  i in hhldSelVariables:
@@ -77,37 +78,74 @@ class SaveFile(QFileDialog):
                 raise FileError, query.lastError().text()
 
 
-
-            gqVariables = self.getVariables('gq_sample', query)
-            gqSelVariables = self.getSelectedVariables(gqVariables, self.project.gqVars, 
+            if self.project.gqVars:
+                gqVariablesDict, gqVariables = self.getVariables('gq_sample', query)
+                gqVariablesDict = self.deleteDictEntries(gqVariablesDict)
+                gqSelVariables = self.getSelectedVariables(gqVariablesDict, self.project.gqVars, 
                                                          "Select Groupquarter Variables to Add to Synthetic Data")
-            gqvarstr = ""
-            for  i in gqSelVariables:
-                gqvarstr = gqvarstr + '%s,' %i
+                gqvarstr = ""
+                for  i in gqSelVariables:
+                    gqvarstr = gqvarstr + '%s,' %i
             
-            if not query.exec_("""drop table temphou2"""):
-                print "FileError:%s" %query.lastError().text()
-            if not query.exec_("""create table temphou2 select temphou1.*, %s from temphou1"""
-                               """ left join gq_sample using (serialno)""" %(gqvarstr[:-1])):
-                raise FileError, query.lastError().text()
+                if not query.exec_("""drop table temphou2"""):
+                    print "FileError:%s" %query.lastError().text()
+                if not query.exec_("""create table temphou2 select temphou1.*, %s from temphou1"""
+                                   """ left join gq_sample using (serialno)""" %(gqvarstr[:-1])):
+                    raise FileError, query.lastError().text()
+            else:
+                if not query.exec_("""alter table temphou1 rename to temphou2"""):
+                    raise FileError, query.lastError().text()                
 
-            if not query.exec_("""select * from temphou2 into outfile """
-                               """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
-                               %(self.folder, self.fileType, self.fileSep)):
-                raise FileError, query.lastError().text()
+            if self.project.sampleUserProv.defSource == "ACS 2005-2007":
+                print 'ACS HOUSING DATA MODIFYING THE SERIALNOS'
+                if not query.exec_("""drop table temphou3"""):
+                    print "FileError:%s" %query.lastError().text()
+                if not query.exec_("""alter table temphou2 drop column serialno"""):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""alter table temphou2 add index(hhid)"""):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""alter table serialcorr add index(hhid)"""):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""create table temphou3 select temphou2.*, serialno from temphou2"""
+                                   """ left join serialcorr using (hhid)"""):
+                    raise FileError, query.lastError().text()
 
+                if not query.exec_("""select * from temphou3 into outfile """
+                                   """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                                   %(self.folder, self.fileType, self.fileSep)):
+                    raise FileError, query.lastError().text()
+
+                housingSynTableVarDict, housingSynTableVars = self.getVariables('temphou3', query)
+
+                if not query.exec_("""drop table temphou3"""):
+                    print "FileError:%s" %query.lastError().text()
+
+            else:
+                if not query.exec_("""select * from temphou2 into outfile """
+                                   """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                                   %(self.folder, self.fileType, self.fileSep)):
+                    raise FileError, query.lastError().text()
+
+                housingSynTableVarDict, housingSynTableVars = self.getVariables('temphou2', query)
+            
+            self.storeMetaData(housingSynTableVars, self.folder, 'housing_synthetic_data')
+            
             if not query.exec_("""drop table temphou1"""):
                 print "FileError:%s" %query.lastError().text()
-            if not query.exec_("""drop table temphou2"""):
-                print "FileError:%s" %query.lastError().text()
+
+            if not self.project.gqVars:
+                if not query.exec_("""drop table temphou2"""):
+                    print "FileError:%s" %query.lastError().text()
+
 
         filename = '%s/person_synthetic_data.%s' %(self.folder, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
             os.remove(filename)
         if check  < 2:
-            personVariables = self.getVariables('person_sample', query)
-            personSelVariables = self.getSelectedVariables(personVariables, self.project.personVars, 
+            personVariablesDict, personVariables = self.getVariables('person_sample', query)
+            personVariablesDict = self.deleteDictEntries(personVariablesDict)
+            personSelVariables = self.getSelectedVariables(personVariablesDict, self.project.personVars, 
                                                            "Select Person Variables to Add to Synthetic Data")
 
             personvarstr = ""
@@ -120,14 +158,64 @@ class SaveFile(QFileDialog):
                                """ left join person_sample using (serialno)""" %(personvarstr[:-1])):
                 raise FileError, query.lastError().text()
 
-            if not query.exec_("""select * from tempperson into outfile """
-                               """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
-                               %(self.folder, self.fileType, self.fileSep)):
-                raise FileError, query.lastError().text()
-            if not query.exec_("""drop table tempperson"""):
-                print "FileError:%s" %query.lastError().text()
+            if self.project.sampleUserProv.defSource == "ACS 2005-2007":
+                print 'ACS PERSON DATA MODIFYING THE SERIALNOS'
+                if not query.exec_("""drop table tempperson1"""):
+                    print "FileError:%s" %query.lastError().text()
+                if not query.exec_("""alter table tempperson drop column serialno"""):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""alter table tempperson add index(hhid)"""):
+                    raise FileError, query.lastError().text()
+                if not query.exec_("""create table tempperson1 select tempperson.*, serialno from tempperson"""
+                                   """ left join serialcorr using (hhid)"""):
+                    raise FileError, query.lastError().text()
+
+                if not query.exec_("""select * from tempperson1 into outfile """
+                                   """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
+                                   %(self.folder, self.fileType, self.fileSep)):
+                    raise FileError, query.lastError().text()
+
+                personSynTableVarDict, personSynTableVars = self.getVariables('tempperson1', query)
+
+
+                #if not query.exec_("""drop table tempperson1"""):
+                #    print "FileError:%s" %query.lastError().text()
+            else:
+                if not query.exec_("""select * from tempperson into outfile """
+                                   """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
+                                   %(self.folder, self.fileType, self.fileSep)):
+                    raise FileError, query.lastError().text()
+
+
+                personSynTableVarDict, personSynTableVars = self.getVariables('tempperson', query)
+            
+            self.storeMetaData(personSynTableVars, self.folder, 'person_synthetic_data')
+
+            #if not query.exec_("""drop table tempperson"""):
+            #    print "FileError:%s" %query.lastError().text()
+
 
         projectDBC.dbc.close()
+
+    def deleteDictEntries(self, dict):
+        print dict
+        vars = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'hhlduniqueid', 'gquniqueid', 'personuniqueid']
+        for i in vars:
+            try:
+                dict.pop(i)
+            except:
+                pass
+        print dict
+        return dict
+
+
+    def storeMetaData(self, varNames, location, tablename):
+        f = open('%s/%s_meta.txt' %(location, tablename), 'w')
+        col = 1
+        for i in varNames:
+            f.write('column %s -  %s\n' %(col, i))
+            col = col + 1
+        f.close()
 
 
     def getVariables(self, tablename, query):
@@ -135,11 +223,13 @@ class SaveFile(QFileDialog):
             raise FileError, query.lastError().text()
         
         varDict = {}
+        varNameList = []
         while query.next():
             varname = query.value(0).toString()
             varDict['%s' %varname] = ""
+            varNameList.append(varname)
             
-        return varDict
+        return varDict, varNameList
         
     
     def getSelectedVariables(self, varDict, defaultVariables, title, icon=None, warning=None):
@@ -168,16 +258,20 @@ class SaveFile(QFileDialog):
 
         query = QSqlQuery(projectDBC.dbc)
 
+
         filename = '%s/%s.%s' %(self.folder, self.tablename, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
             os.remove(filename)
-        elif check < 2:
+
+        if check < 2:
             if not query.exec_("""select * from %s into outfile """
                                """'%s' fields terminated by '%s'"""
                                %(self.tablename, filename, self.fileSep)):
                 raise FileError, query.lastError().text()
 
+        tableVarDict, tableVars = self.getVariables(self.tablename, query)
+        self.storeMetaData(tableVars, self.folder, self.tablename)
 
         projectDBC.dbc.close()
 
