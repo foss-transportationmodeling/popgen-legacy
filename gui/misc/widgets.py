@@ -16,6 +16,7 @@ from gui.misc.dbf import *
 from numpy.random import randint
 from database.createDBConnection import createDBC
 from collections import defaultdict
+from math import ceil
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -313,10 +314,11 @@ class ListWidget(QListWidget):
 
     def remove(self):
         self.takeItem(self.currentRow())
+        
 
     def removeList(self, items):
         for i in items:
-            self.setItemSelected(i, True)
+            self.setCurrentItem(i)
             self.remove()
 
     def addList(self, items):
@@ -726,11 +728,11 @@ class CreateVariable(QDialog):
 
         formulaLabel = QLabel("Expression")
         self.formulaEdit = QPlainTextEdit()
-        formulaEgLabel = QLabel("<font color = brown>Eg. Var1 + Var2 or 11 </font>")
+        formulaEgLabel = QLabel("<font color = brown>Eg. (1) Var1 + Var2; (2) 11 </font>")
         self.formulaEdit.setEnabled(False)
         whereLabel = QLabel("Filter Expression")
         self.whereEdit = QPlainTextEdit()
-        dummy = "Eg. Var1 > 10"
+        dummy = "Eg. (1) Var1 > 10; (2) Var1 > 5 and var1 = 2; (3) var1 != 3"
         whereEgLabel = QLabel("<font color = brown>%s</font>" %dummy)
         self.whereEdit.setEnabled(False)
 
@@ -962,7 +964,7 @@ class DisplayMapsDlg(QDialog):
         self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
-        
+        self.fromTableToTable()
         check = self.isValid()
         
         if check:
@@ -982,6 +984,23 @@ class DisplayMapsDlg(QDialog):
         self.variableCatsListWidget = ListWidget()
         self.variableListWidget.setMaximumWidth(200)
         self.variableCatsListWidget.setMaximumWidth(100)
+
+        self.legendTable = QTableWidget()
+        self.legendTable.setColumnCount(3)
+        self.legendTable.setRowCount(5)
+
+
+        for i in range(5):
+            item = QTableWidgetItem(1000)
+            item.setBackgroundColor(QColor(150, 50 + 50*i, 50 * i))
+            self.legendTable.setItem(i,2,item)
+
+        self.legendTable.setMaximumWidth(325)
+        self.legendTable.setMaximumHeight(180)
+        
+        legendString = QLabel("Legend")
+        self.legendTable.setHorizontalHeaderLabels(['Lower Limit', 'Upper Limit', 'Color'])
+        
 
         # Displaying the thematic map
         self.canvas = QgsMapCanvas()
@@ -1052,6 +1071,15 @@ class DisplayMapsDlg(QDialog):
         hLayout1.addLayout(vLayout4)
         vLayout2.addLayout(hLayout1)
 
+        vLayout5 = QVBoxLayout()
+        vLayout5.addWidget(legendString)
+        vLayout5.addWidget(self.legendTable)
+        
+        hLayout5 = QHBoxLayout()
+        hLayout5.addLayout(vLayout5)
+
+        vLayout2.addLayout(hLayout5)
+
         vLayout1 = QVBoxLayout()
         vLayout1.addWidget(mapLabel)
         vLayout1.addWidget(self.toolbar)
@@ -1076,6 +1104,17 @@ class DisplayMapsDlg(QDialog):
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
         self.connect(self.variableCatsListWidget, SIGNAL("itemSelectionChanged()"), self.displayMap)
+        self.connect(self, SIGNAL("updateLimits()"), self.updateCatLimits)
+
+
+    def updateCatLimits(self):
+        print 'UPDATING LIMITS'
+        for i in range(5):
+            itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
+            itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
+            self.legendTable.setItem(i, 0, itemMin)
+            self.legendTable.setItem(i, 1, itemMax)
+            
 
 
     def isValid(self):
@@ -1120,29 +1159,33 @@ class DisplayMapsDlg(QDialog):
 
 
 
-    def makeTempTables(self):
-        varstr = self.variableListWidget.currentItem().text()
-        varcatstr = self.variableCatsListWidget.currentItem().text()
-
-        if self.tablename == 'hhld_sample':
-            fromTable = 'housing_synthetic_data'
-            toTable = 'temphhld'
-
-        if self.tablename == 'gq_sample':
-            fromTable = 'housing_synthetic_data'
-            toTable = 'tempgq'
-        else:
-            fromTable = 'person_synthetic_data'
-            toTable = 'temp'
-
+    def makeTempTables(self, varname):
         query = QSqlQuery(self.projectDBC.dbc)
-        query.exec_(""" DROP TABLE IF EXISTS %s""" %(toTable))
+        query.exec_(""" DROP TABLE IF EXISTS %s""" %(self.toTable))
         if not query.exec_("""CREATE TABLE %s SELECT %s.*,%s FROM %s"""
-                            """ LEFT JOIN %s using (serialno)""" %(toTable, fromTable, varstr, fromTable, self.tablename)):
+                            """ LEFT JOIN %s using (serialno)""" %(self.toTable, self.fromTable, varname, self.fromTable, self.tablename)):
             raise FileError, query.lastError().text()
+
+
+    def fromTableToTable(self):
+        if self.tablename == 'hhld_sample':
+            self.fromTable = 'housing_synthetic_data'
+            self.toTable = 'temphhld'
+        elif self.tablename == 'gq_sample':
+            self.fromTable = 'housing_synthetic_data'
+            self.toTable = 'tempgq'
+        else:
+            self.fromTable = 'person_synthetic_data'
+            self.toTable = 'temp'
+
+
+
+    def extractTotalsByCat(self, cat):
+        query = QSqlQuery(self.projectDBC.dbc)
+        varstr = self.variableListWidget.currentItem().text()
         if not query.exec_("""select state, county, tract, bg, sum(frequency) from %s where %s = %s """
                            """group by state, county, tract, bg"""
-                           %(toTable, varstr, varcatstr)):
+                           %(self.toTable, varstr, cat)):
             raise FileError, query.lastError().text()
 
         distDict = {}
@@ -1159,14 +1202,47 @@ class DisplayMapsDlg(QDialog):
             
             distDict[key] = value
 
-        return distDict
+        return distDict        
+        
 
-
+    
     def displayMap(self):
 
-        distDict = self.makeTempTables()
-        print distDict
+        cat = int(self.variableCatsListWidget.currentItem().text())
 
+        numDistDict = self.distDictList[cat-1]
+        totalDistDict = {}
+        distDict = {}
+
+        varname = self.variableListWidget.currentItem().text()
+        varCats = self.categories(varname)
+
+        for i in numDistDict.keys():
+            total = 0
+            for j in varCats:
+                total = total + self.distDictList[int(j)-1][i]
+            totalDistDict[i] = total
+            distDict[i] = float(numDistDict[i])/total
+
+        print distDict
+        
+        self.minProp = min(distDict.values())
+        self.maxProp = max(distDict.values())
+        
+        # assuming 5 categories
+        self.intervalLength = (self.maxProp - self.minProp)/5
+
+        for i in distDict.keys():
+            if distDict[i] == self.minProp:
+                distDict[i] = 1.0
+            else:
+                distDict[i] = ceil((distDict[i]-self.minProp)/self.intervalLength)
+
+        print distDict
+        
+        # proportions calculated, categories calculated
+        # TO DO - append to the shapefile? show the colors?
+                
 
         self.stateCode = self.project.stateCode[self.project.state]
         resultfilename = self.res_prefix+self.stateCode+"_selected"
@@ -1221,24 +1297,26 @@ class DisplayMapsDlg(QDialog):
         dbfwriter(f, fieldnames, fieldspecs, records)
         f.close()
 
+        self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
+
         self.layer.setRenderer(QgsContinuousColorRenderer(self.layer.vectorType()))
         r = self.layer.renderer()
         provider = self.layer.getDataProvider()
         idx = provider.indexFromFieldName(var)
 
         r.setClassificationField(idx)
-        min = provider.minValue(idx).toString()
-        max = provider.maxValue(idx).toString()
-        minsymbol = QgsSymbol(self.layer.vectorType(), min, "","")
-        minsymbol.setBrush(QBrush(QColor(255,255,255)))
-        maxsymbol = QgsSymbol(self.layer.vectorType(), max, "","")
-        maxsymbol.setBrush(QBrush(QColor(153,204,0)))
+        minval = provider.minValue(idx).toString()
+        maxval = provider.maxValue(idx).toString()
+        minsymbol = QgsSymbol(self.layer.vectorType(), minval, "","")
+        minsymbol.setBrush(QBrush(QColor(150,50,0)))
+        maxsymbol = QgsSymbol(self.layer.vectorType(), maxval, "","")
+        maxsymbol.setBrush(QBrush(QColor(150,250,200)))
         #maxsymbol.setBrush(QBrush(QColor(0,0,0)))
         r.setMinimumSymbol(minsymbol)
         r.setMaximumSymbol(maxsymbol)
         r.setSelectionColor(QColor(255,255,0))
+        r.setDrawPolygonOutline(True)
         
-
         QgsMapLayerRegistry.instance().addMapLayer(self.layer)
         self.canvas.setExtent(self.layer.extent())
 
@@ -1247,6 +1325,15 @@ class DisplayMapsDlg(QDialog):
         self.canvas.setLayerSet(layers)
 
         self.canvas.refresh()
+
+        for i in r.symbols():
+            print i.color()
+
+        print r.symbols()
+        print dir(r.symbols())
+        self.emit(SIGNAL("updateLimits()"))
+        
+
 
     def populateVariableTypeDictionary(self, tablename):
 
@@ -1283,11 +1370,19 @@ class DisplayMapsDlg(QDialog):
 
         self.variableCatsListWidget.clear()
         self.variableCatsListWidget.addItems(cats)
-        
+
+        self.makeTempTables(varname)
+
+        self.distDictList = []
+        for cat in varCats:
+            distDict = self.extractTotalsByCat(cat)
+            self.distDictList.append(distDict)
+            
         layers = []
         self.canvas.setLayerSet(layers)
         self.canvas.refresh()
 
+        
 
 
     def populate(self):
