@@ -308,7 +308,7 @@ class Indgeo(Matplot):
         self.projectDBC.dbc.open()
         if not geo.puma5:
             if self.project.resolution == 'County':
-                geo.puma5 = 0
+                geo.puma5 = 99
 
             elif self.project.resolution == 'Tract':
                 if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
@@ -389,6 +389,7 @@ class Indgeo(Matplot):
                     if id in self.ids:
                         idx = self.ids.index(id)
                         self.syn[idx] = freq
+
 
 
 def main():
