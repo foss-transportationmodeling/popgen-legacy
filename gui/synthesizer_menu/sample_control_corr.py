@@ -132,19 +132,19 @@ class SetCorrDialog(QDialog):
             if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
                 self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
                 self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
-                self.clearTables('hhld')
+                #self.clearTables('hhld')
             if self.tabWidget.personAnalyzed:
                 if self.tabWidget.personTab.check():
                     if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
                         self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
                         self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person, True)
-                        self.clearTables('person')
+                        #self.clearTables('person')
             if self.tabWidget.gqAnalyzed:
                 if self.tabWidget.gqTab.checkNumRelationsDefined():
                     if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
                         self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
                         self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-                        self.clearTables('gq')
+                        #self.clearTables('gq')
             self.projectDBC.dbc.close()
             QDialog.hide(self)
             QDialog.accept(self)
@@ -413,8 +413,15 @@ class TabWidgetItems(QWidget):
         self.sampleVarListWidget.clear()
         self.selSampleVarListWidget.clear()
         self.selSampleVarCatListWidget.clear()
-        self.sampleVarListWidget.addItems(self.sampleVars)
 
+        vars = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'hhlduniqueid', 'gquniqueid', 'personuniqueid']
+
+        for i in vars:
+            try:
+                self.sampleVars.remove(i)
+            except:
+                pass
+        self.sampleVarListWidget.addItems(self.sampleVars)
 
     def populateControlVariables(self, index):
         self.controlSelTable = self.controlTableComboBox.itemText(index)
@@ -436,7 +443,7 @@ class TabWidgetItems(QWidget):
 
         while query.next():
             field = query.value(FIELD).toString()
-            variables.append(field)
+            variables.append('%s' %field)
 
         projectDBC.dbc.close()
         return variables
