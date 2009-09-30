@@ -16,7 +16,7 @@ from numpy.random import randint
 class IntroPage(QWizardPage):
     def __init__(self, parent=None):
         super(IntroPage, self).__init__(parent)
-
+ 
         self.nameDummy = True
         self.locationDummy = True
         self.regionDummy = False
