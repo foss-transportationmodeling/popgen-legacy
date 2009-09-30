@@ -56,7 +56,6 @@ class Matplot(QDialog):
         self.dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok)
 
         self.connect(self.dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(self.dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
 
 
     def isValid(self):
