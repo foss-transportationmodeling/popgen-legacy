@@ -222,8 +222,16 @@ class Indgeo(Matplot):
         self.retrieveResults()
         if len(self.ids) > 0:
             scat_plot = self.axes.scatter(self.act, self.syn)
-            scat_plot.axes.set_xbound(0)
-            scat_plot.axes.set_ybound(0)
+            xlims = scat_plot.axes.set_xlim()
+            ylims = scat_plot.axes.set_ylim()
+            maxlim = max(xlims[1], ylims[1])
+            scat_plot.axes.set_xlim(0,maxlim)
+            scat_plot.axes.set_ylim(0,maxlim)
+            xlin = [0,maxlim]
+            ylin = [0,maxlim]
+            lin = matplotlib.lines.Line2D(xlin,ylin, color='r')
+            scat_plot.axes.add_line(lin)
+            
         else:
             pass
         self.canvas.draw()
