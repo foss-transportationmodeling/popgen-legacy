@@ -196,9 +196,9 @@ class AutoImportSF2000Data():
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
-            print self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
-                                    """state float, county float, tract  float, bg float, logrecno float)"""
-                                    %tablename)
+            print ("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
+                   """state float, county float, tract  float, bg float, logrecno float)"""
+                   %tablename)
             if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
