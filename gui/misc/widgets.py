@@ -987,16 +987,16 @@ class DisplayMapsDlg(QDialog):
 
         self.legendTable = QTableWidget()
         self.legendTable.setColumnCount(3)
-        self.legendTable.setRowCount(5)
+        self.legendTable.setRowCount(6)
 
 
-        for i in range(5):
+        for i in range(6):
             item = QTableWidgetItem(1000)
-            item.setBackgroundColor(QColor(150, 50 + 50*i, 50 * i))
+            item.setBackgroundColor(QColor(150, 50 * i, 50 * i))
             self.legendTable.setItem(i,2,item)
 
-        self.legendTable.setMaximumWidth(325)
-        self.legendTable.setMaximumHeight(180)
+        self.legendTable.setMaximumWidth(335)
+        self.legendTable.setMaximumHeight(255)
         
         legendString = QLabel("Legend")
         self.legendTable.setHorizontalHeaderLabels(['Lower Limit', 'Upper Limit', 'Color'])
@@ -1112,8 +1112,8 @@ class DisplayMapsDlg(QDialog):
         for i in range(5):
             itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
             itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
-            self.legendTable.setItem(i, 0, itemMin)
-            self.legendTable.setItem(i, 1, itemMax)
+            self.legendTable.setItem(i+1, 0, itemMin)
+            self.legendTable.setItem(i+1, 1, itemMax)
             
 
 
@@ -1305,10 +1305,12 @@ class DisplayMapsDlg(QDialog):
         idx = provider.indexFromFieldName(var)
 
         r.setClassificationField(idx)
-        minval = provider.minValue(idx).toString()
-        maxval = provider.maxValue(idx).toString()
+        #minval = provider.minValue(idx).toString()
+        #maxval = provider.maxValue(idx).toString()
+        minval = '0'
+        maxval = '5'
         minsymbol = QgsSymbol(self.layer.vectorType(), minval, "","")
-        minsymbol.setBrush(QBrush(QColor(150,50,0)))
+        minsymbol.setBrush(QBrush(QColor(150,0,0)))
         maxsymbol = QgsSymbol(self.layer.vectorType(), maxval, "","")
         maxsymbol.setBrush(QBrush(QColor(150,250,200)))
         #maxsymbol.setBrush(QBrush(QColor(0,0,0)))
