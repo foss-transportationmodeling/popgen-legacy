@@ -316,7 +316,7 @@ class Indgeo(Matplot):
         self.projectDBC.dbc.open()
         if not geo.puma5:
             if self.project.resolution == 'County':
-                geo.puma5 = 99
+                geo.puma5 = int('99999'+ str(geo.county).rjust(3, '0'))
 
             elif self.project.resolution == 'Tract':
                 if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
