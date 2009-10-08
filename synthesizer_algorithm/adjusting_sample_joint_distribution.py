@@ -71,7 +71,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         variable_list = variable_list + i + ', '
     variable_list = variable_list + 'frequency'
 
-    if pumano == 99 or pumano == 0:
+    if pumano >= 99999000 or pumano == 0:
         dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         #print ('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         result = arr(dbc.fetchall(), int)
@@ -286,7 +286,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
 
     dbc.close()
     db.commit()
-    #print 'marginals used', control_marginals
+    print 'marginals used', control_marginals
     return control_marginals
 
 def check_marginals(marginals, control_variables):
