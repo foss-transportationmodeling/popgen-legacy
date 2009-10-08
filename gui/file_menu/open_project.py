@@ -23,7 +23,6 @@ class OpenProject(QFileDialog):
 
 
 
-
 class SaveFile(QFileDialog):
     def __init__(self, project, fileType, tablename=None, treeParent=None, parent=None):
         super(SaveFile, self).__init__(parent)
@@ -293,5 +292,173 @@ class SaveFile(QFileDialog):
             return 1
 
 
+
+
+class ExportSummaryFile(SaveFile):
+    def __init__(self, project, fileType, tablename=None, treeParent=None, parent=None):
+        SaveFile.__init__(self, project, fileType, tablename=None, treeParent=None, parent=None)
+        
+
+
+    def save(self):
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        projectDBC = createDBC(self.project.db, scenarioDatabase)
+        projectDBC.dbc.open()
+
+        query = QSqlQuery(projectDBC.dbc)
+
+        filename = '%s/housing_synthetic_data.%s' %(self.folder, self.fileType)
+        check = self.checkIfFileExists(filename)
+        if check == 0:
+            os.remove(filename)
+        if check < 2:
+            self.createSummaryTables(query, 'housing')
+            self.createSummaryTables(query, 'person')
+
+            """
+            print self.project.selVariableDicts
+
+            varCorrDict = {}
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+
+            self.createControlVarTotals()
+
+
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
+            
+            print varCorrDict
+                
+            """
+
+            varCorrDict = {}
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+            print varCorrDict
+            self.createHousingMarginalsTable(query, varCorrDict.values())
+
+            varCorrDict = self.variableControlCorrDict(self.project.selVariableDicts.person)
+            print varCorrDict
+            self.createMarginalsTable(query, varCorrDict.values())
+
+            self.createGivenControlTotalColumns(query, self.project.selVariableDicts.hhld)
+            self.createGivenControlTotalColumns(query, self.project.selVariableDicts.gq)
+            self.createGivenControlTotalColumns(query, self.project.selVariableDicts.person)
+
+            self.createMarginalsSummaryTable(query)
+
+    def createSummaryTables(self, query, synthesisType):
+        
+        if not query.exec_("""drop table %s_summary """%(synthesisType)):
+            print "FileError:%s" %query.lastError().text()            
+
+        if not query.exec_("""create table %s_summary """
+                           """select state, county, tract, bg, sum(frequency) as %s_syn_sum from %s_synthetic_data """
+                           """group by state, county, tract, bg""" %(synthesisType, synthesisType, synthesisType)):
+            raise FileError, query.lastError().text()
+
+
+    def createHousingMarginalsTable(self, query, housingVars):
+        dummy = ''
+        for i in housingVars:
+            dummy = dummy + i + ','
+        dummy = dummy[:-1]
+
+        if not query.exec_("""drop table housing_marginals"""):
+            print "FileError: %s" %query.lastError().text()            
+
+
+        if not query.exec_("""alter table hhld_marginals add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("""alter table gq_marginals add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+
+        if not query.exec_("""create table housing_marginals select state, county, tract, bg, %s """
+                           """ from hhld_marginals left join gq_marginals using(state, county, tract, bg)"""
+                           %dummy):
+            raise FileError, query.lastError().text()
+
+
+    def createMarginalsTable(self, query, persVars):
+        dummy = ''
+        for i in persVars:
+            dummy = dummy + i + ','
+        dummy = dummy[:-1]
+
+        if not query.exec_("""drop table marginals"""):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""alter table housing_marginals add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("""alter table person_marginals add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+
+        if not query.exec_("""create table marginals select housing_marginals.*, %s """
+                           """ from housing_marginals left join person_marginals using(state, county, tract, bg)"""
+                           %dummy):
+            raise FileError, query.lastError().text()
+
+    def createMarginalsSummaryTable(self, query):
+        if not query.exec_("""alter table marginals add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("""alter table housing_summary add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("""alter table person_summary add index(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("""drop table summary"""):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""drop table comparison"""):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""create table summary select housing_summary.*, person_syn_sum """
+                           """ from housing_summary left join person_summary using(state, county,tract, bg)"""):
+            raise FileError, query.lastError().text()        
+
+        if not query.exec_("""create table comparison select marginals.*, housing_syn_sum, person_syn_sum """
+                           """ from marginals left join summary using(state, county,tract, bg)"""):
+            raise FileError, query.lastError().text()
+
+
+        
+    def variableControlCorrDict(self, vardict):
+        varCorrDict = {}
+        vars = vardict.keys()
+        for i in vars:
+            for j in vardict[i].keys():
+                cat = (('%s' %j).split())[-1]
+                varCorrDict['%s%s' %(i, cat)] = '%s' %vardict[i][j]
+        return varCorrDict
+
+    def createGivenControlTotalColumns(self, query, varDict):
+        for i in varDict.keys():
+            if not query.exec_("""alter table marginals add column %s_act_sum bigint"""
+                               %(i)):
+                print "FileError: %s" %query.lastError().text()
+
+            updateString = ''
+            for j in varDict[i].keys():
+                updateString = updateString + varDict[i][j] + "+"
+            updateString = updateString[:-1]
+                
+            if not query.exec_("""update marginals set %s_act_sum = %s"""
+                               %(i, updateString)):
+                raise FileError, query.lastError().text()
+
+
+            for j in varDict[i].keys():
+                print ("""alter table marginals drop column %s"""
+                                   %(varDict[i][j]))
+                if not query.exec_("""alter table marginals drop %s"""
+                                   %(varDict[i][j])):
+                    raise FileError, query.lastError().text()
+                
 
 
