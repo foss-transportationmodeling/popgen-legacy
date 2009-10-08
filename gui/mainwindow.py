@@ -14,7 +14,7 @@ from qgis.gui import *
 from database.createDBConnection import createDBC
 from file_menu.wizard_window_validate import Wizard
 from file_menu.filemanager import QTreeWidgetCMenu
-from file_menu.open_project import OpenProject, SaveFile
+from file_menu.open_project import OpenProject, SaveFile, ExportSummaryFile
 from file_menu.summary_page import SummaryPage
 from data_menu.data_process_status import DataDialog
 from data_menu.data_connection import DBConnectionDialog
@@ -54,6 +54,12 @@ class MainWindow(QMainWindow):
         else:
             self.job_server = pp.Server(ppservers=ppservers, restart = True)
 
+        #print dir(self.job_server)
+
+        #print 'number of workers', self.job_server.get_ncpus()
+        #self.job_server.set_ncpus(1)
+        #print 'number of workers', self.job_server.get_ncpus()
+
         self.dirty = False
         self.projectName = None
 
@@ -91,7 +97,7 @@ class MainWindow(QMainWindow):
                                                 tip="Close the current PopGen project.")
         applicationQuitAction = self.createAction("&Quit", self.close, "Ctrl+Q",
                                                 icon="quit", tip="Close the application.")
-        
+
         self.projectSaveAction.setEnabled(False)
         self.projectSaveAsAction.setEnabled(False)
         self.projectCloseAction.setEnabled(False)
@@ -277,7 +283,7 @@ class MainWindow(QMainWindow):
         self.addActions(self.resultsMenu, (None, ))
 
         self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Synthetic Population Tables")
-        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction, resultsExportSummaryAction))
+        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction, None, resultsExportSummaryAction))
 
 
 
@@ -520,7 +526,7 @@ class MainWindow(QMainWindow):
         self.fileManager.setEnabled(False)
         self.enableFunctions(False)
         self.project = None
-
+    
 
     def dataSource(self):
         dataConnectionDia = DBConnectionDialog(self.project)
@@ -719,37 +725,18 @@ class MainWindow(QMainWindow):
 
 
     def resultsExportSummary(self):
-        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data', 
+                     'hhld_marginals', 'gq_marginals', 'person_marginals']
         scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
         tableList = self.tableList(scenarioDatabase)
         if self.checkIfTablesExist(reqTables, tableList):
-            fileDlg = SaveFile(self.project, "dat")
+            fileDlg = ExportSummaryFile(self.project, "csv")
         else:
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
                                 QMessageBox.Ok)
 
 
-        projectDBC = createDBC(self.project.db, scenarioDatabase)
-        projectDBC.dbc.open()
-        query = QSqlQuery(projectDBC.dbc)
-
-        if not query.exec_("""create table hhldsum select state, county, tract, bg, sum(frequency) from temphhld"""
-                           """ group by state, county, tract, bg"""):
-            raise FileError, self.query.lastError().text()
-
-        if not query.exec_("""create table gqsum select state, county, tract, bg, sum(frequency) from tempgq"""
-                           """ group by state, county, tract, bg"""):
-            raise FileError, self.query.lastError().text()
-
-        if not query.exec_("""create table personsum select state, county, tract, bg, sum(frequency) from temp"""
-                           """ group by state, county, tract, bg"""):
-            raise FileError, self.query.lastError().text()
-        
-        
-
-
-        projectDBC.dbc.close()
-
+        self.fileManager.populate()
 
 
     def thematicMapsHhld(self):
@@ -936,8 +923,35 @@ class MainWindow(QMainWindow):
             else:
                 target.addAction(action)
     
+    def close(self):
+        QMainWindow.close(self)
+
+class SplashScreen(QDialog):
+    def __init__(self, parent=None):
+        super(SplashScreen, self).__init__(parent)
+
+        self.setMinimumSize(1125, 575)
+    
+        vLayout = QVBoxLayout()
+        imageLabel = QLabel()
+        splashImg = QPixmap("./images/splashscreen.png")
+        imageLabel.setPixmap(splashImg)
+
+        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Ok|QDialogButtonBox.Cancel)
+        dialogButtonBox.setCenterButtons(True)
+
+        vLayout.addWidget(imageLabel)
+        vLayout.addWidget(dialogButtonBox)
+        
+        self.setLayout(vLayout)
+
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+    
+
 def main():
     app = QApplication(sys.argv)
+    """
     pixmap = QPixmap("./images/splashscreen.png")
     splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
     splash.show()
@@ -946,12 +960,19 @@ def main():
     QgsApplication.setPrefixPath(qgis_prefix, True)
     QgsApplication.initQgis()
     app.setApplicationName("Population Generator (PopGen)")
-    form = MainWindow()
-    form.show()
-    
-    splash.finish(form)
+    """
 
-    app.exec_()
+
+    splash = SplashScreen()
+    #splash.show()
+
+
+
+    if splash.exec_():
+        form = MainWindow()
+        form.show()
+        app.exec_()
+    
 
 
 
