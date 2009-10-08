@@ -194,23 +194,29 @@ class RunDialog(QDialog):
         self.readData()
 
         if len(self.runGeoIds) > 0:
+            
+            if self.job_server.get_ncpus() > 1:
+                reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
+                                             """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
 
-            reply = QMessageBox.question(self, "Run Synthesizer", """Would you like to run the synthesizer in parallel """
-                                          """to take advantage of multiple cores on your processor?""", QMessageBox.Yes| QMessageBox.No| QMessageBox.Cancel)
+            else:
+                reply = QMessageBox.No
 
-            scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
-            for i in self.runGeoIds:
-                ti = time.time()
-                if not query.exec_("""delete from %s.housing_synthetic_data where state = %s and county = %s """
-                                   """ and tract = %s and bg = %s  """ 
-                                   %(scenarioDatabase, i[0], i[1], i[3], i[4])):
-                    raise FileError, query.lastError().text()
-
-                if not query.exec_("""delete from %s.person_synthetic_data where state = %s and county = %s """
-                                   """ and tract = %s and bg = %s  """ 
-                                   %(scenarioDatabase, i[0], i[1], i[3], i[4])):
-                    raise FileError, query.lastError().text()
-                a = self.project.synGeoIds.pop(i, -99)
+            if reply <> QMessageBox.Cancel:
+                
+                scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+                for i in self.runGeoIds:
+                    ti = time.time()
+                    if not query.exec_("""delete from %s.housing_synthetic_data where state = %s and county = %s """
+                                       """ and tract = %s and bg = %s  """ 
+                                       %(scenarioDatabase, i[0], i[1], i[3], i[4])):
+                        raise FileError, query.lastError().text()
+                    
+                    if not query.exec_("""delete from %s.person_synthetic_data where state = %s and county = %s """
+                                       """ and tract = %s and bg = %s  """ 
+                                       %(scenarioDatabase, i[0], i[1], i[3], i[4])):
+                        raise FileError, query.lastError().text()
+                    a = self.project.synGeoIds.pop(i, -99)
 
 
             if reply == QMessageBox.Yes:
@@ -308,7 +314,7 @@ class RunDialog(QDialog):
 
         if not geo.puma5:
             if self.project.resolution == 'County':
-                geo.puma5 = 99
+                geo.puma5 = int('99999' + str(geo.county).rjust(3, '0'))
 
             elif self.project.resolution == 'Tract':
                 if not query.exec_("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = 1"""
