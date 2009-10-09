@@ -956,10 +956,7 @@ def main():
     splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
     splash.show()
     splash.showMessage("Starting PopGen 1.0 ...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
-    app.processEvents()
-    QgsApplication.setPrefixPath(qgis_prefix, True)
-    QgsApplication.initQgis()
-    app.setApplicationName("Population Generator (PopGen)")
+
     """
 
 
@@ -969,6 +966,11 @@ def main():
 
 
     if splash.exec_():
+
+        app.processEvents()
+        QgsApplication.setPrefixPath(qgis_prefix, True)
+        QgsApplication.initQgis()
+        app.setApplicationName("Population Generator (PopGen)")
         form = MainWindow()
         form.show()
         app.exec_()
