@@ -123,7 +123,11 @@ class Hhdist(Matplot):
         for i in self.categories:
             catsplit = i.split()
             newkey = int(catsplit[len(catsplit)-1])
-            selsorteddict[newkey] = seldict[self.current][i]
+            if self.project.selVariableDicts.hhldMargsModify:
+                selsorteddict[newkey] = 'mod' + seldict[self.current][i]
+            else:
+                selsorteddict[newkey] = seldict[self.current][i]
+
         self.categories = selsorteddict.keys()
         self.categories.sort()
 
@@ -176,7 +180,7 @@ class Hhdist(Matplot):
                 queryAct = self.executeSelectQuery(self.projectDBC.dbc,variableAct, tableAct, filterAct)
                 if queryAct:
                     while queryAct.next():
-                        value = queryAct.value(0).toInt()[0]
+                        value = queryAct.value(0).toDouble()[0]
                         #print value, sumdiff
                         value = value + sumdiff
                         #print value
