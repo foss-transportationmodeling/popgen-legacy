@@ -70,7 +70,7 @@ class SetCorrDialog(QDialog):
             gqSelVariableDicts = copy.deepcopy(self.project.selVariableDicts.gq)
             self.populate(gqSelVariableDicts, self.tabWidget.gqTab)
 
-        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+        self.connect(dialogButtonBox, SIGNAL("accepted()"), self.acceptCheck)
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
         self.connect(self.persControlYes, SIGNAL("clicked()"), self.persControlYesAction)
         self.connect(self.persControlNo, SIGNAL("clicked()"), self.persControlNoAction)
@@ -79,6 +79,8 @@ class SetCorrDialog(QDialog):
         print 'Yes clicked'
         self.tabWidget.personTab.setEnabled(True)
         self.project.selVariableDicts.persControl = True
+
+
 
 
     def persControlNoAction(self):
@@ -125,29 +127,104 @@ class SetCorrDialog(QDialog):
                 self.tabWidget.personTab.setEnabled(False)
                 self.persControlNo.setChecked(True)
 
+        if self.project.selVariableDicts.hhldMargsModify:
+            self.tabWidget.housingTab.modifyMargsYes.setChecked(True)
+            self.tabWidget.housingTab.hhldsizeVarNameComboBox.setEnabled(True)
+            text = self.project.selVariableDicts.hhldSizeVarName
+            index = self.tabWidget.housingTab.hhldsizeVarNameComboBox.findText(text)
+            if index>0:
+                self.tabWidget.housingTab.hhldsizeVarNameComboBox.setCurrentIndex(index)
+
+            self.tabWidget.housingTab.persRefVarNameComboBox.setEnabled(True)
+            text = self.project.selVariableDicts.refPersName
+            print 'person reference text ---- ', text
+            index = self.tabWidget.housingTab.persRefVarNameComboBox.findText(text)
+            print 'person reference index -----', text
+
+            if index>0:
+                self.tabWidget.housingTab.persRefVarNameComboBox.setCurrentIndex(index)
+        else:
+            self.tabWidget.housingTab.modifyMargsNo.setChecked(True)
 
 
-    def accept(self):
+
+
+    def acceptCheck(self):
+        if self.tabWidget.housingTab.modifyMargsYes.isChecked():
+            self.project.selVariableDicts.hhldMargsModify = True
+            self.project.selVariableDicts.hhldSizeVarName = self.tabWidget.housingTab.hhldsizeVarNameComboBox.currentText()
+            self.project.selVariableDicts.refPersName = self.tabWidget.housingTab.persRefVarNameComboBox.currentText()
+            if self.checkIfRefPersCorrDefined():
+                refPersCheck = True
+            else:
+                refPersCheck = False
+
+        else:
+            self.project.selVariableDicts.hhldMargsModify = False
+            self.project.selVariableDicts.hhldSizeVarName = ""                    
+            self.project.selVariableDicts.refPersName = ""
+            refPersCheck = True
+
+        
+
+
         if self.tabWidget.housingTab.check():
             if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
                 self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
                 self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
+            hhldCheck = True
+            
+
                 #self.clearTables('hhld')
             if self.tabWidget.personAnalyzed:
+                print 'person ANALYZED'
                 if self.tabWidget.personTab.check():
+                    print 'PERSON TAB CHECK SUCCESSFUL'
                     if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
                         self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
                         self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person, True)
+                    persCheck = True
                         #self.clearTables('person')
+                else:
+                    print 'PERSON TAB CHECK UNNNNNNSUCCESSFUL'
+                    persCheck = False
+            else:
+                persCheck = True
+
             if self.tabWidget.gqAnalyzed:
                 if self.tabWidget.gqTab.checkNumRelationsDefined():
                     if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
                         self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
                         self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
                         #self.clearTables('gq')
-            self.projectDBC.dbc.close()
-            QDialog.hide(self)
-            QDialog.accept(self)
+        else:
+            hhldCheck = False
+
+        print 'hhldcheck', hhldCheck, 'personcheck', persCheck
+        
+
+        if refPersCheck and hhldCheck and persCheck:
+            self.acceptAction()
+
+    def checkIfRefPersCorrDefined(self):
+        refPersName = self.tabWidget.housingTab.persRefVarNameComboBox.currentText()
+        
+        row = self.tabWidget.personTab.selSampleVarListWidget.rowOf(refPersName)
+        
+        if row < 0:
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables", 
+                                """Reference person variable selected but the correspondence between the selected variable's categories """
+                                """and the columns in the marginals table not defined in the 'Person Variables' tab.""", QMessageBox.Ok)
+            return False
+        else:
+            return True
+                        
+
+    def acceptAction(self):
+        self.projectDBC.dbc.close()
+        #QDialog.hide(self)
+        QDialog.accept(self)
+        
 
     def clearTables(self, tableNamePrefix):
         #print "variable relations modified - %s" %(tableNamePrefix)
@@ -353,6 +430,46 @@ class TabWidgetItems(QWidget):
 
 
         layout = QVBoxLayout()
+
+
+        if controlType == 'Household':
+            modifyMargsGrpBox = QGroupBox("Do you wish to modify the household size marginal distribution?")
+            self.modifyMargsYes = QRadioButton("Yes")
+            self.modifyMargsNo = QRadioButton("No")
+            self.modifyMargsNo.setChecked(True)
+            
+            self.hhldsizeVarNameLabel = QLabel("Select the household size variable name")
+            self.hhldsizeVarNameComboBox = QComboBox()
+            self.hhldsizeVarNameComboBox.setMaximumSize(250,20)
+            self.hhldsizeVarNameComboBox.setEnabled(False)
+            self.hhldsizeVarNameLabel.setEnabled(False)
+
+            self.persRefVarNameLabel = QLabel("Select the person variable to obtain the person total")
+            self.persRefVarNameComboBox = QComboBox()
+            self.persRefVarNameComboBox.setMaximumSize(250, 20)
+            self.persRefVarNameComboBox.setEnabled(False)
+            self.persRefVarNameLabel.setEnabled(False)
+
+
+            hLayout11 = QHBoxLayout()
+            hLayout11.addWidget(self.modifyMargsYes)
+            hLayout11.addWidget(self.modifyMargsNo)
+
+            vLayout11 = QVBoxLayout()
+            vLayout11.addLayout(hLayout11)
+            vLayout11.addWidget(self.hhldsizeVarNameLabel)
+            vLayout11.addWidget(self.hhldsizeVarNameComboBox)
+            vLayout11.addWidget(self.persRefVarNameLabel)
+            vLayout11.addWidget(self.persRefVarNameComboBox)
+            
+            modifyMargsGrpBox.setLayout(vLayout11)
+
+            layout.addWidget(modifyMargsGrpBox)
+            
+            self.connect(self.modifyMargsYes, SIGNAL("clicked()"), self.modifyMargsYesAction)
+            self.connect(self.modifyMargsNo, SIGNAL("clicked()"), self.modifyMargsNoAction)
+
+
         layout.addLayout(hLayout1)
         layout.addWidget(relationLabel)
         layout.addLayout(hLayout2)
@@ -375,13 +492,38 @@ class TabWidgetItems(QWidget):
         self.populate()
 
 
+    def modifyMargsYesAction(self):
+        self.hhldsizeVarNameComboBox.setEnabled(True)
+        self.persRefVarNameComboBox.setEnabled(True)        
+        self.hhldsizeVarNameLabel.setEnabled(True)
+        self.persRefVarNameLabel.setEnabled(True)
+
+    def modifyMargsNoAction(self):
+        self.hhldsizeVarNameComboBox.setEnabled(False)
+        self.persRefVarNameComboBox.setEnabled(False)
+        self.hhldsizeVarNameLabel.setEnabled(False)
+        self.persRefVarNameLabel.setEnabled(False)
+
 
     def check(self):
+        if self.controlType == 'Household':
+            if self.modifyMargsYes.isChecked():
+                if not self.checkHhldSizeSelected():
+                    return False
+        
+
         check = self.checkSelectedVariables() and self.checkNumRelationsDefined()
 
         return check
 
+    def checkHhldSizeSelected(self):
+        row = self.selSampleVarListWidget.rowOf(self.hhldsizeVarNameComboBox.currentText())
+        print 'hhlddize variable selected and row is ', row
 
+        if row < 0:
+            return False
+        else:
+            return True
 
 
     def checkSelectedVariables(self):
@@ -414,14 +556,25 @@ class TabWidgetItems(QWidget):
         self.selSampleVarListWidget.clear()
         self.selSampleVarCatListWidget.clear()
 
+        self.sampleVars = self.removeVariables(self.sampleVars)
+
+        if self.controlType == 'Household':
+            self.hhldsizeVarNameComboBox.addItems(self.sampleVars)
+            personSampleVars = self.variablesInTable('person_sample')
+            personSampleVars = self.removeVariables(personSampleVars)
+            self.persRefVarNameComboBox.addItems(personSampleVars)
+
+        self.sampleVarListWidget.addItems(self.sampleVars)
+
+    def removeVariables(self, variables):
         vars = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'hhlduniqueid', 'gquniqueid', 'personuniqueid']
 
         for i in vars:
             try:
-                self.sampleVars.remove(i)
+                variables.remove(i)
             except:
-                pass
-        self.sampleVarListWidget.addItems(self.sampleVars)
+                pass     
+        return variables
 
     def populateControlVariables(self, index):
         self.controlSelTable = self.controlTableComboBox.itemText(index)
