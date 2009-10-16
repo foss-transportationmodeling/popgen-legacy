@@ -4,6 +4,7 @@
 # See PopGen/License
 
 import datetime, time, numpy, re, sys
+import copy
 import MySQLdb
 import pp
 import cPickle as pickle
@@ -128,7 +129,7 @@ class RunDialog(QDialog):
         self.outputWindow.append("Population Synthesized at %s:%s:%s on %s" %(ti[3], ti[4], ti[5], date))
 
         if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+            preprocessDataTables = ['sparse_matrix_99999', 'index_matrix_99999', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
             preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
@@ -150,7 +151,16 @@ class RunDialog(QDialog):
 
         
         varCorrDict = {}
-        varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
+
+        hhldDict = copy.deepcopy(self.project.selVariableDicts.hhld)
+        print 'OLD HHLD DICT', hhldDict
+        if self.project.selVariableDicts.hhldMargsModify:
+            for i in hhldDict.keys():
+                for j in hhldDict[i].keys():
+                    hhldDict[i][j] = 'mod' + hhldDict[i][j]
+        print 'NEW HHLD DICT', hhldDict
+                                
+        varCorrDict.update(self.variableControlCorrDict(hhldDict))
         if self.gqAnalyzed:
             varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
@@ -190,7 +200,9 @@ class RunDialog(QDialog):
                                         QMessageBox.Yes| QMessageBox.No)
             if reply == QMessageBox.Yes:
                 self.prepareData()
+        
 
+#    def randomText(self):
         self.readData()
 
         if len(self.runGeoIds) > 0:
@@ -284,10 +296,13 @@ class RunDialog(QDialog):
                                              %(geo.state, geo.county, geo.tract, geo.bg))
 
 
+                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+
+
                     try:
-                        if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                            print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                            demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+
                         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                             print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                             demo_noper.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
@@ -443,6 +458,9 @@ class RunDialog(QDialog):
 
 
     def prepareData(self):
+        if self.project.selVariableDicts.hhldMargsModify:
+            self.modifyMarginals()
+        
         self.removeTables()
         self.project.synGeoIds = {}
         
@@ -461,6 +479,7 @@ class RunDialog(QDialog):
                 prepare_data_nogqs_noper(db, self.project)
                 pass
         except KeyError, e:
+        
             QMessageBox.warning(self, "Run Synthesizer", QString("""Check the <b>hhid, serialno</b> columns in the """
                                                                  """data. If you wish not to synthesize groupquarters, make"""
                                                                  """ sure that you delete all person records corresponding """
@@ -474,7 +493,195 @@ class RunDialog(QDialog):
             self.dialogButtonBox.emit(SIGNAL("accepted()"))
         db.commit()
         db.close()
+                                                         
 
+
+    def addTotalColumn(self, vars, tablename, varname):
+        #refPersName = self.project.selVariableDicts.refPersName
+        #vars = self.project.sleVariableDicts.person['%s' %refPersName].values()
+
+        varString = ''
+        for i in vars:
+            varString = varString + i + '+'
+        varString = varString[:-1]
+
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)
+
+        if not query.exec_("alter table %s add index(state, county, tract, bg)" %tablename):
+            raise FileError, query.lastError().text()
+
+        if not query.exec_("alter table %s add column %s bigint" %(tablename, varname)):
+            print "FileError: %s" %query.lastError().text()
+            
+        if not query.exec_("update %s set %s = %s" %(tablename, varname, varString)):
+            raise FileError, query.lastError().text()        
+
+    def createModHhldTable(self):
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)        
+
+        if not query.exec_("drop table hhld_marginals_modp"):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("drop table hhld_marginals_modpgq"):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""create table hhld_marginals_modp select hhld_marginals.*, persontotal from hhld_marginals"""
+                           """ left join person_marginals using(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+        
+
+        if not query.exec_("""create table hhld_marginals_modpgq select hhld_marginals_modp.*, gqtotal from hhld_marginals_modp"""
+                           """ left join gq_marginals using(state, county, tract, bg)"""):
+            raise FileError, query.lastError().text()
+        
+
+    def createHhldVarProportions(self):
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)
+
+        #calculating the proportions
+
+        for i in self.project.selVariableDicts.hhld.keys():
+            sumString = ''
+            for j in self.project.selVariableDicts.hhld[i].values():
+                sumString = sumString + j + '+'
+            sumString = sumString[:-1]
+
+            for j in self.project.selVariableDicts.hhld[i].values():
+                if not query.exec_("""alter table hhld_marginals_modpgq add column p%s float(27)""" %j):
+                    print "FileError: %s" %query.lastError().text()
+
+                print ("""update hhld_marginals_modpgq set p%s = %s/(%s)""" %(j, j, sumString))
+                if not query.exec_("""update hhld_marginals_modpgq set p%s = %s/(%s)""" %(j, j, sumString)):
+                    raise FileError, query.lastError().text()
+
+    def calcExtraHhldsToSyn(self):
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)
+
+        # Calculating the number of extra households to be synthesizsed
+        # PEQP = Person Equivalent Proportions
+        # PEQ = Person Equivalents
+        # PSUM = Proportions Sum
+        hhldsizeVarName = self.project.selVariableDicts.hhldSizeVarName
+        vars = self.project.selVariableDicts.hhld['%s' %hhldsizeVarName].values()
+        vars.sort()
+
+        hhldsizePEQPString = ''
+        hhldsizePEQString = ''
+        hhldsizePSumString = ''
+        size = 1
+        for i in vars[:-1]:
+            hhldsizePEQPString = hhldsizePEQPString + 'p' + i + '*%s+' %size
+            hhldsizePEQString = hhldsizePEQString + i + '*%s+' %size
+            hhldsizePSumString = hhldsizePSumString + 'p' + i + '+'
+            size = size + 1
+        hhldsizePEQPString = hhldsizePEQPString[:-1]
+        hhldsizePEQString = hhldsizePEQString + vars[-1]+'*%s' %size
+        hhldsizePSumString = hhldsizePSumString[:-1]
+
+        # Creating person equivalents column
+        if not query.exec_("""alter table hhld_marginals_modpgq add column perseq bigint"""):
+            print "FileError: %s" %query.lastError().text()
+
+        print ("""update hhld_marginals_modpgq set perseq = %s + gqtotal""" %(hhldsizePEQString))
+
+        if not query.exec_("""update hhld_marginals_modpgq set perseq = %s + gqtotal""" %(hhldsizePEQString)):
+            raise FileError, query.lastError().text()
+
+        # Creating person total deficiency
+        if not query.exec_("""alter table hhld_marginals_modpgq add column perstotdef bigint"""):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""update hhld_marginals_modpgq set perstotdef = persontotal - perseq"""):
+            raise FileError, query.lastError().text()
+        
+        # Creating the number of deficient household equivalents
+        if not query.exec_("""alter table hhld_marginals_modpgq add column hhldeqdef float(27)"""):
+            print "FileError: %s" %query.lastError().text()
+
+        if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = perstotdef/(%s)""" %hhldsizePEQPString):
+            raise FileError, query.lastError().text()
+
+        print 'PEQ string', hhldsizePEQString            
+        print 'PEQP String', hhldsizePEQPString
+        print 'PSUM String', hhldsizePSumString
+
+
+    def calcModifiedMarginals(self):
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)
+
+        #calculating the proportions
+
+        for i in self.project.selVariableDicts.hhld.keys():
+            sumString = ''
+            for j in self.project.selVariableDicts.hhld[i].values():
+                sumString = sumString + j + '+'
+            sumString = sumString[:-1]
+
+            for j in self.project.selVariableDicts.hhld[i].values():
+                if not query.exec_("""alter table hhld_marginals_modpgq add column mod%s float(27)""" %j):
+                    print "FileError: %s" %query.lastError().text()
+
+                print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef)""" %(j, j, j))
+                if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j)):
+                    raise FileError, query.lastError().text()        
+
+    def modifyMarginals(self):
+        databaseName = self.project.name
+        self.projectDBC.dbc.setDatabaseName(databaseName)
+        self.projectDBC.dbc.open()        
+            
+        query = QSqlQuery(self.projectDBC.dbc)
+
+
+        # Calculating the Person Total
+        refPersName = self.project.selVariableDicts.refPersName
+        vars = self.project.selVariableDicts.person['%s' %refPersName].values()
+
+        self.addTotalColumn(vars, 'person_marginals', 'persontotal')
+
+        # Calculating the groupquarter Total
+        if self.gqAnalyzed:
+            refGQName = self.project.selVariableDicts.gq.keys()[0]
+            vars = self.project.selVariableDicts.gq['%s' %refGQName].values()
+            self.addTotalColumn(vars, 'gq_marginals', 'gqtotal')
+        
+        # Calculating the household total
+        refHhldName = self.project.selVariableDicts.hhldSizeVarName
+        vars = self.project.selVariableDicts.hhld['%s' %refHhldName].values()
+
+        self.addTotalColumn(vars, 'hhld_marginals', 'hhldtotal')
+
+        
+        # Create the new modified hhld marginals table
+        self.createModHhldTable()
+        
+        # Create hhld variable proportions
+        self.createHhldVarProportions()
+        
+        # Create the number of deficient households
+        self.calcExtraHhldsToSyn()
+
+        self.calcModifiedMarginals()
 
     def removeTables(self):
         databaseName = self.project.name + 'scenario' + str(self.project.scenario)
@@ -528,10 +735,18 @@ class RunDialog(QDialog):
                              db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
         dbc = db.cursor()
 
-        dbc.execute("""select * from index_matrix_%s""" %(0))
+        #dbc.execute("""select * from index_matrix_%s""" %(0))
+        #indexMatrix = numpy.asarray(dbc.fetchall())
+
+        #f = open('indexMatrix_0.pkl', 'wb')
+        #pickle.dump(indexMatrix, f)
+        #f.close()
+
+
+        dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = numpy.asarray(dbc.fetchall())
 
-        f = open('indexMatrix.pkl', 'wb')
+        f = open('indexMatrix_99999.pkl', 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
 
@@ -539,6 +754,11 @@ class RunDialog(QDialog):
         f = open('pIndexMatrix.pkl', 'wb')
         pickle.dump(pIndexMatrix, f)
         f.close()
+
+
+
+
+
 
         dbc.close()
         db.close()
