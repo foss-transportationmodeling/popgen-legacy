@@ -45,11 +45,16 @@ class DBInfo(object):
 
 class SelectedVariableDicts(object):
     def __init__(self, hhldVariables=defaultdict(dict), gqVariables=defaultdict(dict), personVariables=defaultdict(dict),
-                 persControl=True):
+                 persControl=True, hhldMargsModify=False, hhldSizeVarName="", refPersName=""):
         self.hhld = hhldVariables
         self.gq = gqVariables
         self.person = personVariables
         self.persControl = persControl
+        self.hhldMargsModify = hhldMargsModify
+        self.hhldSizeVarName = hhldSizeVarName
+        self.refPersName = refPersName
+
+
 
 class AdjControlsDicts(object):
     def __init__(self, hhldAdj=defaultdict(dict), gqAdj=defaultdict(dict), personAdj=defaultdict(dict)):
