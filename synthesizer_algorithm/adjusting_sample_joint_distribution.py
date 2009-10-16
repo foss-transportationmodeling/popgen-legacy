@@ -254,7 +254,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
                 result = arr(dbc.fetchall(), float)
                 #check_marginal_sum = result[0][0] + check_marginal_sum
 
-                if result[0][0] <> 0:
+                if result[0][0] > 0:
                     variable_marginals1.append(result[0][0])
                 else:
                     variable_marginals1.append(0.1)
