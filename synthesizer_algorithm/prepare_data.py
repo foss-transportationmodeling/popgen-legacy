@@ -7,6 +7,7 @@ import MySQLdb
 import numpy
 import adjusting_sample_joint_distribution
 import drawing_households
+import psuedo_sparse_matrix_new 
 import psuedo_sparse_matrix
 import time
 
@@ -44,8 +45,13 @@ def prepare_data(db, project):
                 %(scenarioDatabase, projectDatabase))
     dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
 
-    dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
-                %(scenarioDatabase, projectDatabase))
+
+    if project.selVariableDicts.hhldMargsModify:
+        dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals_modpgq'
+                    %(scenarioDatabase, projectDatabase))
+    else:
+        dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
+                    %(scenarioDatabase, projectDatabase))
 
     dbc.execute('create table %s.gq_marginals select * from %s.gq_marginals'
                 %(scenarioDatabase, projectDatabase))
@@ -97,10 +103,12 @@ def prepare_data(db, project):
 
     print 'Uniqueid\'s in %.4fs' %(time.clock()-ti)
     ti = time.clock()
-
+    """
 # Populating the Master Matrix
-    populated_matrix = psuedo_sparse_matrix.populate_master_matrix(db, 0, hhld_units, gq_units, hhld_dimensions,
-                                                                                               gq_dimensions, person_dimensions)
+    populated_matrix = psuedo_sparse_matrix_new.populate_master_matrix(db, 0, 
+                                                                   hhld_units, gq_units, 
+                                                                   hhld_control_variables, gq_control_variables, person_control_variables,
+                                                                   hhld_dimensions, gq_dimensions, person_dimensions)
     print 'Populated in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 
@@ -111,6 +119,25 @@ def prepare_data(db, project):
 #______________________________________________________________________
 #Creating Index Matrix
     index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 0)
+    print 'Index Matrix in %.4fs' %(time.clock()-ti)
+    ti = time.clock()
+    dbc.close()
+    """
+    
+# Populating the Master Matrix for Household Types
+    populated_matrix = psuedo_sparse_matrix.populate_master_matrix(db, 99999, 
+                                                                   hhld_units, gq_units, 
+                                                                   hhld_dimensions, gq_dimensions, person_dimensions)
+    print 'Populated in %.4fs' %(time.clock()-ti)
+    ti = time.clock()
+
+# Sparse representation of the Master Matrix for Household Types
+    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 99999)
+    print 'Psuedo Sparse Matrix in %.4fs' %(time.clock()-ti)
+    ti = time.clock()
+#______________________________________________________________________
+#Creating Index Matrix of the Master Matrix for Household Types
+    index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 99999)
     print 'Index Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
     dbc.close()
@@ -131,7 +158,7 @@ def prepare_data(db, project):
 # Total PUMS Sample x composite_type adjustment for person
     adjusting_sample_joint_distribution.create_joint_dist(db, 'person', person_control_variables, person_dimensions, 0, 0, 0)
 
-
+    
 if __name__ == '__main__':
 
 
