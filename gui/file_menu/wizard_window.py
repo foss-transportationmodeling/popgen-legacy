@@ -82,7 +82,7 @@ class LineEdit(QLineEdit):
             check_dummy = False
 
         if not check_dummy:
-            QMessageBox.information(self, "Warning", "Please enter a valid entry.", QMessageBox.Ok)
+            QMessageBox.information(self, "Warning", "Enter a valid entry.", QMessageBox.Ok)
             self.selectAll()
             self.setFocus()
 
