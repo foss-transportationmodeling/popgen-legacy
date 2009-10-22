@@ -20,7 +20,7 @@ class SampleDataPage(QWizardPage):
         self.setTitle("Step 3: Population Sample")
 
         self.sampleGroupBox = QGroupBox("""a. Will you provide sample data?""")
-        sampleWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, please select the US Census data source """
+        sampleWarning = QLabel("""<font color = blue>Note: If <b>No</b> is chosen, select the US Census data source """
                                """ to use for population synthesis. Note that . </font>""")
         self.sampleUserProvRadio = QRadioButton("Yes")
         self.sampleAutoRadio = QRadioButton("No")
