@@ -35,9 +35,17 @@ class ResolutionPage(QWizardPage):
         self.geocorrAutoRadio = QRadioButton("No")
         self.geocorrAutoRadio.setChecked(True)
         geocorrWarning = QLabel("<font color = blue> Note: If <b>No</b> is chosen, MABLE/Geocorr2K: Geographic Correspondence Engine will be used.</font>")
+        
+        geocorrDefLabel = QLabel("""Geographic correspondence file provides a correspondence between """
+                                 """the ID of the geography and the Public Use Microdata Area (PUMA) ID"""
+                                 """to which the geography belongs. See Data Structures on the Help menu"""
+                                 """ option for additional information about the layout of this file.""")
+
         geocorrHLayout = QHBoxLayout()
         geocorrHLayout.addWidget(self.geocorrUserProvRadio)
         geocorrHLayout.addWidget(self.geocorrAutoRadio)
+
+
         self.geocorrGroupBox.setLayout(geocorrHLayout)
 
         geocorrLocationLabel = QLabel("Select the Geographic Correspondence file")
