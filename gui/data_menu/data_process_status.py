@@ -41,7 +41,7 @@ class DataDialog(QDialog):
         self.ControlPersonLayout = CheckLabel("e. Processing person marginals data", "incomplete")
         
 
-        importWarning = QLabel("""<font color = blue>Note: Please click on <b>Start</b> to begin importing data."""
+        importWarning = QLabel("""<font color = blue>Note: Click on <b>Start</b> to begin importing data."""
                                """</font>""")
 
         #self.detailsTextEdit = QTextEdit()
