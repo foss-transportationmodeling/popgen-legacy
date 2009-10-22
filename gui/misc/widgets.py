@@ -956,164 +956,169 @@ class DeleteRows(QDialog):
 
 class DisplayMapsDlg(QDialog):
     def __init__(self, project, tablename, title="", icon="", parent=None):
-        super(DisplayMapsDlg, self).__init__(parent)
 
-        self.setMinimumSize(QSize(950, 500))
 
-        self.setWindowTitle(title + " - %s" %tablename)
-        self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
         self.fromTableToTable()
-        check = self.isValid()
+        self.check = self.isValid()
         
-        if check:
-            self.emit(SIGNAL("rejected()"))
+
+
+        if self.check < 0:
+            super(DisplayMapsDlg, self).__init__(parent)
+            self.setMinimumSize(QSize(950, 500))
             
-        scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
-        self.projectDBC = createDBC(self.project.db, scenarioDatabase)
-        self.projectDBC.dbc.open()
-        self.query = QSqlQuery(self.projectDBC.dbc)
-        self.variableDict = {}
-        self.variableTypeDict = self.populateVariableTypeDictionary(self.tablename)
-        self.variables = self.variableTypeDict.keys()
-
-        variableListLabel = QLabel("Variables in Table")
-        self.variableListWidget = ListWidget()
-        variableCatsListLabel = QLabel("Categories")
-        self.variableCatsListWidget = ListWidget()
-        self.variableListWidget.setMaximumWidth(200)
-        self.variableCatsListWidget.setMaximumWidth(100)
-
-        self.legendTable = QTableWidget()
-        self.legendTable.setColumnCount(3)
-        self.legendTable.setRowCount(6)
+            self.setWindowTitle(title)
+            self.setWindowIcon(QIcon("./images/%s.png" %icon))
 
 
-        for i in range(6):
-            item = QTableWidgetItem(1000)
-            item.setBackgroundColor(QColor(150, 50 * i, 50 * i))
-            self.legendTable.setItem(i,2,item)
 
-        self.legendTable.setMaximumWidth(335)
-        self.legendTable.setMaximumHeight(255)
+            scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
+            self.projectDBC = createDBC(self.project.db, scenarioDatabase)
+            self.projectDBC.dbc.open()
+
+            self.query = QSqlQuery(self.projectDBC.dbc)
+            self.variableDict = {}
+            self.variableTypeDict = self.populateVariableTypeDictionary(self.tablename)
+            self.variables = self.variableTypeDict.keys()
+            
+            variableListLabel = QLabel("Variables in Table")
+            self.variableListWidget = ListWidget()
+            variableCatsListLabel = QLabel("Categories")
+            self.variableCatsListWidget = ListWidget()
+            self.variableListWidget.setMaximumWidth(200)
+            self.variableCatsListWidget.setMaximumWidth(100)
         
-        legendString = QLabel("Legend")
-        self.legendTable.setHorizontalHeaderLabels(['Lower Limit', 'Upper Limit', 'Color'])
+            self.legendTable = QTableWidget()
+            self.legendTable.setColumnCount(3)
+            self.legendTable.setRowCount(5)
+
+            
+            for i in range(6):
+                item = QTableWidgetItem(1000)
+                item.setBackgroundColor(QColor(255, 255- (50 * i), 255 - (50 * i)))
+                if i > 0:
+                    self.legendTable.setItem(i-1,2,item)
+
+            self.legendTable.setMaximumWidth(335)
+            self.legendTable.setMaximumHeight(255)
+        
+            legendString = QLabel("Legend")
+            self.legendTable.setHorizontalHeaderLabels(['Lower Limit', 'Upper Limit', 'Color'])
         
 
         # Displaying the thematic map
-        self.canvas = QgsMapCanvas()
-        self.canvas.setCanvasColor(QColor(255,255,255))
-        self.canvas.enableAntiAliasing(True)
-        self.canvas.useQImageToRender(False)
+            self.canvas = QgsMapCanvas()
+            self.canvas.setCanvasColor(QColor(255,255,255))
+            self.canvas.enableAntiAliasing(True)
+            self.canvas.useQImageToRender(False)
 
-        if self.project.resolution == "County":
-            self.res_prefix = "co"
-        if self.project.resolution == "Tract":
-            self.res_prefix = "tr"
-        if self.project.resolution == "Blockgroup":
-            self.res_prefix = "bg"
+            if self.project.resolution == "County":
+                self.res_prefix = "co"
+            if self.project.resolution == "Tract":
+                self.res_prefix = "tr"
+            if self.project.resolution == "Blockgroup":
+                self.res_prefix = "bg"
 
-        self.stateCode = self.project.stateCode[self.project.state]
-        resultfilename = self.res_prefix+self.stateCode+"_selected"
-        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+            self.stateCode = self.project.stateCode[self.project.state]
+            resultfilename = self.res_prefix+self.stateCode+"_selected"
+            self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
         
-        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
-        self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+            self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+            self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
 
-        layerName = self.project.name + '-' + self.project.resolution
-        layerProvider = "ogr"
-        self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
+            layerName = self.project.name + '-' + self.project.resolution
+            layerProvider = "ogr"
+            self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
 
-        renderer = self.layer.renderer()
-        renderer.setSelectionColor(QColor(255,255,0))
+            renderer = self.layer.renderer()
+            renderer.setSelectionColor(QColor(255,255,0))
 
-        symbol = renderer.symbols()[0]
-        symbol.setFillColor(QColor(153,204,0))
+            symbol = renderer.symbols()[0]
+            symbol.setFillColor(QColor(153,204,0))
 
-        if not self.layer.isValid():
-            return
-        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
-        self.canvas.setExtent(self.layer.extent())
-        cl = QgsMapCanvasLayer(self.layer)
-        layers = [cl]
+            if not self.layer.isValid():
+                return
+            QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+            self.canvas.setExtent(self.layer.extent())
+            cl = QgsMapCanvasLayer(self.layer)
+            layers = [cl]
         #self.canvas.setLayerSet(layers)
 
-        self.toolbar = Toolbar(self.canvas, self.layer)
-        self.toolbar.hideDragTool()
-        self.toolbar.hideSelectTool()
+            self.toolbar = Toolbar(self.canvas, self.layer)
+            self.toolbar.hideDragTool()
+            self.toolbar.hideSelectTool()
         
 
-        mapLabel = QLabel("Thematic Map")
+            mapLabel = QLabel("Thematic Map")
 
         
 
 
-
-        createVarWarning = QLabel("""<font color = blue>Note: Enter a mathematical filter expression in the """
-                                  """<b>Filter Expression</b> text edit box to delete rows. """
-                                  """The dialog also allows users to check the """
-                                  """categories under any variable by selecting the variable in the """
-                                  """<b>Variables in Table</b> list box.</font>""")
-
-        createVarWarning.setWordWrap(True)
-        vLayout2 = QVBoxLayout()
-
-        hLayout1 = QHBoxLayout()
-        vLayout3 = QVBoxLayout()
-        vLayout3.addWidget(variableListLabel)
-        vLayout3.addWidget(self.variableListWidget)
-        vLayout4 = QVBoxLayout()
-        vLayout4.addWidget(variableCatsListLabel)
-        vLayout4.addWidget(self.variableCatsListWidget)
-        hLayout1.addLayout(vLayout3)
-        hLayout1.addLayout(vLayout4)
-        vLayout2.addLayout(hLayout1)
-
-        vLayout5 = QVBoxLayout()
-        vLayout5.addWidget(legendString)
-        vLayout5.addWidget(self.legendTable)
+            
+            createVarWarning = QLabel("""<font color = blue>Note: Select a variable and category to view"""
+                                      """ a thematic map displaying the proportion of the synthetic population"""
+                                      """ belonging to a particular category of the selected variable """
+                                      """ within each geography"""
+                                      """</font>""")
+            
+            createVarWarning.setWordWrap(True)
+            vLayout2 = QVBoxLayout()
+            
+            hLayout1 = QHBoxLayout()
+            vLayout3 = QVBoxLayout()
+            vLayout3.addWidget(variableListLabel)
+            vLayout3.addWidget(self.variableListWidget)
+            vLayout4 = QVBoxLayout()
+            vLayout4.addWidget(variableCatsListLabel)
+            vLayout4.addWidget(self.variableCatsListWidget)
+            hLayout1.addLayout(vLayout3)
+            hLayout1.addLayout(vLayout4)
+            vLayout2.addLayout(hLayout1)
+            
+            vLayout5 = QVBoxLayout()
+            vLayout5.addWidget(legendString)
+            vLayout5.addWidget(self.legendTable)
+            
+            hLayout5 = QHBoxLayout()
+            hLayout5.addLayout(vLayout5)
         
-        hLayout5 = QHBoxLayout()
-        hLayout5.addLayout(vLayout5)
-
-        vLayout2.addLayout(hLayout5)
-
-        vLayout1 = QVBoxLayout()
-        vLayout1.addWidget(mapLabel)
-        vLayout1.addWidget(self.toolbar)
-        vLayout1.addWidget(self.canvas)
+            vLayout2.addLayout(hLayout5)
+            
+            vLayout1 = QVBoxLayout()
+            vLayout1.addWidget(mapLabel)
+            vLayout1.addWidget(self.toolbar)
+            vLayout1.addWidget(self.canvas)
 
 
-        hLayout = QHBoxLayout()
-        hLayout.addLayout(vLayout2)
-        hLayout.addLayout(vLayout1)
+            hLayout = QHBoxLayout()
+            hLayout.addLayout(vLayout2)
+            hLayout.addLayout(vLayout1)
 
-        dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
-
-        layout = QVBoxLayout()
-        layout.addLayout(hLayout)
-        layout.addWidget(createVarWarning)
-        layout.addWidget(dialogButtonBox)
-
-        self.setLayout(layout)
-        self.populate()
-
-        self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
-        self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
-        self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
-        self.connect(self.variableCatsListWidget, SIGNAL("itemSelectionChanged()"), self.displayMap)
-        self.connect(self, SIGNAL("updateLimits()"), self.updateCatLimits)
+            dialogButtonBox = QDialogButtonBox(QDialogButtonBox.Cancel| QDialogButtonBox.Ok)
+            
+            layout = QVBoxLayout()
+            layout.addLayout(hLayout)
+            layout.addWidget(createVarWarning)
+            layout.addWidget(dialogButtonBox)
+        
+            self.setLayout(layout)
+            self.populate()
+        
+            self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
+            self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
+            self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
+            self.connect(self.variableCatsListWidget, SIGNAL("itemSelectionChanged()"), self.displayMap)
+            self.connect(self, SIGNAL("updateLimits()"), self.updateCatLimits)
 
 
     def updateCatLimits(self):
-        print 'UPDATING LIMITS'
         for i in range(5):
             itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
             itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
-            self.legendTable.setItem(i+1, 0, itemMin)
-            self.legendTable.setItem(i+1, 1, itemMax)
+            self.legendTable.setItem(i, 0, itemMin)
+            self.legendTable.setItem(i, 1, itemMax)
             
 
 
@@ -1211,6 +1216,7 @@ class DisplayMapsDlg(QDialog):
         cat = int(self.variableCatsListWidget.currentItem().text())
 
         numDistDict = self.distDictList[cat-1]
+        
         totalDistDict = {}
         distDict = {}
 
@@ -1220,12 +1226,13 @@ class DisplayMapsDlg(QDialog):
         for i in numDistDict.keys():
             total = 0
             for j in varCats:
-                total = total + self.distDictList[int(j)-1][i]
+                try:
+                    total = total + self.distDictList[int(j)-1][i]
+                except:
+                    total = total + 0
             totalDistDict[i] = total
             distDict[i] = float(numDistDict[i])/total
 
-        print distDict
-        
         self.minProp = min(distDict.values())
         self.maxProp = max(distDict.values())
         
@@ -1238,8 +1245,6 @@ class DisplayMapsDlg(QDialog):
             else:
                 distDict[i] = ceil((distDict[i]-self.minProp)/self.intervalLength)
 
-        print distDict
-        
         # proportions calculated, categories calculated
         # TO DO - append to the shapefile? show the colors?
                 
@@ -1310,9 +1315,9 @@ class DisplayMapsDlg(QDialog):
         minval = '0'
         maxval = '5'
         minsymbol = QgsSymbol(self.layer.vectorType(), minval, "","")
-        minsymbol.setBrush(QBrush(QColor(150,0,0)))
+        minsymbol.setBrush(QBrush(QColor(255,255,255)))
         maxsymbol = QgsSymbol(self.layer.vectorType(), maxval, "","")
-        maxsymbol.setBrush(QBrush(QColor(150,250,200)))
+        maxsymbol.setBrush(QBrush(QColor(255,5,5)))
         #maxsymbol.setBrush(QBrush(QColor(0,0,0)))
         r.setMinimumSymbol(minsymbol)
         r.setMaximumSymbol(maxsymbol)
@@ -1328,11 +1333,6 @@ class DisplayMapsDlg(QDialog):
 
         self.canvas.refresh()
 
-        for i in r.symbols():
-            print i.color()
-
-        print r.symbols()
-        print dir(r.symbols())
         self.emit(SIGNAL("updateLimits()"))
         
 
@@ -1410,8 +1410,8 @@ class ChangeMargsDlg(DisplayMapsDlg):
 
         self.setMinimumSize(QSize(1100, 700))
 
-        self.setWindowTitle("Modify Control Variable Distributions")
-        self.setWindowIcon(QIcon("./images/marginals.png"))
+        self.setWindowTitle(title)
+        self.setWindowIcon(QIcon("./images/%s.png"%icon))
 
         self.tabletype = tabletype
         self.tablename = "%s_sample" %tabletype
@@ -1461,7 +1461,21 @@ class ChangeMargsDlg(DisplayMapsDlg):
         self.listWidget = ListWidget()
         #addScenarioButton = QPushButton("Add Scenario")
         #delScenarioButton = QPushButton("Delete Scenario")
+
+        changeMargsLabel = QLabel("""<font color = blue>Select a geography ID from the <b>Geography ID</b> drop down menu"""
+                                  """ and select a household variable from the <b>Variables in Table</b> list box"""
+                                  """ to modify the marginals distribution for the variable. """
+                                  """ Marginals can be modified by using the slider or the spin box. Note that"""
+                                  """ the modified marginals total and the actual total should remain the same."""
+                                  """ After modifying the marginals, click on <b>Add to Scenario</b> to use the """
+                                  """ modified marginals for the selected geography. Note that if you modify """
+                                  """ household marginals here and also choose to adjust/modify the household control variable distributions """
+                                  """ in the Set Correspondence Variables option, the modified marginals from the later option """
+                                  """ will be used. However for groupquarter and person control variable distributions the modified marginals"""
+                                  """ from this option are used.</font> """)
+        changeMargsLabel.setWordWrap(True)
         
+
         addToScenarioButton = QPushButton("Add to Scenario")
         delFromScenarioButton = QPushButton("Delete from Scenario")
         
@@ -1504,6 +1518,7 @@ class ChangeMargsDlg(DisplayMapsDlg):
         layout.addLayout(hLayout)
         layout.addLayout(hLayout2)
         layout.addWidget(self.listWidget)
+        layout.addWidget(changeMargsLabel)
         layout.addWidget(dialogButtonBox)
 
         self.sliders = []
@@ -1555,92 +1570,25 @@ class ChangeMargsDlg(DisplayMapsDlg):
                 else:
                     self.adjDict[selGeography][selVar] = [self.controlDistribution, self.controlDistributionAdj]
                     self.listWidget.addItem(adjText)
-        else:
-            QMessageBox.warning(self, "Modify Control Variable Distributions", 
-                                """The adjusted control variable distribution total must be equal to """
-                                """the actual control variable distribution total.""",
-                                QMessageBox.Ok)                                    
 
     def delFromScenario(self):
-        removeText = self.listWidget.currentItem().text()
-        row = self.listWidget.rowOf(removeText)
-        self.listWidget.takeItem(row)
-        splitRemoveText = re.split("[;\-\>]", removeText)
-        selGeography = ('%s' %splitRemoveText[0])
-        selVar = ('%s' %splitRemoveText[1])
-
-        del(self.adjDict[selGeography][selVar])
-
-
-    def addToScenario1(self):
-        if self.checkTotals():
-            if self.controlDistribution == self.controlDistributionAdj:
-                QMessageBox.information(self, "Modify Control Variable Distributions", 
-                                        """No changes made to the control Variable Distributions for the selected"""
-                                        """ geography.""", QMessageBox.Ok)
-            else:
-
-                selGeography = '%s' %self.geographyComboBox.currentText()
-                selVar = '%s' %self.variableListWidget.currentItem().text()
-                tabIndex = self.scenarioTabWidget.currentIndex()
-                tabText = '%s' %self.scenarioTabWidget.tabText(tabIndex)
-                adjText = "%s;%s-%s-->%s" %(selGeography, selVar, self.controlDistribution, self.controlDistributionAdj) 
-
-                adjKeyText = '%s' %(selVar)
-
-                if selGeography in self.adjDict[adjKeyText].keys():
-                    reply = QMessageBox.question(self, "Modify Control Variable Distributions",
-                                                 """Adjustment for the Control Variable Distributions already exists"""
-                                                 """ for geography - %s. Do you wish to replace?""" %(selGeography),
-                                                 QMessageBox.Yes|QMessageBox.No)
-                    if reply == QMessageBox.Yes:
-                        adjToRemove = self.adjDict[adjKeyText][selGeography]
-                        textToRemove = "%s;%s-%s-->%s" %(selGeography, selVar, adjToRemove[0], adjToRemove[1])
-                        print textToRemove, 'tabIndex', tabIndex
-
-                        row = self.scenarioTabWidget.widget(tabIndex).rowOf(textToRemove)
-
-                        print 'row', row
-                        self.scenarioTabWidget.widget(tabIndex).takeItem(row)
-                        self.adjDict[adjKeyText][selGeography] = [self.controlDistribution, self.controlDistributionAdj]
-                        self.scenarioTabWidget.widget(tabIndex).addItem(adjText)
-                        
-                else:
-                    self.adjDict[adjKeyText][selGeography] = [self.controlDistribution, self.controlDistributionAdj]
-                    self.scenarioTabWidget.widget(tabIndex).addItem(adjText)                
-
-
-        else:
-            QMessageBox.warning(self, "Modify Control Variable Distributions", 
-                                """The adjusted control variable distribution total must be equal to """
-                                """the actual control variable distribution total.""",
-                                QMessageBox.Ok)                        
-
-    def delFromScenario1(self):
-        tabIndex = self.scenarioTabWidget.currentIndex()
-        tabText = '%s' %self.scenarioTabWidget.tabText(tabIndex)
-
-        removeText = self.scenarioTabWidget.widget(tabIndex).currentItem().text()
-        
-        row = self.scenarioTabWidget.widget(tabIndex).rowOf(removeText)
-        self.scenarioTabWidget.widget(tabIndex).takeItem(row)
-
-        splitRemoveText = re.split("[;\-\>]", removeText)
-
-        selGeography = ('%s' %splitRemoveText[0])
-        selVar = ('%s' %splitRemoveText[1])
-
-        adjKeyText = "%s;%s" %(tabText, selVar)
-
-        controlDistribution = ('%s' %splitRemoveText[2])
-        controlDistributionAdj = ('%s' %splitRemoveText[-1])
-        del(self.adjDict[adjKeyText][selGeography])
-
+        try:
+            removeText = self.listWidget.currentItem().text()
+            row = self.listWidget.rowOf(removeText)
+            self.listWidget.takeItem(row)
+            splitRemoveText = re.split("[;\-\>]", removeText)
+            selGeography = ('%s' %splitRemoveText[0])
+            selVar = ('%s' %splitRemoveText[1])
+            del(self.adjDict[selGeography][selVar])
+        except Exception, e:
+            QMessageBox.warning(self, "Modify Control Variable Distributions",
+                                """No changes selected. Select a change to the marginal distribution and then press Delete from Scenario""", QMessageBox.Ok)
 
 
     def accept(self):
         self.projectDBC.dbc.close()
         QDialog.accept(self)
+        print 'adjusted dictionary', self.adjDict
         if self.tabletype == 'hhld':
             self.project.adjControlsDicts.hhld = self.adjDict
         elif self.tabletype == 'gq':
@@ -1657,49 +1605,67 @@ class ChangeMargsDlg(DisplayMapsDlg):
 
 
     def checkTotals(self):
-        return self.totalControl == self.totalAdj
+        if len(self.variableListWidget.selectedItems())>0:
+            if self.totalControl == self.totalAdj:
+                return True
+            else:
+                QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                    """The adjusted control variable distribution total must be equal to """
+                                    """the actual control variable distribution total.""",
+                                    QMessageBox.Ok)                        
+                return False
+
+        else:
+            QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                """Select a variable, modify the control variable distribution and then press """
+                                """Add to Scenario.""",
+                                QMessageBox.Ok)                        
+            return False
 
 
     def unhideSliders(self):
 
-        self.varname = self.variableListWidget.selectedItems()[0].text()
-        self.selVarCategories = self.categories(self.varname)
+        if len(self.variableListWidget.selectedItems()) > 0:
 
-        self.controlDistribution = self.retrieveControlDistribution()
-        self.totalControl = sum(self.controlDistribution)
-
-        # Trying to get the layout for the sliders
-        self.numCategories = len(self.selVarCategories)
-        
-        if self.numCategories > 10:
-            QMessageBox.warning(self, "Modify Control Variable Distributions", 
-                                """Only control variable distributions of variables with 10 or fewer """
-                                """categories can be modified. Please select another variable.""",
-                                QMessageBox.Ok)
-            self.variableListWidget.clearSelection()
-            self.variableListWidget.clearFocus()
-
-            self.variableListWidget.setItemSelected(self.variableListWidget.item(0), True)
-            return
-
-        for j in range(self.numCategories):
-            self.sliders[j].sliderGiven.slider.setRange(0, self.totalControl)
-            self.sliders[j].sliderGiven.valueBox.setRange(0, self.totalControl)
-
-            self.sliders[j].sliderAdj.slider.setRange(0, self.totalControl)
-            self.sliders[j].sliderAdj.valueBox.setRange(0, self.totalControl)
-
-            self.sliders[j].sliderGiven.slider.setValue(self.controlDistribution[j])
-            self.sliders[j].sliderGiven.valueBox.setValue(self.controlDistribution[j])
-
-            self.sliders[j].sliderAdj.slider.setValue(self.controlDistribution[j])
-            self.sliders[j].sliderAdj.valueBox.setValue(self.controlDistribution[j])
+            self.varname = self.variableListWidget.selectedItems()[0].text()
+            self.selVarCategories = self.categories(self.varname)
             
-            self.sliders[j].setHidden(False)
-            self.sliders[j].labelWidget.setText('Category - %s' %self.selVarCategories[j])
+            self.controlDistribution = self.retrieveControlDistribution()
+            self.controlDistributionAdj = self.controlDistribution
+            self.totalControl = sum(self.controlDistribution)
+            
+        # Trying to get the layout for the sliders
+            self.numCategories = len(self.selVarCategories)
+            
+            if self.numCategories > 10:
+                QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                                    """Only control variable distributions of variables with 10 or fewer """
+                                    """categories can be modified. Select another variable.""",
+                                    QMessageBox.Ok)
+                self.variableListWidget.clearSelection()
+                self.variableListWidget.clearFocus()
+                
+                self.variableListWidget.setItemSelected(self.variableListWidget.item(0), True)
+                return
 
-        for j in range(10 - self.numCategories):
-            self.sliders[j+self.numCategories].setHidden(True)
+            for j in range(self.numCategories):
+                self.sliders[j].sliderGiven.slider.setRange(0, self.totalControl)
+                self.sliders[j].sliderGiven.valueBox.setRange(0, self.totalControl)
+                
+                self.sliders[j].sliderAdj.slider.setRange(0, self.totalControl)
+                self.sliders[j].sliderAdj.valueBox.setRange(0, self.totalControl)
+                
+                self.sliders[j].sliderGiven.slider.setValue(self.controlDistribution[j])
+                self.sliders[j].sliderGiven.valueBox.setValue(self.controlDistribution[j])
+                
+                self.sliders[j].sliderAdj.slider.setValue(self.controlDistribution[j])
+                self.sliders[j].sliderAdj.valueBox.setValue(self.controlDistribution[j])
+                
+                self.sliders[j].setHidden(False)
+                self.sliders[j].labelWidget.setText('Category - %s' %self.selVarCategories[j])
+                
+            for j in range(10 - self.numCategories):
+                self.sliders[j+self.numCategories].setHidden(True)
         
 
     def updateTotals(self):
