@@ -132,13 +132,13 @@ class RunDialog(QDialog):
             preprocessDataTables = ['sparse_matrix_99999', 'index_matrix_99999', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist', 'person_0_joint_dist']
         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+            preprocessDataTables = ['sparse_matrix_99999', 'index_matrix_99999', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'gq_0_joint_dist']
         if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
-            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+            preprocessDataTables = ['sparse_matrix_99999', 'index_matrix_99999', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist', 'person_0_joint_dist']            
         if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-            preprocessDataTables = ['sparse_matrix_0', 'index_matrix_0', 'housing_synthetic_data', 'person_synthetic_data',
+            preprocessDataTables = ['sparse_matrix_99999', 'index_matrix_99999', 'housing_synthetic_data', 'person_synthetic_data',
                                     'performance_statistics', 'hhld_0_joint_dist']            
 
         databaseName = self.project.name + 'scenario' + str(self.project.scenario)
@@ -153,25 +153,18 @@ class RunDialog(QDialog):
         varCorrDict = {}
 
         hhldDict = copy.deepcopy(self.project.selVariableDicts.hhld)
-        print 'OLD HHLD DICT', hhldDict
+
         if self.project.selVariableDicts.hhldMargsModify:
             for i in hhldDict.keys():
                 for j in hhldDict[i].keys():
                     hhldDict[i][j] = 'mod' + hhldDict[i][j]
-        print 'NEW HHLD DICT', hhldDict
+
                                 
         varCorrDict.update(self.variableControlCorrDict(hhldDict))
         if self.gqAnalyzed:
             varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
         varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.person))
 
-
-        controlAdjDict = {}
-        controlAdjDict.update(self.project.adjControlsDicts.hhld)
-        if self.gqAnalyzed:
-            controlAdjDict.update(self.project.adjControlsDicts.gq)
-        if self.project.selVariableDicts.persControl:
-            controlAdjDict.update(self.project.adjControlsDicts.person)
 
         projectTables = []
         missingTables = []
@@ -255,24 +248,17 @@ class RunDialog(QDialog):
                     
                     if self.gqAnalyzed and self.project.selVariableDicts.persControl:
                         print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                        demo_parallel.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                         print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                        demo_parallel_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
                         print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
+                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                         print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict, controlAdjDict)
-                    """
-                    if self.gqAnalyzed:
-                        demo_parallel.run_parallel(self.job_server, self.project, 
-                                                   self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
-                    else:
-                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, 
-                                                         self.runGeoIds[i[0]:i[1]], dbList, varCorrDict, controlAdjDict)
-                    """
+                        demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
+
                 self.selGeographiesButton.setEnabled(False)
                 for geo in self.runGeoIds:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
@@ -298,20 +284,20 @@ class RunDialog(QDialog):
 
                     if self.gqAnalyzed and self.project.selVariableDicts.persControl:
                         print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                        demo.configure_and_run(self.project, geo, varCorrDict)
 
 
                     try:
 
                         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                             print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                            demo_noper.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                            demo_noper.configure_and_run(self.project, geo, varCorrDict)
                         if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
                             print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                            demo_nogqs.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                            demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
                         if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                             print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                            demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict, controlAdjDict)
+                            demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
                     except Exception, e:
                         self.outputWindow.append("\t- Error in the Synthesis for geography")
                         print ('Exception: %s' %e)
