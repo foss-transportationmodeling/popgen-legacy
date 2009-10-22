@@ -98,7 +98,7 @@ class Indgeo(Matplot):
             elif check == 2:
                 QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
             elif check == 3:
-                QMessageBox.warning(self, "Results", "Please run synthesizer before viewing results.", QMessageBox.Ok)
+                QMessageBox.warning(self, "Results", "Run the synthesizer before viewing results.", QMessageBox.Ok)
 
     def isValid(self):
         retval = -1
