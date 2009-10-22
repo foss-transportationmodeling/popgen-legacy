@@ -4,6 +4,7 @@
 # See PopGen/License
 
 import sys
+import re
 import numpy
 
 from collections import defaultdict
@@ -76,7 +77,6 @@ class SetCorrDialog(QDialog):
         self.connect(self.persControlNo, SIGNAL("clicked()"), self.persControlNoAction)
 
     def persControlYesAction(self):
-        print 'Yes clicked'
         self.tabWidget.personTab.setEnabled(True)
         self.project.selVariableDicts.persControl = True
 
@@ -84,7 +84,6 @@ class SetCorrDialog(QDialog):
 
 
     def persControlNoAction(self):
-        print 'No clicked'
         self.tabWidget.personTab.setEnabled(False)
         self.project.selVariableDicts.persControl = False
         
@@ -137,9 +136,7 @@ class SetCorrDialog(QDialog):
 
             self.tabWidget.housingTab.persRefVarNameComboBox.setEnabled(True)
             text = self.project.selVariableDicts.refPersName
-            print 'person reference text ---- ', text
             index = self.tabWidget.housingTab.persRefVarNameComboBox.findText(text)
-            print 'person reference index -----', text
 
             if index>0:
                 self.tabWidget.housingTab.persRefVarNameComboBox.setCurrentIndex(index)
@@ -173,35 +170,29 @@ class SetCorrDialog(QDialog):
                 self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
                 self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)
             hhldCheck = True
-            
+        else:
+            hhldCheck = False            
 
                 #self.clearTables('hhld')
-            if self.tabWidget.personAnalyzed:
-                print 'person ANALYZED'
-                if self.tabWidget.personTab.check():
-                    print 'PERSON TAB CHECK SUCCESSFUL'
-                    if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
-                        self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
-                        self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person, True)
-                    persCheck = True
-                        #self.clearTables('person')
-                else:
-                    print 'PERSON TAB CHECK UNNNNNNSUCCESSFUL'
-                    persCheck = False
-            else:
+        if self.tabWidget.personAnalyzed:
+            if self.tabWidget.personTab.check():
+                if self.project.selVariableDicts.person <> self.tabWidget.personTab.selVariables:
+                    self.project.selVariableDicts.person = self.tabWidget.personTab.selVariables
+                    self.project.personVars, self.project.personDims = self.checkIfRelationsDefined(self.project.selVariableDicts.person, True)
                 persCheck = True
-
-            if self.tabWidget.gqAnalyzed:
-                if self.tabWidget.gqTab.checkNumRelationsDefined():
-                    if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
-                        self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
-                        self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
-                        #self.clearTables('gq')
+                        #self.clearTables('person')
+            else:
+                persCheck = False
         else:
-            hhldCheck = False
+            persCheck = True
 
-        print 'hhldcheck', hhldCheck, 'personcheck', persCheck
-        
+        if self.tabWidget.gqAnalyzed:
+            if self.tabWidget.gqTab.checkNumRelationsDefined():
+                if self.project.selVariableDicts.gq <> self.tabWidget.gqTab.selVariables:
+                    self.project.selVariableDicts.gq = self.tabWidget.gqTab.selVariables
+                    self.project.gqVars, self.project.gqDims = self.checkIfRelationsDefined(self.project.selVariableDicts.gq, True)
+                        #self.clearTables('gq')
+
 
         if refPersCheck and hhldCheck and persCheck:
             self.acceptAction()
@@ -444,23 +435,47 @@ class TabWidgetItems(QWidget):
             self.hhldsizeVarNameComboBox.setEnabled(False)
             self.hhldsizeVarNameLabel.setEnabled(False)
 
+            self.hhldsizeAverageLabel = QLabel("Enter the average value for the last household size category")
+            self.hhldsizeAverageLineEdit = QLineEdit()
+            self.hhldsizeAverageLineEdit.setMaximumSize(250, 20)
+            self.hhldsizeAverageLabel.setEnabled(False)
+            self.hhldsizeAverageLineEdit.setEnabled(False)
+
             self.persRefVarNameLabel = QLabel("Select the person variable to obtain the person total")
             self.persRefVarNameComboBox = QComboBox()
             self.persRefVarNameComboBox.setMaximumSize(250, 20)
             self.persRefVarNameComboBox.setEnabled(False)
             self.persRefVarNameLabel.setEnabled(False)
 
-
             hLayout11 = QHBoxLayout()
             hLayout11.addWidget(self.modifyMargsYes)
             hLayout11.addWidget(self.modifyMargsNo)
 
+            vLayout13 = QVBoxLayout()
+            vLayout13.addWidget(self.hhldsizeVarNameLabel)
+            vLayout13.addWidget(self.hhldsizeVarNameComboBox)
+
+
+            vLayout12 = QVBoxLayout()
+            vLayout12.addWidget(self.hhldsizeAverageLabel)
+            vLayout12.addWidget(self.hhldsizeAverageLineEdit)
+
+            vLayout14 = QVBoxLayout()
+            vLayout14.addWidget(self.persRefVarNameLabel)
+            vLayout14.addWidget(self.persRefVarNameComboBox)
+
+
+            hLayout12 = QHBoxLayout()
+            hLayout12.addLayout(vLayout13)
+            #hLayout12.addItem(QSpacerItem(150,10))
+            hLayout12.addLayout(vLayout12)
+            hLayout12.addLayout(vLayout14)
+
             vLayout11 = QVBoxLayout()
             vLayout11.addLayout(hLayout11)
-            vLayout11.addWidget(self.hhldsizeVarNameLabel)
-            vLayout11.addWidget(self.hhldsizeVarNameComboBox)
-            vLayout11.addWidget(self.persRefVarNameLabel)
-            vLayout11.addWidget(self.persRefVarNameComboBox)
+            vLayout11.addLayout(hLayout12)
+
+
             
             modifyMargsGrpBox.setLayout(vLayout11)
 
@@ -497,12 +512,16 @@ class TabWidgetItems(QWidget):
         self.persRefVarNameComboBox.setEnabled(True)        
         self.hhldsizeVarNameLabel.setEnabled(True)
         self.persRefVarNameLabel.setEnabled(True)
+        self.hhldsizeAverageLabel.setEnabled(True)
+        self.hhldsizeAverageLineEdit.setEnabled(True)
 
     def modifyMargsNoAction(self):
         self.hhldsizeVarNameComboBox.setEnabled(False)
         self.persRefVarNameComboBox.setEnabled(False)
         self.hhldsizeVarNameLabel.setEnabled(False)
         self.persRefVarNameLabel.setEnabled(False)
+        self.hhldsizeAverageLabel.setEnabled(False)
+        self.hhldsizeAverageLineEdit.setEnabled(False)
 
 
     def check(self):
@@ -510,17 +529,58 @@ class TabWidgetItems(QWidget):
             if self.modifyMargsYes.isChecked():
                 if not self.checkHhldSizeSelected():
                     return False
+                else:
+                    pass
+                    #print 'Household size selected and correspondences checked'
+
+                
+                    
+            if self.modifyMargsYes.isChecked():
+                if not self.checkHhldSize():
+                    return False
+                else:
+                    pass
+                    #print 'checking last household size category value'
+
+                
+                    
         
 
         check = self.checkSelectedVariables() and self.checkNumRelationsDefined()
 
         return check
 
+    def checkHhldSize(self):
+        value = self.hhldsizeAverageLineEdit.text()
+        if len(value) > 0:
+            for i in value:
+                if not re.match("[0-9.]", i):
+                    self.promptHhldSizeError()
+                    return False
+            return True
+        else:
+            self.promptHhldSizeError()
+            return False
+            
+    def promptHhldSizeError(self):
+        QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
+                            """Please enter a valid number for the last household size category.""",
+                            QMessageBox.Ok)              
+        self.hhldsizeAverageLineEdit.setFocus()
+        self.hhldsizeAverageLineEdit.selectAll()
+
+            
+        
+
     def checkHhldSizeSelected(self):
         row = self.selSampleVarListWidget.rowOf(self.hhldsizeVarNameComboBox.currentText())
-        print 'hhlddize variable selected and row is ', row
 
         if row < 0:
+            QMessageBox.warning(self, "Corresponding Sample Categories with Marginal Variables",
+                                """Household size variable selected but variable correspondences """
+                                """are missing.""",
+                                QMessageBox.Ok)              
+
             return False
         else:
             return True
