@@ -127,11 +127,11 @@ class MainWindow(QMainWindow):
         dataModifyAction = self.createAction("&Display", self.dataModify,  
                                              icon="modifydata", tip="View, analyze and modify the input data.")
         
-        dataMargsHhldAction = self.createAction("&Household-level Distributions", self.dataMargsHhld, 
+        dataMargsHhldAction = self.createAction("&Household", self.dataMargsHhld, 
                                                 tip="Modify the distribution of household variables of interest.")
-        dataMargsGQAction = self.createAction("&Groupquarter-level Distributions", self.dataMargsGQ, 
+        dataMargsGQAction = self.createAction("&Groupquarter", self.dataMargsGQ, 
                                                 tip="Modify the distribution of household variables of interest.")
-        dataMargsPersAction = self.createAction("&Person-level Distributions", self.dataMargsPers, 
+        dataMargsPersAction = self.createAction("&Person", self.dataMargsPers, 
                                                 tip="Modify the distribution of household variables of interest.")
 
         
@@ -143,7 +143,7 @@ class MainWindow(QMainWindow):
         #self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataStatisticsAction, dataModifyAction))
         self.addActions(self.dataMenu, (dataSourceAction, None, dataImportAction, dataModifyAction, None))
 
-        self.dataMargsSubMenu = self.dataMenu.addMenu(QIcon("images/Marginals.png"),"Modify Controls")
+        self.dataMargsSubMenu = self.dataMenu.addMenu(QIcon("images/Marginals.png"),"Modify Marginals Distributions")
         self.addActions(self.dataMargsSubMenu, (dataMargsHhldAction, dataMargsGQAction, dataMargsPersAction))
 
 # Adding actions to toolbar
@@ -555,21 +555,51 @@ class MainWindow(QMainWindow):
                 
                 b.exec_()
         except Exception, e:
-            print "Please highlight a valid table to display or use the context menu to bring up a table."
+            QMessageBox.warning(self, "Data",
+                                """Select a table and then choose this option to display a table"""
+                                """or use the context menu to view a table.""",
+                                QMessageBox.Ok)
             
 
     def dataMargsHhld(self):
-        margsModHhld = ChangeMargsDlg(self.project, 'hhld', 'Modify Control Distributions')
-        margsModHhld.exec_()
+        reqTables = ['hhld_sample', 'hhld_marginals', 'geocorr']
+        tableList = self.tableList(self.project.name)
+        varsCorrDef = self.project.selVariableDicts.hhld.keys()
+        if self.checkIfTablesExist(reqTables, tableList) and len(varsCorrDef)>0:
+            margsModHhld = ChangeMargsDlg(self.project, 'hhld', 'Modify Household Marginals Distributions', 'marginals')
+            margsModHhld.exec_()
+        else:
+            QMessageBox.warning(self, "Modify Marginals Distributions", 
+                                """Import household data and set variable correspondence for household variables """
+                                """before changing marginals distributions.""",
+                                QMessageBox.Ok)
 
     def dataMargsGQ(self):
-        margsModGQ = ChangeMargsDlg(self.project, 'gq', 'Modify Control Distributions')
-        margsModGQ.exec_()
+        reqTables = ['gq_sample', 'gq_marginals', 'geocorr']
+        tableList = self.tableList(self.project.name)
+        varsCorrDef = self.project.selVariableDicts.gq.keys()
+        if self.checkIfTablesExist(reqTables, tableList) and len(varsCorrDef)>0:
+            margsModGQ = ChangeMargsDlg(self.project, 'gq', 'Modify Groupquarter Marginals Distributions', 'marginals')
+            margsModGQ.exec_()
+        else:
+            QMessageBox.warning(self, "Modify Marginals Distributions",
+                                """Import household data and set variable correspondence for groupquarter variables """
+                                """before changing marginals distributions.""",
+                                QMessageBox.Ok)
 
 
     def dataMargsPers(self):
-        margsModPers = ChangeMargsDlg(self.project, 'person', 'Modify Control Distributions')
-        margsModPers.exec_()
+        reqTables = ['person_sample', 'person_marginals', 'geocorr']
+        tableList = self.tableList(self.project.name)
+        varsCorrDef = self.project.selVariableDicts.person.keys()
+        if self.checkIfTablesExist(reqTables, tableList) and len(varsCorrDef)>0:
+            margsModPers = ChangeMargsDlg(self.project, 'person', 'Modify Person Marginals Distributions', 'marginals')
+            margsModPers.exec_()
+        else:
+            QMessageBox.warning(self, "Modify Marginals Distributions",
+                                """Import household data and set variable correspondence for person variables """
+                                """before changing marginals distributions.""",
+                                QMessageBox.Ok)
 
 
     def synthesizerControlVariables(self):
@@ -592,7 +622,6 @@ class MainWindow(QMainWindow):
 
 
         tableList = self.tableList(self.project.name)
-        print tableList
         if self.checkIfTablesExist(reqTables, tableList):
             if vars.exec_():
                 self.project = vars.project
@@ -602,9 +631,6 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Synthesizer", "Import and process tables before setting variable correspondence.", QMessageBox.Ok)
 
         
-        print reqTables
-        print 'person control in corr dialog- ', self.project.selVariableDicts.persControl
-
     def checkIfTablesExist(self, reqTables, tableList):
         for i in reqTables:
             try:
@@ -641,8 +667,6 @@ class MainWindow(QMainWindow):
         #with open(filename, 'rb') as f:
         #    self.project = pickle.load(f)
 
-        print 'person control - ', self.project.selVariableDicts.persControl
-        
 
         if self.project.selVariableDicts.persControl:
             if len(self.project.selVariableDicts.hhld) > 0 and len(self.project.selVariableDicts.person) > 0:
@@ -740,20 +764,35 @@ class MainWindow(QMainWindow):
 
 
     def thematicMapsHhld(self):
-        thematicMaps = DisplayMapsDlg(self.project, 'hhld_sample', 'Thematic Map')
-        if thematicMaps.exec_():
-            print 'Dialog was launched'
+        thematicMaps = DisplayMapsDlg(self.project, 'hhld_sample', 'Thematic Map of Household Variables', 'thematic')
+        if thematicMaps.check < 0:
+            thematicMaps.exec_()
+        else:
+            self.thematicErrorDisplay(thematicMaps.check)
 
     def thematicMapsGQ(self):
-        thematicMaps = DisplayMapsDlg(self.project, 'gq_sample', 'Thematic Map')
-        if thematicMaps.exec_():
-            print 'Dialog was launched'
+        thematicMaps = DisplayMapsDlg(self.project, 'gq_sample', 'Thematic Map of Groupquarter Variables', 'thematic')
+        if thematicMaps.check < 0:
+            thematicMaps.exec_()
+        else:
+            self.thematicErrorDisplay(thematicMaps.check)
 
     def thematicMapsPerson(self):
-        thematicMaps = DisplayMapsDlg(self.project, 'person_sample', 'Thematic Map')
-        if thematicMaps.exec_():
-            print 'Dialog was launched'
+        thematicMaps = DisplayMapsDlg(self.project, 'person_sample', 'Thematic Map of Person Variables', 'thematic')
+        if thematicMaps.check < 0:
+            thematicMaps.exec_()
+        else:
+            self.thematicErrorDisplay(thematicMaps.check)
 
+
+
+    def thematicErrorDisplay(self, errorCode):
+        if errorCode == 1:
+            QMessageBox.warning(self, "Results", "Thematic Maps not available for TAZ resolution.", QMessageBox.Ok)
+        elif errorCode == 2:
+            QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
+        elif errorCode == 3:
+            QMessageBox.warning(self, "Results", "Run synthesizer before viewing results.", QMessageBox.Ok)
 
     def showHhldSampleStruct(self):
         headers = ['state', 'pumano', 'hhid', 'serialno', '<householdvariable1>', 
