@@ -133,12 +133,12 @@ def create_aggregation_string(control_variables):
 
 
 def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
-                   state, county, pumano=0, tract=0, bg=0, parameters=0):
+                   state, county, pumano=0, tract=0, bg=0, parameters=0, hhldsizeMargsMod=False):
 
     dbc = db.cursor()
 
     control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, 
-                                                   controlAdjDict, state, county, tract, bg)
+                                                   controlAdjDict, state, county, tract, bg, hhldsizeMargsMod)
 
     tol = 1
     iteration = 0
@@ -219,7 +219,7 @@ def tolerance (adjustment_all, adjustment_old, iteration, parameters):
         return 0
 
 def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
-                              state, county, tract, bg):
+                              state, county, tract, bg, hhldsizeMargsMod=False):
 
     dbc = db.cursor()
     marginals = database(db, '%s_marginals'%synthesis_type)
@@ -236,16 +236,19 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         
         variable_marginals1=[]
         try:
-            variable_marginals_adj = controlAdjDict[selGeography][selVar]
+            if (not hhldsizeMargsMod and synthesis_type == 'hhld') or synthesis_type <> 'hhld':
+                variable_marginals_adj = controlAdjDict[selGeography][selVar]
             #print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
-            for i in variable_marginals_adj[1]:
-                if i>0:
-                    variable_marginals1.append(i)
-                else:
-                    variable_marginals1.append(0.1)
+                for i in variable_marginals_adj[1]:
+                    if i>0:
+                        variable_marginals1.append(i)
+                    else:
+                        variable_marginals1.append(0.1)
             #check_marginal_sum = sum(variable_marginals1)
+            else:
+                raise Exception, 'Household marginal distributions modified to account for person total inconsistency'
         except Exception ,e:
-            pass
+            #print 'Exception: %s' %e
 
             #check_marginal_sum = 0
             for i in cats:

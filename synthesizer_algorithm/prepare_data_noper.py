@@ -46,8 +46,14 @@ def prepare_data_noper(db, project):
                 %(scenarioDatabase, projectDatabase))
     dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
 
-    dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
-                %(scenarioDatabase, projectDatabase))
+    if project.selVariableDicts.hhldMargsModify:
+        dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals_modpgq'
+                    %(scenarioDatabase, projectDatabase))
+    else:
+        dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
+                    %(scenarioDatabase, projectDatabase))
+
+
     dbc.execute('create table %s.gq_marginals select * from %s.gq_marginals'
                 %(scenarioDatabase, projectDatabase))
 
@@ -101,18 +107,18 @@ def prepare_data_noper(db, project):
     ti = time.clock()
 
 # Populating the Master Matrix
-    populated_matrix = psuedo_sparse_matrix_noper.populate_master_matrix(db, 0, hhld_units, gq_units, hhld_dimensions,
+    populated_matrix = psuedo_sparse_matrix_noper.populate_master_matrix(db, 99999, hhld_units, gq_units, hhld_dimensions,
                                                                                                gq_dimensions)
     print 'Populated in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 
 # Sparse representation of the Master Matrix
-    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 0)
+    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 99999)
     print 'Psuedo Sparse Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
 #Creating Index Matrix
-    index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 0)
+    index_matrix = psuedo_sparse_matrix.generate_index_matrix(db, 99999)
     print 'Index Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
     dbc.close()

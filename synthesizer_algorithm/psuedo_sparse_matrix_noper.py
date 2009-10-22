@@ -41,10 +41,12 @@ def populate_master_matrix(db, pumano, hhld_units, gq_units, hhld_dimensions, gq
 	    start = 3 + arr(hhld_dimensions).prod()
 
 # Read the pums data from the mysql files to
-        if pumano == 0:
-            dbc.execute('Select * from %s_sample' %(control_type))
+        if pumano == 0 or pumano == 99999:
+            dbc.execute('Select state, pumano, hhid, serialno, %suniqueid from %s_sample'
+                        %(control_type, control_type))
         else:
-            dbc.execute('Select * from %s_sample where pumano = %s' %(control_type, pumano))
+            dbc.execute('Select state, pumano, hhid, serialno, %suniqueid from %s_sample where pumano = %s'
+                        %(control_type, control_type, pumano))
 
         result = arr(dbc.fetchall(), int)
 

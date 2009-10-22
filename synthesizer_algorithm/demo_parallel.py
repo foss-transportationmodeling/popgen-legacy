@@ -21,7 +21,7 @@ import pp
 import pickle
 import os
 
-def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
+def configure_and_run(fileLoc, geo, varCorrDict):
 
 
     f = open('indexMatrix_99999.pkl', 'rb')
@@ -75,12 +75,16 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
     person_dimensions = project.personDims
 
 # Checking marginal totals
-    hhld_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
-                                                                                    state, county, tract, bg)
-    gq_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, controlAdjDict,
-                                                                                  state, county, tract, bg)
-    person_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, controlAdjDict,
-                                                                                      state, county, tract, bg)
+    hhld_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, 
+                                                                                                          project.adjControlsDicts.hhld,
+                                                                                                          state, county, tract, bg,
+                                                                                                          project.selVariableDicts.hhldMargsModify)
+    gq_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, 
+                                                                                                        project.adjControlsDicts.gq,
+                                                                                                        state, county, tract, bg)
+    person_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, 
+                                                                                                            project.adjControlsDicts.person,
+                                                                                                            state, county, tract, bg)
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
     print '\tChecking household variables'
     synthesizer_algorithm.adjusting_sample_joint_distribution.check_marginals(hhld_marginals, hhld_control_variables)
@@ -104,10 +108,12 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
     print 'Step 1A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'hhld', 
                                                                                                    hhld_control_variables, 
-                                                                                                   varCorrDict, controlAdjDict,
+                                                                                                   varCorrDict, 
+                                                                                                   project.adjControlsDicts.hhld,
                                                                                                    hhld_dimensions, state,
                                                                                                    county, pumano, 
-                                                                                                   tract, bg, parameters)
+                                                                                                   tract, bg, parameters,
+                                                                                                   project.selVariableDicts.hhldMargsModify)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
@@ -115,7 +121,8 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
     print 'Step 1B: Running IPF procedure for Gqs... '
     gq_objective_frequency, gq_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'gq', 
                                                                                                gq_control_variables, 
-                                                                                               varCorrDict, controlAdjDict,
+                                                                                               varCorrDict, 
+                                                                                               project.adjControlsDicts.gq,
                                                                                                gq_dimensions, 
                                                                                                state, county, pumano, 
                                                                                                tract, bg, parameters)
@@ -126,8 +133,9 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
     print 'Step 1C: Running IPF procedure for Persons... '
     person_objective_frequency, person_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'person', 
                                                                                                        person_control_variables, 
-                                                                                                       varCorrDict, controlAdjDict,
-                                                                                                       person_dimensions, 
+                                                                                                       varCorrDict, 
+                                                                                                       project.adjControlsDicts.person,
+                                                                                                       person_dimensions,
                                                                                                        state, county, pumano, 
                                                                                                        tract, bg, parameters)
     print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
@@ -265,7 +273,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-def run_parallel(job_server, project, geoIds, varCorrDict, controlAdjDict):
+def run_parallel(job_server, project, geoIds, varCorrDict):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
@@ -288,8 +296,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict, controlAdjDict):
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
-                                                        varCorrDict,
-                                                        controlAdjDict), (), modules)) for geo in geoIds]
+                                                        varCorrDict), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         job()
     job_server.print_stats()

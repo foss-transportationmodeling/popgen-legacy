@@ -19,7 +19,7 @@ import MySQLdb
 import time
 import cPickle
 
-def configure_and_run(project, geo, varCorrDict, controlAdjDict):
+def configure_and_run(project, geo, varCorrDict):
 
 
     f = open('indexMatrix_99999.pkl', 'rb')
@@ -68,11 +68,11 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
     person_dimensions = project.personDims
 
 # Checking marginal totals
-    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
-                                                                                    state, county, tract, bg)
-    gq_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, controlAdjDict,
+    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, project.adjControlsDicts.hhld,
+                                                                                    state, county, tract, bg, project.selVariableDicts.hhldMargsModify)
+    gq_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, project.adjControlsDicts.gq,
                                                                                   state, county, tract, bg)
-    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, controlAdjDict,
+    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, project.adjControlsDicts.person,
                                                                                       state, county, tract, bg)
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
     print '\tChecking household variables'
@@ -96,17 +96,17 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
-                                                                             controlAdjDict,
+                                                                             project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
-                                                                             parameters)
+                                                                             parameters, project.selVariableDicts.hhldMargsModify)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
 # Running IPF for GQ
     print 'Step 2B: Running IPF procedure for Gqs... '
     gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, 
-                                                                         controlAdjDict,
+                                                                         project.adjControlsDicts.gq,
                                                                          gq_dimensions, 
                                                                          state, county, pumano, tract, bg, 
                                                                          parameters)
@@ -116,7 +116,8 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 # Running IPF for Persons
     print 'Step 2C: Running IPF procedure for Persons... '
     person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, 
-                                                                                 varCorrDict, controlAdjDict,
+                                                                                 varCorrDict, 
+                                                                                 project.adjControlsDicts.person,
                                                                                  person_dimensions, 
                                                                                  state, county, 
                                                                                  pumano, tract, bg, parameters)

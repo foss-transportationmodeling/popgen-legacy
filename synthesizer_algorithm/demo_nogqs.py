@@ -19,10 +19,10 @@ import MySQLdb
 import time
 import cPickle
 
-def configure_and_run(project, geo, varCorrDict, controlAdjDict):
+def configure_and_run(project, geo, varCorrDict):
 
 
-    f = open('indexMatrix.pkl', 'rb')
+    f = open('indexMatrix_99999.pkl', 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
@@ -62,9 +62,11 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
     person_dimensions = project.personDims
 
 # Checking marginal totals
-    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
+    hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict,
+                                                                                    project.adjControlsDicts.hhld,
                                                                                     state, county, tract, bg)
-    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict, controlAdjDict,
+    person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict,
+                                                                                      project.adjControlsDicts.person,
                                                                                       state, county, tract, bg)
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
     print '\tChecking household variables'
@@ -86,7 +88,7 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
-                                                                             controlAdjDict, 
+                                                                             project.adjControlsDicts.hhld, 
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
                                                                              parameters)
@@ -96,7 +98,8 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 # Running IPF for Persons
     print 'Step 2B: Running IPF procedure for Persons... '
     person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, 
-                                                                                 varCorrDict, controlAdjDict, 
+                                                                                 varCorrDict,
+                                                                                 project.adjControlsDicts.person, 
                                                                                  person_dimensions, 
                                                                                  state, county, pumano, tract, bg, 
                                                                                  parameters)
@@ -105,7 +108,7 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 #______________________________________________________________________
 # Creating the weights array
     print 'Step 3: Running IPU procedure for obtaining weights that satisfy Household and Person type constraints... '
-    dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(0))
+    dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(99999))
     result = numpy.asarray(dbc.fetchall())[:,0]
     weights = numpy.ones((1,housing_units), dtype = float)[0] * -99
     weights[result]=1
@@ -117,7 +120,7 @@ def configure_and_run(project, geo, varCorrDict, controlAdjDict):
 
 #______________________________________________________________________
 # Creating the sparse array
-    dbc.execute('select * from sparse_matrix1_%s' %(0))
+    dbc.execute('select * from sparse_matrix1_%s' %(99999))
     sp_matrix = numpy.asarray(dbc.fetchall())
 
 

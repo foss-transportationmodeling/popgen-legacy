@@ -21,10 +21,10 @@ import pp
 import pickle
 import os
 
-def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
+def configure_and_run(fileLoc, geo, varCorrDict):
 
 
-    f = open('indexMatrix.pkl', 'rb')
+    f = open('indexMatrix_99999.pkl', 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
@@ -74,9 +74,13 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
     gq_dimensions = project.gqDims
 
 # Checking marginal totals
-    hhld_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict, controlAdjDict,
+    hhld_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables,
+                                                                                                          varCorrDict,
+                                                                                                          project.adjControlsDicts.hhld,
                                                                                     state, county, tract, bg)
-    gq_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables, varCorrDict, controlAdjDict,
+    gq_marginals = synthesizer_algorithm.adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables,
+                                                                                                        varCorrDict,
+                                                                                                        project.adjControlsDicts.gq,
                                                                                   state, county, tract, bg)
 
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
@@ -95,7 +99,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
-                                                                             controlAdjDict,
+                                                                             project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
                                                                              parameters)
@@ -105,7 +109,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 # Running IPF for GQ
     print 'Step 2B: Running IPF procedure for Gqs... '
     gq_objective_frequency, gq_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, 
-                                                                         controlAdjDict,
+                                                                         project.adjControlsDicts.gq,
                                                                          gq_dimensions, 
                                                                          state, county, pumano, tract, bg, 
                                                                          parameters)
@@ -115,7 +119,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 #______________________________________________________________________
 # Creating the weights array
     print 'Step 3: Running IPU procedure for obtaining weights that satisfy Household constraints... '
-    dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(0))
+    dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(99999))
     result = numpy.asarray(dbc.fetchall())[:,0]
     weights = numpy.ones((1,housing_units), dtype = float)[0] * -99
     weights[result]=1
@@ -127,7 +131,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 
 #______________________________________________________________________
 # Creating the sparse array
-    dbc.execute('select * from sparse_matrix1_%s' %(0))
+    dbc.execute('select * from sparse_matrix1_%s' %(99999))
     sp_matrix = numpy.asarray(dbc.fetchall())
 
 
@@ -237,7 +241,7 @@ def configure_and_run(fileLoc, geo, varCorrDict, controlAdjDict):
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-def run_parallel(job_server, project, geoIds, varCorrDict, controlAdjDict):
+def run_parallel(job_server, project, geoIds, varCorrDict):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
@@ -260,8 +264,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict, controlAdjDict):
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
                                                         geo,
-                                                        varCorrDict,
-                                                        controlAdjDict), (), modules)) for geo in geoIds]
+                                                        varCorrDict), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         job()
     job_server.print_stats()
