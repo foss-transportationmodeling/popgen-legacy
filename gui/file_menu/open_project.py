@@ -34,7 +34,10 @@ class SaveFile(QFileDialog):
             self.fileSep = ','
         elif self.fileType == 'dat':
             self.fileSep = '\t'
-        self.folder = self.getExistingDirectory(self, QString("Results Location..."),
+        self.folder = self.getExistingDirectory(self, QString("""Select a folder for storing the files. """
+                                                              """Note that two files are exported for every data table: """
+                                                              """a data file containing the data in the format chosen and a """
+                                                              """metadata file which gives a list of the column names"""),
                                                 "%s/%s" %(self.project.location, self.project.filename),
                                                 QFileDialog.ShowDirsOnly)
 
@@ -307,7 +310,7 @@ class ExportSummaryFile(SaveFile):
 
         query = QSqlQuery(projectDBC.dbc)
 
-        filename = '%s/housing_synthetic_data.%s' %(self.folder, self.fileType)
+        filename = '%s/summary.%s' %(self.folder, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
             os.remove(filename)
@@ -334,11 +337,11 @@ class ExportSummaryFile(SaveFile):
             varCorrDict = {}
             varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
             varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
-            print varCorrDict
+
             self.createHousingMarginalsTable(query, varCorrDict.values())
 
             varCorrDict = self.variableControlCorrDict(self.project.selVariableDicts.person)
-            print varCorrDict
+
             self.createMarginalsTable(query, varCorrDict.values())
 
             self.createGivenControlTotalColumns(query, self.project.selVariableDicts.hhld)
@@ -346,6 +349,15 @@ class ExportSummaryFile(SaveFile):
             self.createGivenControlTotalColumns(query, self.project.selVariableDicts.person)
 
             self.createMarginalsSummaryTable(query)
+        
+            if not query.exec_("""select * from comparison into outfile """
+                               """'%s' fields terminated by '%s'""" %(filename, self.fileSep)):
+                raise FileError, query.lastError().text()
+
+            summaryTableVarDict, summaryTableVars = self.getVariables('comparison', query)
+            self.storeMetaData(summaryTableVars, self.folder, 'summary')
+
+
 
     def createSummaryTables(self, query, synthesisType):
         
