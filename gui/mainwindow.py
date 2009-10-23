@@ -64,7 +64,7 @@ class MainWindow(QMainWindow):
         self.projectName = None
 
         
-        self.setWindowTitle("PopGen Version-1.0")
+        self.setWindowTitle("PopGen Version-1.1")
         self.setWindowIcon(QIcon("./images/popsyn.png"))
         self.workingWindow = QLabel()
         self.showMaximized()
