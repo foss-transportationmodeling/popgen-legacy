@@ -123,7 +123,7 @@ class Hhdist(Matplot):
         for i in self.categories:
             catsplit = i.split()
             newkey = int(catsplit[len(catsplit)-1])
-            if self.project.selVariableDicts.hhldMargsModify:
+            if self.project.selVariableDicts.hhldMargsModify and (self.current in self.hhldvariables):
                 selsorteddict[newkey] = 'mod' + seldict[self.current][i]
             else:
                 selsorteddict[newkey] = seldict[self.current][i]
