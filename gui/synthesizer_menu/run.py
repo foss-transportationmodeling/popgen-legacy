@@ -282,9 +282,9 @@ class RunDialog(QDialog):
                                              %(geo.state, geo.county, geo.tract, geo.bg))
 
                     try:
-....                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-    ....                    print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-       .....                demo.configure_and_run(self.project, geo, varCorrDict)
+                        if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                            print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                            demo.configure_and_run(self.project, geo, varCorrDict)
                         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                             print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                             demo_noper.configure_and_run(self.project, geo, varCorrDict)
