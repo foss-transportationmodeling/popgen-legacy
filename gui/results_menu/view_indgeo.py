@@ -96,7 +96,7 @@ class Indgeo(Matplot):
             if check == 1:
                 QMessageBox.warning(self, "Results", "Individual Geography Statistics not available for TAZ resolution.", QMessageBox.Ok)
             elif check == 2:
-                QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
+                QMessageBox.warning(self, "Results", "Valid shape file for geography not found.", QMessageBox.Ok)
             elif check == 3:
                 QMessageBox.warning(self, "Results", "Run the synthesizer before viewing results.", QMessageBox.Ok)
 
