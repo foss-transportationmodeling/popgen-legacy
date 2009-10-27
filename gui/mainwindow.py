@@ -790,7 +790,7 @@ class MainWindow(QMainWindow):
         if errorCode == 1:
             QMessageBox.warning(self, "Results", "Thematic Maps not available for TAZ resolution.", QMessageBox.Ok)
         elif errorCode == 2:
-            QMessageBox.warning(self, "Results", "Valid Shape File for geography not found.", QMessageBox.Ok)
+            QMessageBox.warning(self, "Results", "Valid shape file for geography not found.", QMessageBox.Ok)
         elif errorCode == 3:
             QMessageBox.warning(self, "Results", "Run synthesizer before viewing results.", QMessageBox.Ok)
 
@@ -931,6 +931,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(aboutlabel)
         aboutdialog.setLayout(layout)
         aboutdialog.setWindowTitle("About")
+        aboutdialog.setWindowIcon(QIcon("./images/popsyn.png"))
         aboutdialog.exec_()
         
         #QMessageBox.information(self, "Help", "About", QMessageBox.Ok)
@@ -970,7 +971,8 @@ class SplashScreen(QDialog):
         super(SplashScreen, self).__init__(parent)
 
         self.setMinimumSize(1125, 575)
-    
+        self.setWindowTitle(" ")
+        self.setWindowIcon(QIcon("./images/popsyn.png"))
         vLayout = QVBoxLayout()
         imageLabel = QLabel()
         splashImg = QPixmap("./images/splashscreen.png")
