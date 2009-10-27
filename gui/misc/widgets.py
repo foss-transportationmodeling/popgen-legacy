@@ -1114,11 +1114,12 @@ class DisplayMapsDlg(QDialog):
 
 
     def updateCatLimits(self):
-        for i in range(5):
-            itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
-            itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
-            self.legendTable.setItem(i, 0, itemMin)
-            self.legendTable.setItem(i, 1, itemMax)
+        if self.minProp <> 0 and self.intervalLength <> 0:
+            for i in range(5):
+                itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
+                itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
+                self.legendTable.setItem(i, 0, itemMin)
+                self.legendTable.setItem(i, 1, itemMax)
             
 
 
@@ -1231,23 +1232,36 @@ class DisplayMapsDlg(QDialog):
                 except:
                     total = total + 0
             totalDistDict[i] = total
-            distDict[i] = float(numDistDict[i])/total
-
-        self.minProp = min(distDict.values())
-        self.maxProp = max(distDict.values())
-        
-        # assuming 5 categories
-        self.intervalLength = (self.maxProp - self.minProp)/5
-
-        for i in distDict.keys():
-            if distDict[i] == self.minProp:
-                distDict[i] = 1.0
+            if total == 0:
+                distDict[i] = 0
             else:
-                distDict[i] = ceil((distDict[i]-self.minProp)/self.intervalLength)
+                distDict[i] = float(numDistDict[i])/total
+
+
+        try:
+            self.minProp = min(distDict.values())
+            self.maxProp = max(distDict.values())
+        # assuming 5 categories
+            self.intervalLength = (self.maxProp - self.minProp)/5
+
+            for i in distDict.keys():
+                if distDict[i] == self.minProp:
+                    distDict[i] = 1.0
+                else:
+                    distDict[i] = ceil((distDict[i]-self.minProp)/self.intervalLength)
 
         # proportions calculated, categories calculated
         # TO DO - append to the shapefile? show the colors?
                 
+        except Exception, e:
+            self.minProp = 0
+            self.maxProp = 0
+            self.intervalLength = 0
+            if len(distDict) == 0:
+                QMessageBox.warning(self, "Thematic Map", """No population for variable - %s and category - %s """
+                                    """present in the geographies"""
+                                    """ synthesized so far""" %(varname, cat), QMessageBox.Ok)
+        
 
         self.stateCode = self.project.stateCode[self.project.state]
         resultfilename = self.res_prefix+self.stateCode+"_selected"
