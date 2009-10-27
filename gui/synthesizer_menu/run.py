@@ -281,14 +281,10 @@ class RunDialog(QDialog):
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
 
-
-                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo.configure_and_run(self.project, geo, varCorrDict)
-
-
                     try:
-
+....                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+    ....                    print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+       .....                demo.configure_and_run(self.project, geo, varCorrDict)
                         if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                             print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                             demo_noper.configure_and_run(self.project, geo, varCorrDict)
@@ -577,7 +573,11 @@ class RunDialog(QDialog):
             hhldsizePSumString = hhldsizePSumString + 'p' + i + '+'
             size = size + 1
         hhldsizePEQPString = hhldsizePEQPString[:-1]
-        hhldsizePEQString = hhldsizePEQString + vars[-1]+'*%s' %size
+        hhldSize = self.project.selVariableDicts.aveHhldSizeLastCat
+        hhldsizePEQString = hhldsizePEQString + vars[-1]+'*%s' %hhldSize
+        #print 'hhldsizemod string after - ', hhldsizePEQString + vars[-1]+'*%s' %hhldSize
+
+
         hhldsizePSumString = hhldsizePSumString[:-1]
 
         # Creating person equivalents column
