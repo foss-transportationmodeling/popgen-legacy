@@ -111,7 +111,7 @@ class QTreeWidgetCMenu(QTreeWidget):
                 query = QSqlQuery(projectDBC.dbc)
 
                 whereExpression = deleteRows.whereEdit.toPlainText()
-                print whereExpression, 'is the text'
+                #print whereExpression, 'is the text'
                 if not whereExpression == "":
 
                     if not query.exec_("""delete from %s where %s""" %(tablename, whereExpression)):
@@ -331,7 +331,10 @@ class QTreeWidgetCMenu(QTreeWidget):
                         print "FileError: %s" %query.lastError().text()
 
         if not (checkPUMSTableTransforms or checkSFTableTransforms):
-            print "FileError: The file does not have default transformations"
+            QMessageBox.warning(self, "Default Transformations", 
+                                """No default transformations are defined for the table""",
+                                QMessageBox.Ok)
+            #print "FileError: The file does not have default transformations"
 
         projectDBC.dbc.close()
         self.populate()
