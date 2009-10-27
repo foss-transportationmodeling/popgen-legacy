@@ -196,9 +196,7 @@ class AutoImportSF2000Data():
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
-            print ("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
-                   """state float, county float, tract  float, bg float, logrecno float)"""
-                   %tablename)
+
             if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
@@ -304,14 +302,10 @@ class AutoImportSF2000Data():
                 var2, var2types = self.variableNames('%s' %j, 1)
                 var1 = var1 + var2[6:]
                 
-                print 'number of variables in the table', len(var1)
-
                 var1string = self.createVariableString(var1)
 
                 tablename = '%s%s' %(self.stateAbb[self.state], j)
 
-                print ("""create table temp2 select %s from temp1, %s"""
-                                        """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename))
 
                 if not self.query.exec_("""create table temp2 select %s from temp1, %s"""
                                         """ where temp1.logrecno = %s.logrecno""" %(var1string, tablename, tablename)):
@@ -329,7 +323,7 @@ class AutoImportSF2000Data():
         #Based on the resolution import a summary file table for only that resolution
 
         if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
-            print self.project.resolution
+            #print self.project.resolution
             if self.project.resolution == 'Blockgroup':
                 sumlev = 150
             if self.project.resolution == 'Tract':
@@ -494,15 +488,11 @@ class AutoImportSFACSData(AutoImportSF2000Data):
         #Based on the resolution import a summary file table for only that resolution
 
         if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
-            print self.project.resolution
+
             if self.project.resolution == 'County':
                 sumlev = 50
-                print  'resolution is county and summayr level is --' ,  sumlev
+                #print  'resolution is county and summayr level is --' ,  sumlev
                                 
-
-            print ("""create table mastersftable%s """
-                                    """select * from mastersftable where sumlev = %s """
-                                    %(self.project.resolution, sumlev))
             if not self.query.exec_("""create table mastersftable%s """
                                     """select * from mastersftable where sumlev = %s """
                                     %(self.project.resolution, sumlev)):
