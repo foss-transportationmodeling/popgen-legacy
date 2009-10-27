@@ -33,13 +33,13 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column agep big
                                 "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment, relate from person_pums",
                                 "alter table person_sample add index(serialno, pnum)",
                                 "drop table hhld_sample_temp",
-                                "alter table hhld_sample drop column agep",
+                                "alter table hhld_sample drop column hhldrage",
                                 "alter table hhld_sample rename to hhld_sample_temp",
                                 "drop table hhld_sample",
-                                "create table hhld_sample select hhld_sample_temp.*, agep from hhld_sample_temp left join person_sample using(serialno) where relate = 1",
+                                "create table hhld_sample select hhld_sample_temp.*, agep as hhldrage from hhld_sample_temp left join person_sample using(serialno) where relate = 1",
                                 "alter table hhld_sample add index(serialno)",
-                                "update hhld_sample set agep = 1 where agep <=7 ",
-                                "update hhld_sample set agep = 2 where agep >7"]
+                                "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
+                                "update hhld_sample set hhldrage = 2 where hhldrage >7"]
 
 DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigint",
                                   "alter table person_pums change puma pumano bigint",
@@ -171,8 +171,8 @@ DEFAULT_HOUSING_PUMSACS_QUERIES = ["alter table housing_pums add index(serialno)
                                    "update housing_pums set hhldtype = 1 where hht = 1",
                                    "update housing_pums set hhldtype = 2 where hht = 2",
                                    "update housing_pums set hhldtype = 3 where hht = 3",
-                                   "update housing_pums set hhldtype = 4 where hht = 4 or hht = 5",
-                                   "update housing_pums set hhldtype = 5 where hht = 6 or hht = 7",
+                                   "update housing_pums set hhldtype = 4 where hht = 4 or hht = 6",
+                                   "update housing_pums set hhldtype = 5 where hht = 5 or hht = 7",
                                    "update housing_pums set hhldtype = -99 where hht = 0",
                                    "update housing_pums set hhldinc = 1 where hinc <15000",
                                    "update housing_pums set hhldinc = 2 where hinc >= 15000 and hinc < 25000",
