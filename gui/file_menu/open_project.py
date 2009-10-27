@@ -67,14 +67,20 @@ class SaveFile(QFileDialog):
             hhldVariablesDict = self.deleteDictEntries(hhldVariablesDict)
             hhldSelVariables = self.getSelectedVariables(hhldVariablesDict, self.project.hhldVars, 
                                                          "Select Household Variables to Add to Synthetic Data")
-            hhldvarstr = ""
-            for  i in hhldSelVariables:
-                hhldvarstr = hhldvarstr + '%s,' %i
+            hhldvarstr = ","
+            if hhldSelVariables is not None:
+                for  i in hhldSelVariables:
+                    hhldvarstr = hhldvarstr + '%s,' %i
+                hhldvarstr = hhldvarstr[:-1]
+            else:
+                hhldvarstr = ""
+                QMessageBox.warning(self, "Export Synthetic Population Tables", 
+                                    """No household variables selected for exporting""", QMessageBox.Ok)                
             
             if not query.exec_("""drop table temphou1"""):
                 print "FileError:%s" %query.lastError().text()
-            if not query.exec_("""create table temphou1 select housing_synthetic_data.*, %s from housing_synthetic_data"""
-                               """ left join hhld_sample using (serialno)""" %(hhldvarstr[:-1])):
+            if not query.exec_("""create table temphou1 select housing_synthetic_data.* %s from housing_synthetic_data"""
+                               """ left join hhld_sample using (serialno)""" %(hhldvarstr)):
                 raise FileError, query.lastError().text()
             if not query.exec_("""alter table temphou1 add index(serialno)"""):
                 raise FileError, query.lastError().text()
@@ -85,14 +91,20 @@ class SaveFile(QFileDialog):
                 gqVariablesDict = self.deleteDictEntries(gqVariablesDict)
                 gqSelVariables = self.getSelectedVariables(gqVariablesDict, self.project.gqVars, 
                                                          "Select Groupquarter Variables to Add to Synthetic Data")
-                gqvarstr = ""
-                for  i in gqSelVariables:
-                    gqvarstr = gqvarstr + '%s,' %i
-            
+                gqvarstr = ","
+                if gqSelVariables is not None:
+                    for  i in gqSelVariables:
+                        gqvarstr = gqvarstr + '%s,' %i
+                    gqvarstr = gqvarstr[:-1]
+                else:
+                    gqvarstr = ""
+                    QMessageBox.warning(self, "Export Synthetic Population Tables", 
+                                        """No groupquarter variables selected for exporting""", QMessageBox.Ok)          
+                  
                 if not query.exec_("""drop table temphou2"""):
                     print "FileError:%s" %query.lastError().text()
-                if not query.exec_("""create table temphou2 select temphou1.*, %s from temphou1"""
-                                   """ left join gq_sample using (serialno)""" %(gqvarstr[:-1])):
+                if not query.exec_("""create table temphou2 select temphou1.* %s from temphou1"""
+                                   """ left join gq_sample using (serialno)""" %(gqvarstr)):
                     raise FileError, query.lastError().text()
             else:
                 if not query.exec_("""alter table temphou1 rename to temphou2"""):
@@ -150,14 +162,20 @@ class SaveFile(QFileDialog):
             personSelVariables = self.getSelectedVariables(personVariablesDict, self.project.personVars, 
                                                            "Select Person Variables to Add to Synthetic Data")
 
-            personvarstr = ""
-            for  i in personSelVariables:
-                personvarstr = personvarstr + '%s,' %i
+            personvarstr = ","
+            if personSelVariables is not None:
+                for  i in personSelVariables:
+                    personvarstr = personvarstr + '%s,' %i
+                personvarstr = personvarstr[:-1]
+            else:
+                personvarstr = ""
+                QMessageBox.warning(self, "Export Synthetic Population Tables", 
+                                    """No person variables selected for exporting""", QMessageBox.Ok)                
             
             if not query.exec_("""drop table tempperson"""):
                 print "FileError:%s" %query.lastError().text()
-            if not query.exec_("""create table tempperson select person_synthetic_data.*, %s from person_synthetic_data"""
-                               """ left join person_sample using (serialno)""" %(personvarstr[:-1])):
+            if not query.exec_("""create table tempperson select person_synthetic_data.* %s from person_synthetic_data"""
+                               """ left join person_sample using (serialno)""" %(personvarstr)):
                 raise FileError, query.lastError().text()
 
             if self.project.sampleUserProv.defSource == "ACS 2005-2007":
@@ -200,14 +218,12 @@ class SaveFile(QFileDialog):
         projectDBC.dbc.close()
 
     def deleteDictEntries(self, dict):
-        print dict
         vars = ['state', 'pumano', 'hhid', 'serialno', 'pnum', 'hhlduniqueid', 'gquniqueid', 'personuniqueid']
         for i in vars:
             try:
                 dict.pop(i)
             except:
                 pass
-        print dict
         return dict
 
 
@@ -466,8 +482,6 @@ class ExportSummaryFile(SaveFile):
 
 
             for j in varDict[i].keys():
-                print ("""alter table marginals drop column %s"""
-                                   %(varDict[i][j]))
                 if not query.exec_("""alter table marginals drop %s"""
                                    %(varDict[i][j])):
                     raise FileError, query.lastError().text()
