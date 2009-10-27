@@ -134,6 +134,10 @@ class SetCorrDialog(QDialog):
             if index>0:
                 self.tabWidget.housingTab.hhldsizeVarNameComboBox.setCurrentIndex(index)
 
+            hhldSize = self.project.selVariableDicts.aveHhldSizeLastCat
+            self.tabWidget.housingTab.hhldsizeAverageLineEdit.setEnabled(True)
+            self.tabWidget.housingTab.hhldsizeAverageLineEdit.setText(hhldSize)
+
             self.tabWidget.housingTab.persRefVarNameComboBox.setEnabled(True)
             text = self.project.selVariableDicts.refPersName
             index = self.tabWidget.housingTab.persRefVarNameComboBox.findText(text)
@@ -150,6 +154,7 @@ class SetCorrDialog(QDialog):
         if self.tabWidget.housingTab.modifyMargsYes.isChecked():
             self.project.selVariableDicts.hhldMargsModify = True
             self.project.selVariableDicts.hhldSizeVarName = self.tabWidget.housingTab.hhldsizeVarNameComboBox.currentText()
+            self.project.selVariableDicts.aveHhldSizeLastCat = self.tabWidget.housingTab.hhldsizeAverageLineEdit.text()
             self.project.selVariableDicts.refPersName = self.tabWidget.housingTab.persRefVarNameComboBox.currentText()
             if self.checkIfRefPersCorrDefined():
                 refPersCheck = True
@@ -159,6 +164,7 @@ class SetCorrDialog(QDialog):
         else:
             self.project.selVariableDicts.hhldMargsModify = False
             self.project.selVariableDicts.hhldSizeVarName = ""                    
+            self.project.selVariableDicts.aveHhldSizeLastCat = ""
             self.project.selVariableDicts.refPersName = ""
             refPersCheck = True
 
