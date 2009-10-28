@@ -7,7 +7,6 @@ import MySQLdb
 import numpy
 import adjusting_sample_joint_distribution
 import drawing_households
-import psuedo_sparse_matrix_new 
 import psuedo_sparse_matrix
 import time
 
