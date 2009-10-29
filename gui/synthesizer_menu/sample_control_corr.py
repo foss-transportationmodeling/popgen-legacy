@@ -77,14 +77,14 @@ class SetCorrDialog(QDialog):
         self.connect(self.persControlNo, SIGNAL("clicked()"), self.persControlNoAction)
 
     def persControlYesAction(self):
-        self.tabWidget.personTab.setEnabled(True)
+        #self.tabWidget.personTab.setEnabled(True)
         self.project.selVariableDicts.persControl = True
 
 
 
 
     def persControlNoAction(self):
-        self.tabWidget.personTab.setEnabled(False)
+        #self.tabWidget.personTab.setEnabled(False)
         self.project.selVariableDicts.persControl = False
         
 
@@ -120,10 +120,10 @@ class SetCorrDialog(QDialog):
 
         if self.tabWidget.personAnalyzed:
             if self.project.selVariableDicts.persControl:
-                self.tabWidget.personTab.setEnabled(True)
+                #self.tabWidget.personTab.setEnabled(True)
                 self.persControlYes.setChecked(True)
             else:
-                self.tabWidget.personTab.setEnabled(False)
+                #self.tabWidget.personTab.setEnabled(False)
                 self.persControlNo.setChecked(True)
 
         if self.project.selVariableDicts.hhldMargsModify:
