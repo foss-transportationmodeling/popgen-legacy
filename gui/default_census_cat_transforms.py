@@ -30,7 +30,7 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column agep big
                                 "update person_pums set employment = 3 where esr = 3",
                                 "update person_pums set employment = 4 where esr = 6",
                                 "drop table person_sample",
-                                "create table person_sample select state, pumano, hhid, serialno, pnum, pweight, agep, gender, race, employment, relate from person_pums",
+                                "create table person_sample select state, pumano, hhid, serialno, pnum, agep, gender, race, employment, relate from person_pums",
                                 "alter table person_sample add index(serialno, pnum)",
                                 "drop table hhld_sample_temp",
                                 "alter table hhld_sample drop column hhldrage",
@@ -87,13 +87,13 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigin
                                   "alter table person_sample add index(serialno, pnum)",
 
                                   "drop table hhld_sample_temp",
-                                  "alter table hhld_sample drop column agep",
+                                  "alter table hhld_sample drop column hhldrage",
                                   "alter table hhld_sample rename to hhld_sample_temp",
                                   "drop table hhld_sample",
-                                  "create table hhld_sample select hhld_sample_temp.*, agep from hhld_sample_temp left join person_sample using(serialno) where relate = 0",
+                                  "create table hhld_sample select hhld_sample_temp.*, agep as hhldrage from hhld_sample_temp left join person_sample using(serialno) where relate = 0",
                                   "alter table hhld_sample add index(serialno)",
-                                  "update hhld_sample set agep = 1 where agep <=7 ",
-                                  "update hhld_sample set agep = 2 where agep >7",
+                                  "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
+                                  "update hhld_sample set hhldrage = 2 where hhldrage >7",
                                   "drop table hhld_sample_temp",
                                   "drop table person_pums1"]
 
@@ -371,14 +371,13 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column race25 bigint",
                          "alter table %s add column race26 bigint",
                          "alter table %s add column race27 bigint",
-                         #"alter table %s add column employment1 bigint",
-                         #"alter table %s add column employment2 bigint",
-                         #"alter table %s add column employment3 bigint",
-                         #"alter table %s add column employment4 bigint",
+                         "alter table %s add column employment1 bigint",
+                         "alter table %s add column employment2 bigint",
+                         "alter table %s add column employment3 bigint",
+                         "alter table %s add column employment4 bigint",
                          "alter table %s add column childpresence1 bigint",
                          "alter table %s add column childpresence2 bigint",
                          "alter table %s add column groupquarter1 bigint",
-                         #"alter table %s add column groupquarter2 bigint",
                          "alter table %s add column hhldinc1 bigint",
                          "alter table %s add column hhldinc2 bigint",
                          "alter table %s add column hhldinc3 bigint",
@@ -409,6 +408,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column check_race bigint",
                          "alter table %s add column check_race1 bigint",
                          "alter table %s add column check_race2 bigint",
+                         "alter table %s add column check_employment bigint",
                          
                          "alter table %s add column check_type bigint",
                          "alter table %s add column check_size bigint",
@@ -416,6 +416,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column check_hhldrage bigint",
                          "alter table %s add column check_inc bigint",
                          "alter table %s add column check_child bigint",
+                         
 
 
                          "update %s set agep1 = (B01001000003)+(B01001000027)",
@@ -454,12 +455,30 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set race26 = B01001F00001",
                          "update %s set race27 = B01001G00001",
 
-                         #"update %s set employment1 = agep1+agep2+P008018+P008057",
-                         #"update %s set employment2 = P043004+P043006+P043011+P043013",
-                         #"update %s set employment3 = P043007+P043014",
-                         #"update %s set employment4 = P043008+P043015",
+                         """update %s set employment2 = (B23001000005 + B23001000007) + (B23001000012 + B23001000014) + """
+                         """(B23001000019 + B23001000021) + (B23001000026 + B23001000028) + (B23001000033 + B23001000035) + """
+                         """(B23001000040 + B23001000042) + (B23001000047 + B23001000049) + (B23001000054 + B23001000056) + """
+                         """(B23001000061 + B23001000063) + (B23001000068 + B23001000070) + (B23001000075 + B23001000080 + B23001000085) + """
+                         """(B23001000091 + B23001000093) + (B23001000098 + B23001000100) + """
+                         """(B23001000105 + B23001000107) + (B23001000112 + B23001000114) + (B23001000119 + B23001000121) + """
+                         """(B23001000126 + B23001000128) + (B23001000133 + B23001000135) + (B23001000140 + B23001000142) + """
+                         """(B23001000147 + B23001000149) + (B23001000154 + B23001000156) + (B23001000161 + B23001000166 + B23001000171)""",
+
+                         """update %s set employment3 = (B23001000008 + B23001000015 + B23001000022 + """
+                         """B23001000029 + B23001000036 + B23001000043 + B23001000050 + B23001000057 + B23001000064 +"""
+                         """B23001000071 + B23001000076 + B23001000081 + B23001000086 + B23001000094 + B23001000101 +"""
+                         """B23001000108 + B23001000115 + B23001000122 + B23001000129 + B23001000136 + B23001000143 +"""
+                         """B23001000150 + B23001000157 + B23001000162 + B23001000167 + B23001000172) """,
+
+                         """update %s set employment4 = (B23001000009 + B23001000016 + B23001000023 + """
+                         """B23001000030 + B23001000037 + B23001000044 + B23001000051 + B23001000058 + B23001000065 +"""
+                         """B23001000072 + B23001000077 + B23001000082 + B23001000087 + B23001000095 + B23001000102 +"""
+                         """B23001000109 + B23001000116 + B23001000123 + B23001000130 + B23001000137 + B23001000144 +"""
+                         """B23001000151 + B23001000158 + B23001000163 + B23001000168 + B23001000173) """,
+
+                         "update %s set employment1 = gender1 + gender2 - employment2 - employment3 - employment4",
+
                          "update %s set groupquarter1 = B26001000001",
-                         #"update %s set groupquarter2 = P009027",
                          "update %s set hhldinc1 = B19001000002 + B19001000003",
                          "update %s set hhldinc2 = B19001000004 + B19001000005",
                          "update %s set hhldinc3 = B19001000006 + B19001000007",
@@ -493,6 +512,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set check_race = race1+race2+race3+race4+race5+race6+race7",
                          "update %s set check_race1 = race11+race12+race13+race14+race15+race16+race17",
                          "update %s set check_race2 = race21+race22+race23+race24+race25+race26+race27",
+                         "update %s set check_employment = employment1 + employment2 + employment3 + employment4",
 
                          "update %s set check_type = hhldtype1+hhldtype2+hhldtype3+hhldtype4+hhldtype5",
                          "update %s set check_size = hhldsize1+hhldsize2+hhldsize3+hhldsize4+hhldsize5+hhldsize6+hhldsize7",
