@@ -519,11 +519,17 @@ class RunDialog(QDialog):
                            """ left join person_marginals using(state, county, tract, bg)"""):
             raise FileError, query.lastError().text()
         
+        if self.gqAnalyzed:
+            if not query.exec_("""create table hhld_marginals_modpgq select hhld_marginals_modp.*, gqtotal from hhld_marginals_modp"""
+                               """ left join gq_marginals using(state, county, tract, bg)"""):
+                raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""create table hhld_marginals_modpgq select * from hhld_marginals_modp"""):
+                raise FileError, query.lastError().text()
+            
+            if not query.exec_("""alter table hhld_marginals_modpgq add column gqtotal bigint"""):
+                raise FileError, query.lastError().text()
 
-        if not query.exec_("""create table hhld_marginals_modpgq select hhld_marginals_modp.*, gqtotal from hhld_marginals_modp"""
-                           """ left join gq_marginals using(state, county, tract, bg)"""):
-            raise FileError, query.lastError().text()
-        
 
     def createHhldVarProportions(self):
         databaseName = self.project.name
