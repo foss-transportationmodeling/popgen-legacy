@@ -991,15 +991,8 @@ class DisplayMapsDlg(QDialog):
             self.variableCatsListWidget.setMaximumWidth(100)
         
             self.legendTable = QTableWidget()
-            self.legendTable.setColumnCount(3)
-            self.legendTable.setRowCount(5)
 
-            
-            for i in range(6):
-                item = QTableWidgetItem(1000)
-                item.setBackgroundColor(QColor(255, 255- (50 * i), 255 - (50 * i)))
-                if i > 0:
-                    self.legendTable.setItem(i-1,2,item)
+
 
             self.legendTable.setMaximumWidth(335)
             self.legendTable.setMaximumHeight(255)
@@ -1114,14 +1107,33 @@ class DisplayMapsDlg(QDialog):
 
 
     def updateCatLimits(self):
-        if self.minProp <> 0 and self.intervalLength <> 0:
-            for i in range(5):
-                itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
-                itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
-                self.legendTable.setItem(i, 0, itemMin)
-                self.legendTable.setItem(i, 1, itemMax)
-            
+        print 'minimum prop', self.minProp, 'maximum prop', self.maxProp
+        self.updateColumnHeaders()
+        if self.minProp <> 0 and self.maxProp <> 0:
+            if self.minProp <> self.maxProp:
+                for i in range(5):
+                    itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
+                    itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
+                    self.legendTable.setItem(i, 0, itemMin)
+                    self.legendTable.setItem(i, 1, itemMax)
+            else:
+                itemMin = QTableWidgetItem('%.4f' %(self.minProp), 1000)
+                itemMax = QTableWidgetItem('%.4f' %(self.minProp), 1000)
+                self.legendTable.setItem(0,0,itemMin)
+                self.legendTable.setItem(0,1,itemMax)
 
+
+    def updateColumnHeaders(self):
+        item = QTableWidgetItem('Minimum', 1000)
+        self.legendTable.setHorizontalHeaderItem(0, item)
+        
+        item = QTableWidgetItem('Maximum', 1000)
+        self.legendTable.setHorizontalHeaderItem(1, item)
+        
+        item = QTableWidgetItem('Color', 1000)
+        self.legendTable.setHorizontalHeaderItem(2, item)
+            
+        
 
     def isValid(self):
         retval = -1
@@ -1250,10 +1262,29 @@ class DisplayMapsDlg(QDialog):
                 else:
                     distDict[i] = ceil((distDict[i]-self.minProp)/self.intervalLength)
 
+
+            if self.minProp == self.maxProp:
+                self.legendTable.clear()
+                self.legendTable.setColumnCount(3)
+                self.legendTable.setRowCount(1)
+                item = QTableWidgetItem(1000)
+                item.setBackgroundColor(QColor(255, 205, 205))
+                self.legendTable.setItem(0, 2, item)
+            else:
+                self.legendTable.clear()
+                self.legendTable.setColumnCount(3)
+                self.legendTable.setRowCount(5)
+                for i in range(6):
+                    item = QTableWidgetItem(1000)
+                    item.setBackgroundColor(QColor(255, 255- (50 * i), 255 - (50 * i)))
+                    if i > 0:
+                        self.legendTable.setItem(i-1,2,item)
+
         # proportions calculated, categories calculated
         # TO DO - append to the shapefile? show the colors?
                 
         except Exception, e:
+            print e
             self.minProp = 0
             self.maxProp = 0
             self.intervalLength = 0
