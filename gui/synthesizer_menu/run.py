@@ -527,7 +527,7 @@ class RunDialog(QDialog):
             if not query.exec_("""create table hhld_marginals_modpgq select * from hhld_marginals_modp"""):
                 raise FileError, query.lastError().text()
             
-            if not query.exec_("""alter table hhld_marginals_modpgq add column gqtotal bigint"""):
+            if not query.exec_("""alter table hhld_marginals_modpgq add column gqtotal bigint default 0"""):
                 raise FileError, query.lastError().text()
 
 
