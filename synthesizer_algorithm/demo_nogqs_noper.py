@@ -62,7 +62,7 @@ def configure_and_run(project, geo, varCorrDict):
 
 # Checking marginal totals
     hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict,
-                                                                                    person.adjControlsDicts.hhld,
+                                                                                    project.adjControlsDicts.hhld,
                                                                                     state, county, tract, bg)
 
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
@@ -79,7 +79,7 @@ def configure_and_run(project, geo, varCorrDict):
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
     hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
-                                                                             person.adjControlsDicts.hhld,
+                                                                             project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
                                                                              parameters)
