@@ -50,9 +50,10 @@ class Absreldiff(Matplot):
             self.axes.grid(True)
 
             #self.axes.hist(err, range=(1,10), normed=True, cumulative=False, histtype='bar', align='mid', orientation='vertical', log=False)
-            self.axes.hist(self.err , normed=False, align='mid', bins=10)
+            self.axes.hist(self.err , normed=False, align='left', bins=10)
             self.axes.set_xlabel("Average Absolute Relative Differences")
             self.axes.set_ylabel("Frequency")
+            self.axes.set_xlim(xmin=0)
             self.canvas.draw()
 
     def retrieveResults(self):
