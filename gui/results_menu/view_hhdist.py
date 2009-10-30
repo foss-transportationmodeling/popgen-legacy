@@ -211,14 +211,17 @@ class Hhdist(Matplot):
         self.axes.grid(True)
         N=len(actTotal)
         ind = np.arange(N)
-        width = 0.35
+        width = 0.3
 
         rects1 = self.axes.bar(ind, actTotal, width, color='r')
         rects2 = self.axes.bar(ind+width, estTotal, width, color='y')
         self.axes.set_xlabel("Housing Variables")
         self.axes.set_ylabel("Frequency")
         self.axes.set_xticks(ind+width)
-        self.axes.set_xticklabels(self.catlabels)
+        if (len(self.catlabels[0]) >= 11 and len(self.catlabels) >=5):
+            self.axes.set_xticklabels(self.catlabels, size='x-small')
+        else:
+            self.axes.set_xticklabels(self.catlabels)
         self.axes.legend((rects1[0], rects2[0]), ('Actual', 'Synthetic'))
         self.canvas.draw()
 

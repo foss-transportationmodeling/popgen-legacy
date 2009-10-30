@@ -182,7 +182,10 @@ class Ppdist(Matplot):
         self.axes.set_ylabel("Frequency")
         self.axes.set_xticks(ind+width)
         # generic labels should be created
-        self.axes.set_xticklabels(self.catlabels)
+        if len(self.catlabels[0]) >= 11 and len(self.catlabels) >=5:
+            self.axes.set_xticklabels(self.catlabels, size='x-small')
+        else:
+            self.axes.set_xticklabels(self.catlabels)
         self.axes.legend((rects1[0], rects2[0]), ('Actual', 'Synthetic'))
         self.canvas.draw()
 
