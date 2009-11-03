@@ -258,11 +258,11 @@ class AutoImportSF2000Data():
         filenumber = str(filenumber).rjust(5, '0')
 
         if tablenumber is None and filenumber is not None:
-            if not self.query.exec_("""select tablenumber, numcat from sf3filestablescorr"""
+            if not self.query.exec_("""select tabletype, tablenumber, numcat from sf3filestablescorr"""
                                     """ where filenumber = %s order by tablenumber""" %filenumber):
                 raise FileError, self.query.lastError().text()
         if tablenumber is not None:
-            if not self.query.exec_("""select tablenumber, numcat from sf3filestablescorr"""
+            if not self.query.exec_("""select tabletype, tablenumber, numcat from sf3filestablescorr"""
                                     """ where filenumber = %s and includeflag = 1""" %filenumber):
                 raise FileError, self.query.lastError().text()
         if filenumber is None and tablenumber is None:
@@ -270,13 +270,19 @@ class AutoImportSF2000Data():
 
 
         while self.query.next():
-            tablenumber = str(self.query.value(0).toInt()[0]).rjust(3, '0')
-            numcat = self.query.value(1).toInt()[0]
+            tabletype = self.query.value(0).toString()
+            tablenumber = str(self.query.value(1).toInt()[0]).rjust(3, '0')
+            numcat = self.query.value(2).toInt()[0]
+ 
+            #print 'tables', tablenumber, numcat
+            
             for i in range(numcat):
-                colname = 'P'+ tablenumber + str(i+1).rjust(3, '0')
+                colname = '%s'%tabletype + tablenumber + str(i+1).rjust(3, '0')
                 variables.append(colname)
                 variabletypes.append('bigint')
                 #print colname
+
+        print len(variables), len(variabletypes)
 
         return variables, variabletypes
 
