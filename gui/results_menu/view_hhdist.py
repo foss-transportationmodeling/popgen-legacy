@@ -218,6 +218,8 @@ class Hhdist(Matplot):
         self.axes.set_xlabel("Housing Variables")
         self.axes.set_ylabel("Frequency")
         self.axes.set_xticks(ind+width)
+        if len(self.catlabels) >=10:
+            self.axes.set_xticklabels(self.catlabels, size='xx-small')
         if (len(self.catlabels[0]) >= 8 and len(self.catlabels) >=5):
             self.axes.set_xticklabels(self.catlabels, size='x-small')
         else:
