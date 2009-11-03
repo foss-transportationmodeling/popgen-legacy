@@ -1112,7 +1112,7 @@ class DisplayMapsDlg(QDialog):
         self.updateColumnHeaders()
         if self.minProp <> 0 and self.maxProp <> 0:
             if self.minProp <> self.maxProp:
-                for i in range(5):-
+                for i in range(5):
                     itemMin = QTableWidgetItem('%.4f' %(self.minProp + i * self.intervalLength), 1000)
                     itemMax = QTableWidgetItem('%.4f' %(self.minProp + (i+ 1) * self.intervalLength), 1000)
                     self.legendTable.setItem(i, 0, itemMin)
