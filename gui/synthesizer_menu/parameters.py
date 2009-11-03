@@ -145,7 +145,7 @@ class ParametersDialog(QDialog):
         if self.stochasticRadio.isChecked():
             self.project.parameters.roundingProcedure = 'stochastic'
 
-        print 'rounding procedure', self.project.parameters.roundingProcedure
+        #print 'rounding procedure', self.project.parameters.roundingProcedure
 
         QDialog.accept(self)
 
@@ -174,4 +174,4 @@ if __name__ == "__main__":
     form = ParametersDialog(a)
     #form = TabWidget(a)
     form.show()
-    print app.exec_()
+    app.exec_()

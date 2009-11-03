@@ -152,6 +152,7 @@ class SetCorrDialog(QDialog):
 
     def acceptCheck(self):
         if self.tabWidget.housingTab.modifyMargsYes.isChecked():
+            #print 'in correspondence hhlds are modified'
             self.project.selVariableDicts.hhldMargsModify = True
             self.project.selVariableDicts.hhldSizeVarName = self.tabWidget.housingTab.hhldsizeVarNameComboBox.currentText()
             self.project.selVariableDicts.aveHhldSizeLastCat = self.tabWidget.housingTab.hhldsizeAverageLineEdit.text()
@@ -172,6 +173,8 @@ class SetCorrDialog(QDialog):
 
 
         if self.tabWidget.housingTab.check():
+            #print 'original', self.project.selVariableDicts.hhld
+            #print 'modified', self.tabWidget.housingTab.selVariables
             if self.project.selVariableDicts.hhld <> self.tabWidget.housingTab.selVariables:
                 self.project.selVariableDicts.hhld = self.tabWidget.housingTab.selVariables
                 self.project.hhldVars, self.project.hhldDims =  self.checkIfRelationsDefined(self.project.selVariableDicts.hhld)

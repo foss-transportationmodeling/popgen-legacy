@@ -1,3 +1,4 @@
+
 # PopGen 1.0 is A Synthetic Population Generator for Advanced
 # Microsimulation Models of Travel Demand
 # Copyright (C) 2009, Arizona State University
@@ -550,7 +551,6 @@ class RunDialog(QDialog):
                 if not query.exec_("""alter table hhld_marginals_modpgq add column p%s float(27)""" %j):
                     print "FileError: %s" %query.lastError().text()
 
-                print ("""update hhld_marginals_modpgq set p%s = %s/(%s)""" %(j, j, sumString))
                 if not query.exec_("""update hhld_marginals_modpgq set p%s = %s/(%s)""" %(j, j, sumString)):
                     raise FileError, query.lastError().text()
 
@@ -583,14 +583,17 @@ class RunDialog(QDialog):
         hhldsizePEQString = hhldsizePEQString + vars[-1]+'*%s' %hhldSize
         #print 'hhldsizemod string after - ', hhldsizePEQString + vars[-1]+'*%s' %hhldSize
 
+        # this is a makeshift change to modify the marginals distributions
+        print hhldsizePEQPString
+        hhldsizePEQPString = hhldsizePEQPString + '+ p' + vars[-1] +'*%s' %hhldSize
+        print hhldsizePEQPString
+
 
         hhldsizePSumString = hhldsizePSumString[:-1]
 
         # Creating person equivalents column
         if not query.exec_("""alter table hhld_marginals_modpgq add column perseq bigint"""):
             print "FileError: %s" %query.lastError().text()
-
-        print ("""update hhld_marginals_modpgq set perseq = %s + gqtotal""" %(hhldsizePEQString))
 
         if not query.exec_("""update hhld_marginals_modpgq set perseq = %s + gqtotal""" %(hhldsizePEQString)):
             raise FileError, query.lastError().text()
@@ -609,9 +612,9 @@ class RunDialog(QDialog):
         if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = perstotdef/(%s)""" %hhldsizePEQPString):
             raise FileError, query.lastError().text()
 
-        print 'PEQ string', hhldsizePEQString            
-        print 'PEQP String', hhldsizePEQPString
-        print 'PSUM String', hhldsizePSumString
+        #print 'PEQ string', hhldsizePEQString            
+        #print 'PEQP String', hhldsizePEQPString
+        #print 'PSUM String', hhldsizePSumString
 
 
     def calcModifiedMarginals(self):
@@ -623,6 +626,20 @@ class RunDialog(QDialog):
 
         #calculating the proportions
 
+        #print self.project.selVariableDicts.hhld.keys()
+
+        hhldsizeVar = self.project.selVariableDicts.hhldSizeVarName
+        hhldSizeCats = self.project.selVariableDicts.hhld['%s'%hhldsizeVar].keys()
+
+        numCats = len(hhldSizeCats)
+
+        #print self.project.selVariableDicts.hhld
+
+
+        lastCatKey = hhldsizeVar + ', Category %s'%numCats
+        
+        lastCatMarg = self.project.selVariableDicts.hhld['%s'%hhldsizeVar]['%s'%lastCatKey]
+
         for i in self.project.selVariableDicts.hhld.keys():
             sumString = ''
             for j in self.project.selVariableDicts.hhld[i].values():
@@ -630,10 +647,22 @@ class RunDialog(QDialog):
             sumString = sumString[:-1]
 
             for j in self.project.selVariableDicts.hhld[i].values():
+                #print ("""alter table hhld_marginals_modpgq add column mod%s float(27)""" %j)
                 if not query.exec_("""alter table hhld_marginals_modpgq add column mod%s float(27)""" %j):
                     print "FileError: %s" %query.lastError().text()
 
-                print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef)""" %(j, j, j))
+                # this is a makeshift change to modify the marginals distributions                   
+                #if j == lastCatMarg and i == hhldsizeVar:
+                #    #print 'last category marginal found'
+                #    print ("""update hhld_marginals_modpgq set mod%s = %s """ %(j, j))
+                #    if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s """ %(j, j)):
+                #        raise FileError, query.lastError().text()        
+                #else:
+                #    print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j))
+                #    if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j)):
+                #        raise FileError, query.lastError().text()        
+
+                #print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j))
                 if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j)):
                     raise FileError, query.lastError().text()        
 
@@ -681,7 +710,6 @@ class RunDialog(QDialog):
         self.projectDBC.dbc.open()
 
         tables = self.tableList()
-        print tables
         query = QSqlQuery(self.projectDBC.dbc)
         for i in tables:
             if not query.exec_("""drop table %s""" %i):
