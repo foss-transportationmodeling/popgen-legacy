@@ -65,7 +65,7 @@ class Hhmap(QDialog):
 
 
         self.canvas.setExtent(self.geoglayer.extent())
-        print "MapCanvas layer count: ",self.canvas.layerCount()
+        #print "MapCanvas layer count: ",self.canvas.layerCount()
 
         self.toolbar = Toolbar(self.canvas, self.hhlayer)
         vLayout = QVBoxLayout()
@@ -82,7 +82,7 @@ class Hhmap(QDialog):
             feat = QgsFeature()
             self.layer.getFeatureAtId(featid, feat)
             sel_feats.append(feat)
-        print sel_ids
+        #print sel_ids
 
         basepath = inlayer_loc.split('.shp')
         dbfpath = basepath[0] + '.dbf'
