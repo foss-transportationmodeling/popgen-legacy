@@ -153,6 +153,9 @@ class ImportUserProvData():
 
         #print firstrow, len(firstrow)
 
+        #print 'lenght of variable names',len(self.varNames)
+        #print 'length of the first row', len(firstrow)
+
         if len(self.varNames) <> len(firstrow):
             raise FileError, "Enter the same number of variable names as columns in the data file."
 
