@@ -315,7 +315,6 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
         if not self.project.controlUserProv.userProv:
-            print tablename[:13]
             if tablename[:13] == 'mastersftable':
                 checkSFTableTransforms = True
 
@@ -395,7 +394,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             if check1 and check2:
                 pass
             else:
-                print 'Poject properties altered'
+                #print 'Poject properties altered'
                 self.page.updateProject()
                 self.project = self.page.project
                 self.project.save()
@@ -403,7 +402,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
             if not check2 and not self.project.controlUserProv.userProv:
 
-                print 'Project resolution changed'
+                #print 'Project resolution changed'
                 autoImportSFDataInstance = AutoImportSF2000Data(self.project)
                 autoImportSFDataInstance.createMasterSubSFTable()
                 autoImportSFDataInstance.projectDBC.dbc.close()
