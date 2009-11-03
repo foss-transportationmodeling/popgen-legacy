@@ -184,7 +184,7 @@ class Ppdist(Matplot):
         # generic labels should be created
         if len(self.catlabels) >=10:
             self.axes.set_xticklabels(self.catlabels, size='xx-small')
-        if (len(self.catlabels[0]) >= 8 and len(self.catlabels) >=5):
+        elif (len(self.catlabels[0]) >= 8 and len(self.catlabels) >=5):
             self.axes.set_xticklabels(self.catlabels, size='x-small')
         else:
             self.axes.set_xticklabels(self.catlabels)
