@@ -404,7 +404,7 @@ class MainWindow(QMainWindow):
         
 
     def windowDirty(self, value):
-        print 'entering dirty %s' %value
+        #print 'entering dirty %s' %value
         if value:
             self.setWindowTitle("PopGen: Version-1.0 %s*" %self.project.name)
         else:
