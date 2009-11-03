@@ -69,7 +69,7 @@ def configure_and_run(project, geo, varCorrDict):
 # Checking marginal totals
     hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict,
                                                                                     project.adjControlsDicts.hhld,
-                                                                                    state, county, tract, bg)
+                                                                                    state, county, tract, bg, project.selVariableDicts.hhldMargsModify)
     gq_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'gq', gq_control_variables,
                                                                                   varCorrDict,
                                                                                   project.adjControlsDicts.gq,
@@ -94,7 +94,7 @@ def configure_and_run(project, geo, varCorrDict):
                                                                              project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
-                                                                             parameters)
+                                                                             parameters, project.selVariableDicts.hhldMargsModify)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
@@ -191,7 +191,6 @@ def configure_and_run(project, geo, varCorrDict):
             max_p_person_attributes = synthetic_person_attributes
             min_chi = stat
 
-        print 'draw_count - %s, pvalue - %s, chi value - %s' %(draw_count, p_value, stat)
     sp_matrix = None
 
 

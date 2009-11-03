@@ -61,10 +61,12 @@ def configure_and_run(project, geo, varCorrDict):
     hhld_dimensions = project.hhldDims
     person_dimensions = project.personDims
 
+    print 'in demo hhlds are modified', project.selVariableDicts.hhldMargsModify
+
 # Checking marginal totals
     hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict,
                                                                                     project.adjControlsDicts.hhld,
-                                                                                    state, county, tract, bg)
+                                                                                    state, county, tract, bg, project.selVariableDicts.hhldMargsModify)
     person_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'person', person_control_variables, varCorrDict,
                                                                                       project.adjControlsDicts.person,
                                                                                       state, county, tract, bg)
@@ -91,7 +93,7 @@ def configure_and_run(project, geo, varCorrDict):
                                                                              project.adjControlsDicts.hhld, 
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
-                                                                             parameters)
+                                                                             parameters, project.selVariableDicts.hhldMargsModify)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 

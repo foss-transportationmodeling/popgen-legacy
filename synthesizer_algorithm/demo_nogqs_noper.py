@@ -63,7 +63,7 @@ def configure_and_run(project, geo, varCorrDict):
 # Checking marginal totals
     hhld_marginals = adjusting_sample_joint_distribution.prepare_control_marginals (db, 'hhld', hhld_control_variables, varCorrDict,
                                                                                     project.adjControlsDicts.hhld,
-                                                                                    state, county, tract, bg)
+                                                                                    state, county, tract, bg, project.selVariableDicts.hhldMargsModify)
 
     print 'Step 1A: Checking if the marginals totals are non-zero and if they are consistent across variables...'
     print '\tChecking household variables\n'
@@ -82,7 +82,7 @@ def configure_and_run(project, geo, varCorrDict):
                                                                              project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
-                                                                             parameters)
+                                                                             parameters, project.selVariableDicts.hhldMargsModify)
     print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
     ti = time.clock()
 
