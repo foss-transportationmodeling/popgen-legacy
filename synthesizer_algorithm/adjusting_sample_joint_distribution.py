@@ -236,7 +236,9 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         
         variable_marginals1=[]
         try:
+            #print hhldsizeMargsMod
             if (not hhldsizeMargsMod and synthesis_type == 'hhld') or synthesis_type <> 'hhld':
+                #print 'household not modified in correspondence'
                 variable_marginals_adj = controlAdjDict[selGeography][selVar]
             #print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
                 for i in variable_marginals_adj[1]:
