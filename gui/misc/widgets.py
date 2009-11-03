@@ -1107,7 +1107,7 @@ class DisplayMapsDlg(QDialog):
 
 
     def updateCatLimits(self):
-        print 'minimum prop', self.minProp, 'maximum prop', self.maxProp
+        #print 'minimum prop', self.minProp, 'maximum prop', self.maxProp
         self.updateColumnHeaders()
         if self.minProp <> 0 and self.maxProp <> 0:
             if self.minProp <> self.maxProp:
