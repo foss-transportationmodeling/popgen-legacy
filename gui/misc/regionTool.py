@@ -23,12 +23,12 @@ class regionTool(QgsMapTool):
 
 
     def canvasPressEvent(self,event):
-        print "got an event"
+        #print "got an event"
         self.selectRect.setRect(event.pos().x(),event.pos().y(),0,0)
-        print event.pos().x(),event.pos().y()
+        #print event.pos().x(),event.pos().y()
         transform = self.canvas.getCoordinateTransform()
         coord = transform.toMapCoordinates(event.pos().x(),event.pos().y())
-        print coord.x(), coord.y()
+        #print coord.x(), coord.y()
 
     def canvasMoveEvent(self,event):
         if not event.buttons() == Qt.LeftButton:
@@ -64,7 +64,8 @@ class regionTool(QgsMapTool):
 
 
     def deactivate(self):
-        print "Deactivate!"
+        pass
+        #print "Deactivate!"
 
 
     def isZoomTool(self):
