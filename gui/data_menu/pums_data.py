@@ -39,7 +39,7 @@ class UserImportSampleData():
             if not self.query.exec_(hhldTableQuery.query2):
                 raise FileError, self.query.lastError().text()
 
-            print 'hhld index'
+            #print 'hhld index'
             if not self.query.exec_("""alter table hhld_sample add index(serialno)"""):
                 #raise FileError, self.query.lastError().text()
                 print "Warning: %s" %self.query.lastError.text()
@@ -62,7 +62,7 @@ class UserImportSampleData():
                 if not self.query.exec_(gqTableQuery.query2):
                     raise FileError, self.query.lastError().text()
 
-                print 'gq index'
+                #print 'gq index'
                 if not self.query.exec_("""alter table gq_sample add index(serialno)"""):
                     #raise FileError, self.query.lastError().text()
                     print "Warning: %s" %self.query.lastError.text()
@@ -80,7 +80,7 @@ class UserImportSampleData():
             if not self.query.exec_(personTableQuery.query2):
                 raise FileError, self.query.lastError().text()
 
-            print 'person index'
+            #print 'person index'
             if not self.query.exec_("""alter table person_sample add index(serialno, pnum)"""):
                 #raise FileError, self.query.lastError().text()
                 print "Warning: %s" %self.query.lastError.text()
@@ -548,7 +548,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
             dummyString = dummyString + i + ','
             
         dummyString = dummyString[:-1]
-        print dummyString
+        #print dummyString
         
         
 
@@ -584,9 +584,9 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
             dummyString = dummyString + i + ','
             
         dummyString = dummyString[:-1]
-        print dummyString
+        #print dummyString
 
-        print 'time for creating the raw person table - ', time.time()-ti
+        #print 'time for creating the raw person table - ', time.time()-ti
 
         ti = time.time()
 
@@ -595,7 +595,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
                                 %(dummyString)):
             raise FileError, self.query.lastError().text()
 
-        print 'time for creating the small person table - ', time.time()-ti
+        #print 'time for creating the small person table - ', time.time()-ti
 
         
 

@@ -282,7 +282,7 @@ class AutoImportSF2000Data():
                 variabletypes.append('bigint')
                 #print colname
 
-        print len(variables), len(variabletypes)
+        #print len(variables), len(variabletypes)
 
         return variables, variabletypes
 
