@@ -136,7 +136,7 @@ class SampleDataPage(QWizardPage):
         self.sourceComboBox.setCurrentIndex(0)
         self.sourceDummmy = True
 
-        print 'made true'
+        #print 'made true'
 
         self.emit(SIGNAL("completeChanged()"))
 
@@ -172,7 +172,7 @@ class SampleDataPage(QWizardPage):
     def isComplete(self):
         if self.sampleUserProvRadio.isChecked():
             self.sourceDummy = True
-        print self.sampleHHLocationDummy, self.samplePersonLocationDummy, self.sourceDummy
+        #print self.sampleHHLocationDummy, self.samplePersonLocationDummy, self.sourceDummy
         validate = self.sampleHHLocationDummy and self.samplePersonLocationDummy and self.sourceDummy
         if validate:
             return True

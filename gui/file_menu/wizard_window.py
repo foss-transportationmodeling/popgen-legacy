@@ -69,7 +69,7 @@ class LineEdit(QLineEdit):
 
     def check(self):
         string = self.text()
-        print string
+        #print string
         if len(string)<>0:
             for i in string:
                 if not re.match("[A-Za-z_]", i):

@@ -182,14 +182,14 @@ class IntroPage(QWizardPage):
             item.parent().text(0)
             if self.parent is None:
                 self.parent = item.parent()
-                print 'current parent', self.parent.text(0)
+                #print 'current parent', self.parent.text(0)
             elif self.parent <> item.parent():
                 self.parent = item.parent()
                 self.clearOtherParentSelection()
         except Exception, e:
             print e
             self.parent = item
-            print 'county selected parent is ', self.parent.text(0)
+            #print 'county selected parent is ', self.parent.text(0)
             self.clearOtherParentSelection()
             self.selectParentBranch()
 

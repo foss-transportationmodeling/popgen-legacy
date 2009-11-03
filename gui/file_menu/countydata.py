@@ -36,7 +36,7 @@ class CountyContainer(object):
         def compare(a,b):
             if a.state != b.state:
                 return QString.localeAwareCompare(a.state, b.state)
-            print a.county, b.county
+            #print a.county, b.county
             return QString.localAwareCompare(a.county, b.county)
         return sorted(self.counties.values(), compare)
 

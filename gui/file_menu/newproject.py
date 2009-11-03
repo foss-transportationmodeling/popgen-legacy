@@ -129,7 +129,7 @@ class NewProject(object):
 
     def save(self):
         self.filename = self.name + 'scenario' + str(self.scenario)
-        print self.filename
+        #print self.filename
 
         with open('%s/%s/%s.pop' %(self.location, self.name, self.filename),
                   'wb') as f:
