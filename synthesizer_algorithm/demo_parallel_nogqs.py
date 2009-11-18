@@ -239,7 +239,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict):
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
     start = time.time()
-    print 'Number of geographies is %s'%(len(geoIds))
+    #print 'Number of geographies is %s'%(len(geoIds))
     modules = ('synthesizer_algorithm.heuristic_algorithm_nogqs',
                'synthesizer_algorithm.drawing_households',
                'synthesizer_algorithm.adjusting_sample_joint_distribution',
@@ -252,7 +252,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict):
                'time',
                'scipy.stats')
 
-    print 'Using %d cores on the processor' %(job_server.get_ncpus())
+    #print 'Using %d cores on the processor' %(job_server.get_ncpus())
 
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
@@ -260,8 +260,8 @@ def run_parallel(job_server, project, geoIds, varCorrDict):
                                                         varCorrDict), (), modules)) for geo in geoIds]
     for geo, job in jobs:
         job()
-    job_server.print_stats()
+    #job_server.print_stats()
 
-    print ' Total time for %d geographies - %.2f, Timing per geography - %.2f' %(len(geoIds), time.time()-start, (time.time()-start)/len(geoIds))
+    #print ' Total time for %d geographies - %.2f, Timing per geography - %.2f' %(len(geoIds), time.time()-start, (time.time()-start)/len(geoIds))
 
 
