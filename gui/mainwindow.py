@@ -1,4 +1,4 @@
-# PopGen 1.0 is A Synthetic Population Generator for Advanced
+# PopGen 1.1 is A Synthetic Population Generator for Advanced
 # Microsimulation Models of Travel Demand 
 # Copyright (C) 2009, Arizona State University
 # See PopGen/License
@@ -396,7 +396,7 @@ class MainWindow(QMainWindow):
         file = os.path.realpath(file)
         with open(file, 'rb') as f:
             self.project = pickle.load(f)
-            self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
+            self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
         self.project.scenario = index + 1
         self.project.save()
         self.fileManager.project = self.project
@@ -406,9 +406,9 @@ class MainWindow(QMainWindow):
     def windowDirty(self, value):
         #print 'entering dirty %s' %value
         if value:
-            self.setWindowTitle("PopGen: Version-1.0 %s*" %self.project.name)
+            self.setWindowTitle("PopGen: Version-1.1 %s*" %self.project.name)
         else:
-            self.setWindowTitle("PopGen: Version-1.0 %s" %self.project.name)
+            self.setWindowTitle("PopGen: Version-1.1 %s" %self.project.name)
             
 
 
@@ -442,7 +442,7 @@ class MainWindow(QMainWindow):
         if self.wizard.exec_():
             #print "complete"
             self.project = self.wizard.project
-            self.setWindowTitle("PopGen: Version-1.0 (%s)" %(self.project.name))
+            self.setWindowTitle("PopGen: Version-1.1 (%s)" %(self.project.name))
             self.project.save()
             self.fileManager.project = self.project
             self.fileManager.populate()
@@ -481,7 +481,7 @@ class MainWindow(QMainWindow):
                         SaveProject(self.project)
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
-                        self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
+                        self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
                         self.fileManager.project = self.project
                         self.fileManager.populate()
                         self.enableFunctions(True)
@@ -491,7 +491,7 @@ class MainWindow(QMainWindow):
             else:
                 with open(project.file, 'rb') as f:
                     self.project = pickle.load(f)
-                    self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
+                    self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
                     self.fileManager.project = self.project
                     self.fileManager.populate()
                     self.enableFunctions(True)
@@ -518,7 +518,7 @@ class MainWindow(QMainWindow):
             if reply == QMessageBox.Yes:
                 self.project.filename = filename
                 self.project.save()
-                self.setWindowTitle("PopGen: Version-1.0 (%s)" %self.project.name)
+                self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
 
     
     def projectClose(self):
@@ -996,7 +996,7 @@ def main():
     pixmap = QPixmap("./images/splashscreen.png")
     splash = QSplashScreen(pixmap, Qt.WindowStaysOnTopHint)
     splash.show()
-    splash.showMessage("Starting PopGen 1.0 ...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
+    splash.showMessage("Starting PopGen 1.1 ...", Qt.AlignRight| Qt.AlignBottom, Qt.yellow)
 
     """
 
