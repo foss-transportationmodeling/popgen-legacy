@@ -1655,11 +1655,19 @@ class ChangeMargsDlg(DisplayMapsDlg):
             if self.totalControl == self.totalAdj:
                 return True
             else:
+                #QMessageBox.warning(self, "Modify Control Variable Distributions", 
+                #                    """The adjusted control variable distribution total must be equal to """
+                #                    """the actual control variable distribution total.""",
+                #                    QMessageBox.Ok)                        
+                #return False
                 QMessageBox.warning(self, "Modify Control Variable Distributions", 
-                                    """The adjusted control variable distribution total must be equal to """
-                                    """the actual control variable distribution total.""",
+                                    """The adjusted control variable distribution total is different from """
+                                    """the actual control variable distribution total. Please note that if you wish """
+                                    """to modify the totals please make appropriate changes to the other """
+                                    """control varaibles of interest to avoid inconsistency in the totals obtained """
+                                    """from the marginal distributions of the variables.""",
                                     QMessageBox.Ok)                        
-                return False
+                return True
 
         else:
             QMessageBox.warning(self, "Modify Control Variable Distributions", 
