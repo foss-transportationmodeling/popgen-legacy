@@ -241,27 +241,68 @@ class RunDialog(QDialog):
                 bins = int(floor(geoCount/binsize))
 
 
-                index = [(i*binsize, i*binsize+binsize) for i in range(bins)]
-                index.append((bins*binsize, geoCount))
 
+            
+                index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
+                
+                if bins > 0:
+                    index.append((1, binsize))
+                    index.append((bins*binsize, geoCount))
+
+                else:
+                    if geoCount > 1:
+                        index.append((1, geoCount))
+
+                geo = self.runGeoIds[0]
+
+                geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
+            
+                #print 'unsorted', index
+
+                index.sort()
+
+                #print 'sorted', index
+
+                # Synthesizing the first geography in serial to create the necessary tables
+                
+                try:
+                    self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
+                                             %(geo.state, geo.county, geo.tract, geo.bg))
+                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo.configure_and_run(self.project, geo, varCorrDict)
+                    if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_noper.configure_and_run(self.project, geo, varCorrDict)
+                    if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+                    if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
+                except Exception, e:
+                    self.outputWindow.append("\t- Error in the Synthesis for geography")
+                    print ('Exception: %s' %e)
+
+                # Synthesizing the population for all geographies in parallel after the first one is done in serial
 
                 for i in index:
                     
                     if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        #print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                         demo_parallel.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        #print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                         demo_parallel_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        #print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                         demo_parallel_nogqs.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
                     if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        #print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                         demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
 
                 self.selGeographiesButton.setEnabled(False)
-                for geo in self.runGeoIds:
+                for geo in self.runGeoIds[1:]:
                     self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
