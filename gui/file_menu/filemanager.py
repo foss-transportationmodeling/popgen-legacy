@@ -135,7 +135,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         copyNameDialog = NameDialog("Copy Table - %s" %tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
-            projectDBC = createDBC(self.project.db, scenarioDatabase)
+            projectDBC = createDBC(self.project.db, database)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
