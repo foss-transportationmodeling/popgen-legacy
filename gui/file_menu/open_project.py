@@ -82,6 +82,8 @@ class SaveFile(QFileDialog):
             if not query.exec_("""create table temphou1 select housing_synthetic_data.* %s from housing_synthetic_data"""
                                """ left join hhld_sample using (serialno)""" %(hhldvarstr)):
                 raise FileError, query.lastError().text()
+            if not query.exec_("""alter table temphou1 drop column hhuniqueid"""):
+                raise FileError, query.lastError().text()
             if not query.exec_("""alter table temphou1 add index(serialno)"""):
                 raise FileError, query.lastError().text()
 
@@ -111,7 +113,7 @@ class SaveFile(QFileDialog):
                     raise FileError, query.lastError().text()                
 
             if self.project.sampleUserProv.defSource == "ACS 2005-2007":
-                print 'ACS HOUSING DATA MODIFYING THE SERIALNOS'
+                #print 'ACS HOUSING DATA MODIFYING THE SERIALNOS'
                 if not query.exec_("""drop table temphou3"""):
                     print "FileError:%s" %query.lastError().text()
                 if not query.exec_("""alter table temphou2 drop column serialno"""):
@@ -177,9 +179,13 @@ class SaveFile(QFileDialog):
             if not query.exec_("""create table tempperson select person_synthetic_data.* %s from person_synthetic_data"""
                                """ left join person_sample using (serialno)""" %(personvarstr)):
                 raise FileError, query.lastError().text()
+            if not query.exec_("""alter table tempperson drop column personuniqueid"""):
+                raise FileError, query.lastError().text()
+
+            
 
             if self.project.sampleUserProv.defSource == "ACS 2005-2007":
-                print 'ACS PERSON DATA MODIFYING THE SERIALNOS'
+                #print 'ACS PERSON DATA MODIFYING THE SERIALNOS'
                 if not query.exec_("""drop table tempperson1"""):
                     print "FileError:%s" %query.lastError().text()
                 if not query.exec_("""alter table tempperson drop column serialno"""):
