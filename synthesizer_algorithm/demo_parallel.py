@@ -160,7 +160,7 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 # Creating the control array
     total_constraint = numpy.hstack((hhld_estimated_constraint[:,0], gq_estimated_constraint[:,0], person_estimated_constraint[:,0]))
 
-    print total_constraint
+    #print total_constraint
 
 #______________________________________________________________________
 # Running the heuristic algorithm for the required geography
