@@ -81,6 +81,10 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
     else:
         dbc.execute('select %s, count(*), %suniqueid from %s_sample where pumano = %s group by %s '%(dummy, synthesis_type, synthesis_type, pumano, dummy))
         result = arr(dbc.fetchall(), int)
+        if result.shape[0] == 0:
+            print "The PUMS sample for the corresponding PUMA is empty. Therefore sample from the entire region is considered for the geography."
+            dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+            result = arr(dbc.fetchall(), int)
         dummy_table[:,:3] = [pumano, tract, bg]
         dummy_table[:,3:-1] = index_array
         dummy_table[result[:,-1]-1,-1] = result[:,-2]
