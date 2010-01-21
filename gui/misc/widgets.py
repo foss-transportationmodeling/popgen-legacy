@@ -333,7 +333,7 @@ class ListWidget(QListWidget):
         return -1
 
 class RecodeDialog(QDialog):
-    def __init__(self, project, tablename, title="", icon="", parent=None):
+    def __init__(self, project, parentText, tablename, title="", icon="", parent=None):
         super(RecodeDialog, self).__init__(parent)
 
         self.icon = icon
@@ -344,7 +344,13 @@ class RecodeDialog(QDialog):
         self.tablename = tablename
         self.variableDict = {}
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+
+        if parentText == 'Project Tables':
+            database = self.project.name
+        elif parentText == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)               
+
+        self.projectDBC = createDBC(self.project.db, database)
         self.projectDBC.dbc.open()
 
         self.setWindowTitle(title)
@@ -404,6 +410,14 @@ class RecodeDialog(QDialog):
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
         self.connect(self.oldNewButton, SIGNAL("clicked()"), self.relationOldNew)
+
+    def accept(self):
+        QDialog.accept(self)
+        self.projectDBC.dbc.close()    
+
+    def accept(self):
+        QDialog.reject(self)
+        self.projectDBC.dbc.close()    
 
     def checkNewVarName(self, name):
 
@@ -861,14 +875,20 @@ class CreateVariable(QDialog):
 
 
 class DeleteRows(QDialog):
-    def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
+    def __init__(self, project, parentText, tablename, variableTypeDict, title="", icon="", parent=None):
         super(DeleteRows, self).__init__(parent)
 
         self.setWindowTitle(title + " - %s" %tablename)
         self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+
+        if parentText == 'Project Tables':
+            database = self.project.name
+        elif parentText == 'Scenario Tables':
+            database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
+
+        self.projectDBC = createDBC(self.project.db, database)
         self.projectDBC.dbc.open()
         self.variableDict = {}
         self.variables = variableTypeDict.keys()
@@ -924,7 +944,6 @@ class DeleteRows(QDialog):
         self.connect(self.variableListWidget, SIGNAL("itemSelectionChanged()"), self.displayCats)
         self.connect(dialogButtonBox, SIGNAL("accepted()"), self, SLOT("accept()"))
         self.connect(dialogButtonBox, SIGNAL("rejected()"), self, SLOT("reject()"))
-
 
     def displayCats(self):
         varname = self.variableListWidget.currentItem().text()
