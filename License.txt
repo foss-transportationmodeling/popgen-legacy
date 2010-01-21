@@ -1,7 +1,7 @@
-PopGen 1.0 is A Synthetic Population Generator for Advanced
+PopGen 1.1 is A Synthetic Population Generator for Advanced
 Microsimulation Models of Travel Demand 
 
-Copyright (C) 2009, Arizona State University
+Copyright (C) 2010, Arizona State University
 
 The program is a free software: you can redistribute it and/or
 modify it under the terms of the GNU General Public License
