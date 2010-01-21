@@ -90,10 +90,10 @@ class QTreeWidgetCMenu(QTreeWidget):
     def deleteRows(self):
         tablename = self.item.text(0)
 
-        parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        parentText = self.item.parent().text(0)
+        if parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
             
         self.populateVariableDictionary(tablename)
@@ -101,15 +101,14 @@ class QTreeWidgetCMenu(QTreeWidget):
         projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
-        deleteRows = DeleteRows(self.project, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
+        deleteRows = DeleteRows(self.project, parentText, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
         if deleteRows.exec_():
-
+            projectDBC.dbc.open()
             reply = QMessageBox.question(self, "Delete Records", "Would you like to continue?",
                                          QMessageBox.Yes| QMessageBox.Cancel)
             if reply == QMessageBox.Yes:
 
                 query = QSqlQuery(projectDBC.dbc)
-
                 whereExpression = deleteRows.whereEdit.toPlainText()
                 #print whereExpression, 'is the text'
                 if not whereExpression == "":
@@ -199,7 +198,6 @@ class QTreeWidgetCMenu(QTreeWidget):
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
         projectDBC = createDBC(self.project.db, database)
-
         projectDBC.dbc.open()
 
         tablename = self.item.text(0)
@@ -207,6 +205,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
         if create.exec_():
+            projectDBC.dbc.open()
             newVarName = create.newVarNameEdit.text()
             numericExpression = create.formulaEdit.toPlainText()
             whereExpression = create.whereEdit.toPlainText()
@@ -217,6 +216,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             else:
                 query = QSqlQuery(projectDBC.dbc)
                 if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
+                    print ("""alter table %s add column %s text""" %(tablename, newVarName))
                     raise FileError, query.lastError().text()
                 if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName,
                                                                           numericExpression, whereExpression)):
@@ -233,20 +233,21 @@ class QTreeWidgetCMenu(QTreeWidget):
         disp.exec_()
 
     def modifyCategories(self):
-        parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        parentText = self.item.parent().text(0)
+        """
+        if parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
         projectDBC = createDBC(self.project.db, database)
 
         projectDBC.dbc.open()
-
+        """
         tablename = self.item.text(0)
-        modify = RecodeDialog(self.project, tablename, title = "Recode Categories - %s" %tablename, icon = "modifydata")
+        modify = RecodeDialog(self.project, parentText, tablename, title = "Recode Categories - %s" %tablename, icon = "modifydata")
         modify.exec_()
 
-        projectDBC.dbc.close()
+        #projectDBC.dbc.close()
 
 
     def deleteColumns(self):
