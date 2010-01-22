@@ -279,6 +279,7 @@ class RunDialog(QDialog):
                     if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
                         print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                         demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
+                    self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
                 except Exception, e:
                     self.outputWindow.append("\t- Error in the Synthesis for geography")
                     print ('Exception: %s' %e)
