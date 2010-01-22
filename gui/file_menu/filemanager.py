@@ -203,7 +203,7 @@ class QTreeWidgetCMenu(QTreeWidget):
         tablename = self.item.text(0)
         self.populateVariableDictionary(tablename)
 
-        create = CreateVariable(self.project, tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
+        create = CreateVariable(self.project, database, tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
         if create.exec_():
             projectDBC.dbc.open()
             newVarName = create.newVarNameEdit.text()
