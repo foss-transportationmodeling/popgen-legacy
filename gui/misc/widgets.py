@@ -721,15 +721,17 @@ class OldNewRelation(QDialog):
 
 
 class CreateVariable(QDialog):
-    def __init__(self, project, tablename, variableTypeDict, title="", icon="", parent=None):
+    def __init__(self, project, database, tablename, variableTypeDict, title="", icon="", parent=None):
         super(CreateVariable, self).__init__(parent)
 
         self.setWindowTitle(title + " - %s" %tablename)
         self.setWindowIcon(QIcon("./images/%s.png" %icon))
         self.tablename = tablename
         self.project = project
-        self.projectDBC = createDBC(self.project.db, self.project.name)
+
+        self.projectDBC = createDBC(self.project.db, database)
         self.projectDBC.dbc.open()
+
         self.variableDict = {}
         self.variables = variableTypeDict.keys()
 
