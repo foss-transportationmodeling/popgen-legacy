@@ -1027,7 +1027,7 @@ class DisplayMapsDlg(QDialog):
             self.canvas = QgsMapCanvas()
             self.canvas.setCanvasColor(QColor(255,255,255))
             self.canvas.enableAntiAliasing(True)
-            self.canvas.useQImageToRender(False)
+            self.canvas.useImageToRender(False)
 
             if self.project.resolution == "County":
                 self.res_prefix = "co"
@@ -1038,10 +1038,14 @@ class DisplayMapsDlg(QDialog):
 
             self.stateCode = self.project.stateCode[self.project.state]
             resultfilename = self.res_prefix+self.stateCode+"_selected"
-            self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
-        
-            self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
-            self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+            #self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+            self.resultsloc = os.path.join('%s'%self.project.location, '%s'%self.project.name,"results")
+
+            #self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+            self.resultfileloc = os.path.join(self.resultsloc, '%s.shp'%resultfilename)
+
+            #self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+            self.dbffileloc = os.path.join(self.resultsloc, '%s.dbf' %resultfilename)
 
             layerName = self.project.name + '-' + self.project.resolution
             layerProvider = "ogr"
@@ -1318,10 +1322,20 @@ class DisplayMapsDlg(QDialog):
 
         self.stateCode = self.project.stateCode[self.project.state]
         resultfilename = self.res_prefix+self.stateCode+"_selected"
-        self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+
+
+
+
+
+
+        #self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+        self.resultsloc = os.path.join('%s'%self.project.location, '%s'%self.project.name,"results")
         
-        self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
-        self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+        #self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+        self.resultfileloc = os.path.join(self.resultsloc, '%s.shp'%resultfilename)
+
+        #self.dbffileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".dbf")
+        self.dbffileloc = os.path.join(self.resultsloc, '%s.dbf' %resultfilename)
 
         layerName = self.project.name + '-' + self.project.resolution
         layerProvider = "ogr"
@@ -1369,21 +1383,21 @@ class DisplayMapsDlg(QDialog):
         dbfwriter(f, fieldnames, fieldspecs, records)
         f.close()
 
-        self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
+        self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.geometryType()))
 
-        self.layer.setRenderer(QgsContinuousColorRenderer(self.layer.vectorType()))
+        self.layer.setRenderer(QgsContinuousColorRenderer(self.layer.geometryType()))
         r = self.layer.renderer()
-        provider = self.layer.getDataProvider()
-        idx = provider.indexFromFieldName(var)
+        provider = self.layer.dataProvider()
+        idx = provider.fieldNameIndex(var)
 
         r.setClassificationField(idx)
         #minval = provider.minValue(idx).toString()
         #maxval = provider.maxValue(idx).toString()
         minval = '0'
         maxval = '5'
-        minsymbol = QgsSymbol(self.layer.vectorType(), minval, "","")
+        minsymbol = QgsSymbol(self.layer.geometryType(), minval, "","")
         minsymbol.setBrush(QBrush(QColor(255,255,255)))
-        maxsymbol = QgsSymbol(self.layer.vectorType(), maxval, "","")
+        maxsymbol = QgsSymbol(self.layer.geometryType(), maxval, "","")
         maxsymbol.setBrush(QBrush(QColor(255,5,5)))
         #maxsymbol.setBrush(QBrush(QColor(0,0,0)))
         r.setMinimumSymbol(minsymbol)

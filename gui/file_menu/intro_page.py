@@ -32,7 +32,9 @@ class IntroPage(QWizardPage):
         locationLabel = QLabel("b. Select a project file location")
         self.locationComboBox = ComboBoxFolder()
         #self.locationComboBox.addItems([QString("C:/"), QString("Browse to select folder...")])
-        self.locationComboBox.addItems([QString("C:/SynTest"), QString("Browse to select folder...")])
+        #self.locationComboBox.addItems([QString("C:/SynTest"), QString("Browse to select folder...")])
+        self.locationComboBox.addItems([QString(""), QString("Browse to select folder...")])
+
         locationLabel.setBuddy(self.locationComboBox)
         descLabel = QLabel("c. Enter project description (Optional)")
         self.descTextEdit = QTextEdit()
@@ -71,51 +73,28 @@ class IntroPage(QWizardPage):
         self.canvas = QgsMapCanvas()
         self.canvas.setCanvasColor(QColor(255,255,255))
         self.canvas.enableAntiAliasing(True)
-        self.canvas.useQImageToRender(False)
+        self.canvas.useImageToRender(False)
         layerPath = "./data/county.shp"
-        layerName = "USCounties"
+        layerName = "county"
         layerProvider = "ogr"
         self.layer = QgsVectorLayer(layerPath, layerName, layerProvider)
+
+        print self.layer.isValid()
+
 
         #self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
         renderer = self.layer.renderer()
         
-        provider = self.layer.getDataProvider()
+        provider = self.layer.dataProvider()
+
+        print 'PROVIDER TYPPPPPPPPPPPEEEEEEEEEE', provider, type(self.layer)
+        print self.layer
         
-        idx = provider.indexFromFieldName('STATE')
-        #renderer.setClassificationField(idx)
-        #provider.getUniqueValues(idx, uniquestates)
-        #print provider.minValue(idx).toString()
-        #min = int(provider.minValue(idx))
-        #max = int(provider.maxValue(idx))
-        #step = int(250/(max - min))
-        #step = 2
-        #r = 0
-        #b = 2
-        #g = 5
-        #colors = {}
-        #for i in range(1,100):
-            #r = randint(0,255)
-            #b = randint(0,255)
-            #g = randint(0,255)
-            #if i%3 == 1:
-            #    r = r+2
-            #if i%3 == 2:
-            #    b = b+2
-            #    g = 255 - g
-            #else:
-            #    g = g+2
-            #colors[i] = QColor(r,b,g)
+        idx = provider.fieldNameIndex('STATE')
         
-        allAttrs = provider.allAttributesList()
-        provider.select(allAttrs,QgsRect())
+        allAttrs = provider.attributeIndexes()
+        provider.select(allAttrs,QgsRectangle())
         feat = QgsFeature()
-        #while provider.getNextFeature(feat):
-            #attrMap = feat.attributeMap()
-            #state = attrMap[idx].toString().trimmed()
-            #statecode = int(state)
-            #symbol = QgsSymbol(self.layer.vectorType(),state,"","",colors[statecode])
-            #renderer.insertValue(state,symbol)
         
         renderer.setSelectionColor(QColor(255,255,0))
 
@@ -225,13 +204,13 @@ class IntroPage(QWizardPage):
     def highlightSelectedCounties(self):
         self.layer.removeSelection()
         selectedFeatureIds = []
-        provider = self.layer.getDataProvider()
-        allAttrs = provider.allAttributesList()
-        stidx = provider.indexFromFieldName("statename")
-        ctyidx = provider.indexFromFieldName("countyname")
-        provider.select(allAttrs,QgsRect())
+        provider = self.layer.dataProvider()
+        allAttrs = provider.attributeIndexes()
+        stidx = provider.fieldNameIndex("statename")
+        ctyidx = provider.fieldNameIndex("countyname")
+        provider.select(allAttrs,QgsRectangle())
         feat = QgsFeature()
-        while provider.getNextFeature(feat):
+        while provider.nextFeature(feat):
             attrMap = feat.attributeMap()
             featstate = attrMap[stidx].toString().trimmed()
             featcounty = attrMap[ctyidx].toString().trimmed()
@@ -239,7 +218,7 @@ class IntroPage(QWizardPage):
                 state = self.selectedCounties[county]
 
                 if (featstate.compare(state) == 0 and featcounty.compare(county) == 0):
-                    selid = feat.featureId()
+                    selid = feat.id()
                     selectedFeatureIds.append(selid)
 
         if len(selectedFeatureIds) > 0:

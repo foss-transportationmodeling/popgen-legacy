@@ -13,7 +13,10 @@ from gui.global_vars import *
 
 from gui.misc.dbf import *
 
-qgis_prefix = "C:/qgis"
+if sys.platform.startswith('win'):
+    qgis_prefix = "C:/qgis"
+else:
+    qgis_prefix = "/usr"
 
 # This class generates the follwing results after a population synthesizer run
 # A point layer where each point is a synthesized household
@@ -28,10 +31,18 @@ class ResultsGen():
         self.project = project
 
         self.name = self.project.name
-        self.resultsloc = self.project.location + os.path.sep + self.name + os.path.sep + "results"
-        self.resultsloc = os.path.realpath(self.resultsloc)
-        self.mapsloc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.project.state + os.path.sep + 'SHAPEFILES'
-        self.mapsloc = os.path.realpath(self.mapsloc)
+        #self.resultsloc = self.project.location + os.path.sep + self.name + os.path.sep + "results"
+        #self.resultsloc = os.path.realpath(self.resultsloc)
+        
+        self.resultsloc = os.path.join('%s'%self.project.location, '%s'%self.name, "results")
+
+        print 'THIS IS THE RESULTS LOCATION', self.resultsloc
+
+        #self.mapsloc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.project.state + os.path.sep + 'SHAPEFILES'
+        #self.mapsloc = os.path.realpath(self.mapsloc)
+
+        self.mapsloc = os.path.join(DATA_DOWNLOAD_LOCATION, '%s' %self.project.state, 'shapefiles')
+
         self.stateCode = self.project.stateCode[self.project.state]
         self.countyCodes=[]
 
@@ -63,10 +74,18 @@ class ResultsGen():
     def create_hhmap(self):
         # create a new shapefile with selected counties
         newfilename = self.res_prefix+self.stateCode+"_selected"
-        newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
-        basefile = os.path.realpath(self.mapsloc+os.path.sep+self.res_prefix+self.stateCode+"_d00.shp")
+        #newfile = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shp")
+        newfile = os.path.join(self.resultsloc, "%s.shp"%newfilename)
+
+        #basefile = os.path.realpath(self.mapsloc+os.path.sep+self.res_prefix+self.stateCode+"_d00.shp")
+        basefile = os.path.join(self.mapsloc, "%s%s_d00.shp" %(self.res_prefix, self.stateCode))
+
+        print basefile, 'BASE FILE'
+        print newfile, 'NEW FILE'
+
         if os.path.exists(basefile):
             if not os.path.exists(newfile):
+                print 'CREATING SUB LAYER'
                 self.makesublayer()
             return True
         else:
@@ -88,11 +107,12 @@ class ResultsGen():
         newshx = os.path.realpath(self.resultsloc+os.path.sep+newfilename + ".shx")
 
         baselayer = QgsVectorLayer(basefile, "all", "ogr")
-        baseprovider = baselayer.getDataProvider()
+        baseprovider = baselayer.dataProvider()
 
-        allAttrs = baseprovider.allAttributesList()
-        countyindex = baseprovider.indexFromFieldName("COUNTY")
-        baselayer.select(QgsRect(), True)
+        allAttrs = baseprovider.attributeIndexes()
+        countyindex = baseprovider.fieldNameIndex("COUNTY")
+        baselayer.select(allAttrs)
+        #baselayer.invertSelection()
         feat = QgsFeature()
 
         #if os.path.exists(newfile):
@@ -118,15 +138,15 @@ class ResultsGen():
 
         newlayer = QgsVectorLayer(newfile, "selected", "ogr")
         newlayer.startEditing()
-        newprovider = newlayer.getDataProvider()
+        newprovider = newlayer.dataProvider()
 
-        while baseprovider.getNextFeature(feat):
+        while baseprovider.nextFeature(feat):
            attrMap = feat.attributeMap()
            featcounty = attrMap[countyindex].toString().trimmed()
            if featcounty in self.countyCodes:
-               featid = feat.featureId()
+               featid = feat.id()
                selfeat = QgsFeature()
-               baselayer.getFeatureAtId(featid, selfeat)
+               baselayer.featureAtId(featid, selfeat)
                newlayer.addFeature(selfeat)
         newlayer.commitChanges()
         del newlayer
@@ -143,6 +163,7 @@ class ResultsGen():
         f = open(newdbf, 'wb')
         dbfwriter(f, fieldnames, fieldspecs, records)
         f.close()
+
         #ctyidx = fieldnames.index("COUNTY")
         #records2 = []
         #for rec in records:

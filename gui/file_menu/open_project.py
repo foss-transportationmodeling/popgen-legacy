@@ -38,7 +38,9 @@ class SaveFile(QFileDialog):
                                                               """Note that two files are exported for every data table: """
                                                               """a data file containing the data in the format chosen and a """
                                                               """metadata file which gives a list of the column names"""),
-                                                "%s/%s" %(self.project.location, self.project.filename),
+                                                #"%s/%s" %(self.project.location, self.project.filename),
+                                                #in linux project location is fixed to /tmp
+                                                "/tmp",
                                                 QFileDialog.ShowDirsOnly)
 
         if not self.folder.isEmpty():
@@ -137,6 +139,9 @@ class SaveFile(QFileDialog):
                     print "FileError:%s" %query.lastError().text()
 
             else:
+                print ("""select * from temphou2 into outfile """
+                       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                       %(self.folder, self.fileType, self.fileSep))
                 if not query.exec_("""select * from temphou2 into outfile """
                                    """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
                                    %(self.folder, self.fileType, self.fileSep)):
@@ -312,7 +317,7 @@ class SaveFile(QFileDialog):
                 return 0
             else:
                 return 2
-        except WindowsError, e:
+        except Exception, e:
             #print 'Warning: File - %s not present' %(file)
             return 1
 

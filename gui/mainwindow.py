@@ -50,9 +50,11 @@ class MainWindow(QMainWindow):
         ppservers = ()
         if len(sys.argv) > 1:
             ncpus = int(sys.argv[1])
-            self.job_server = pp.Server(ncpus, ppservers = ppservers, restart = True)
+            #self.job_server = pp.Server(ncpus, ppservers = ppservers, restart = True)
+            self.job_server = pp.Server(ncpus, ppservers = ppservers, secret='dummy')
         else:
-            self.job_server = pp.Server(ppservers=ppservers, restart = True)
+            #self.job_server = pp.Server(ppservers=ppservers, restart = True)
+            self.job_server = pp.Server(ppservers=ppservers, secret='dummy')
 
         #print dir(self.job_server)
 

@@ -36,9 +36,14 @@ class Indgeo(Matplot):
                 self.res_prefix = "bg"
             self.stateCode = self.project.stateCode[self.project.state]
             resultfilename = self.res_prefix+self.stateCode+"_selected"
-            self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
+            #self.resultsloc = self.project.location + os.path.sep + self.project.name + os.path.sep + "results"
 
-            self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+            self.resultsloc = os.path.join('%s'%self.project.location, '%s'%self.project.name, "results")
+
+            #self.resultfileloc = os.path.realpath(self.resultsloc+os.path.sep+resultfilename+".shp")
+            self.resultfileloc = os.path.join('%s'%self.resultsloc, "%s.shp"%resultfilename)
+             
+
             scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
             self.projectDBC = createDBC(self.project.db, scenarioDatabase)
             self.projectDBC.dbc.open()
@@ -138,17 +143,17 @@ class Indgeo(Matplot):
     def draw_boxselect(self):
         currgeo = (self.geocombobox.getCurrentText()).split(',')
 
-        provider = self.layer.getDataProvider()
-        allAttrs = provider.allAttributesList()
+        provider = self.layer.dataProvider()
+        allAttrs = provider.attributeIndexes()
         #self.layer.select(QgsRect(), True)
-        provider.select(allAttrs,QgsRect())
-        blkgroupidx = provider.indexFromFieldName("BLKGROUP")
-        tractidx = provider.indexFromFieldName("TRACT")
-        countyidx = provider.indexFromFieldName("COUNTY")
+        provider.select(allAttrs,QgsRectangle())
+        blkgroupidx = provider.fieldNameIndex("BLKGROUP")
+        tractidx = provider.fieldNameIndex("TRACT")
+        countyidx = provider.fieldNameIndex("COUNTY")
 
         selfeatid = 0
         feat = QgsFeature()
-        while provider.getNextFeature(feat):
+        while provider.nextFeature(feat):
             attrMap = feat.attributeMap()
             featcounty = attrMap[countyidx].toString().trimmed()
             if self.res_prefix == "co":
@@ -167,7 +172,7 @@ class Indgeo(Matplot):
                 baseid = currgeo[1] + ',' + currgeo[2] + ',' + currgeo[3]
                 self.selgeog.setText("County - " + currgeo[1] + "; Tract - " + currgeo[2] + "; BlockGroup - " + currgeo[3])
             if (compid == baseid):
-                selfeatid = feat.featureId()
+                selfeatid = feat.id()
                 self.layer.setSelectedFeatures([selfeatid])
                 boundingBox = self.layer.boundingBoxOfSelected()
                 boundingBox.scale(4)
@@ -181,9 +186,9 @@ class Indgeo(Matplot):
 
     def draw_mapselect(self, provider=None, selfeat=None ):
         if provider != None:
-            blkgroupidx = provider.indexFromFieldName("BLKGROUP")
-            tractidx = provider.indexFromFieldName("TRACT")
-            countyidx = provider.indexFromFieldName("COUNTY")
+            blkgroupidx = provider.fieldNameIndex("BLKGROUP")
+            tractidx = provider.fieldNameIndex("TRACT")
+            countyidx = provider.fieldNameIndex("COUNTY")
 
 
             attrMap = selfeat.attributeMap()
@@ -239,9 +244,9 @@ class Indgeo(Matplot):
 
     def on_draw(self, provider=None, selfeat=None ):
         if provider != None:
-            blkgroupidx = provider.indexFromFieldName("BLKGROUP")
-            tractidx = provider.indexFromFieldName("TRACT")
-            countyidx = provider.indexFromFieldName("COUNTY")
+            blkgroupidx = provider.fieldNameIndex("BLKGROUP")
+            tractidx = provider.fieldNameIndex("TRACT")
+            countyidx = provider.fieldNameIndex("COUNTY")
 
 
             attrMap = selfeat.attributeMap()
@@ -289,12 +294,14 @@ class Indgeo(Matplot):
         self.mapcanvas = QgsMapCanvas()
         self.mapcanvas.setCanvasColor(QColor(255,255,255))
         self.mapcanvas.enableAntiAliasing(True)
-        self.mapcanvas.useQImageToRender(False)
+        self.mapcanvas.useImageToRender(False)
+        print 'RESULTS FILE LOCATION', self.resultfileloc
         self.layer = QgsVectorLayer(self.resultfileloc, "Selgeogs", "ogr")
         renderer = self.layer.renderer()
         renderer.setSelectionColor(QColor(255,255,0))
         symbol = renderer.symbols()[0]
         symbol.setFillColor(QColor(153,204,0))
+        print self.layer.isValid, "LAYER VALID "
         if not self.layer.isValid():
             return
         QgsMapLayerRegistry.instance().addMapLayer(self.layer)

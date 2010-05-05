@@ -56,11 +56,9 @@ class FileProperties():
 
 
     def checkVarTypes(self, line):
-        validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
-                              'float', 'double',
-                              'decimal',
-                              'bit',
-                              'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
+        validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',\
+                                  'float', 'double', 'decimal','bit',\
+                                  'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
         line = line.replace("\"", "")
         line = line.replace("'", "")
         line = re.split("[,|\t]", line[:-1])
@@ -117,11 +115,9 @@ class ImportUserProvData():
 
 
     def createTableQuery(self):
-        validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
-                              'float', 'doubke',
-                              'decimal',
-                              'bit',
-                              'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
+        validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',\
+                                  'float', 'double', 'decimal', 'bit',\
+                                  'char', 'varchar', 'text', 'text\n', 'binary', 'varbinary', 'blob', 'enum', 'set']
         self.query1 = ''
         self.query2 = ''
 
@@ -143,11 +139,14 @@ class ImportUserProvData():
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable name"
 
+        print len(self.varTypes)
+        print validVariableTypes
         for i in self.varTypes:
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable type definition"
             try:
-                validVariableTypes.index(i.lower())
+                name = i.lower().rstrip()
+                validVariableTypes.index(name)
             except:
                 raise FileError, "Enter a valid variable type definition"
 

@@ -126,8 +126,12 @@ class AutoImportPUMS2000Data():
         self.stateCode = self.project.stateCode
 
 
-        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS2000'
-        self.loc = os.path.realpath(self.loc)
+        #self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMS2000'
+        #self.loc = '%s' %os.path.realpath(self.loc)
+
+        #print type(DATA_DOWNLOAD_LOCATION), type(self.state), type('PUMS2000')
+
+        self.loc = os.path.join(DATA_DOWNLOAD_LOCATION, '%s' %self.state, 'PUMS2000')
 
         self.projectDBC = createDBC(self.project.db, self.project.name)
         self.projectDBC.dbc.open()
@@ -186,7 +190,9 @@ class AutoImportPUMS2000Data():
         try:
             os.makedirs(self.loc)
             self.retrieveAndStorePUMS()
-        except WindowsError, e:
+        #except WindowsError, e:
+        except Exception, e:
+            
             reply = QMessageBox.question(None, "Import",
                                          QString("""Cannot download data when the data already exists.\n\n"""
                                                  """Would you like to keep the existing files?"""
@@ -223,9 +229,12 @@ class AutoImportPUMS2000Data():
 
     def pumsVariableTable(self):
         # Creats a table that contains the location of the different PUMS variables in the raw data files
-        check = self.checkIfTableExists('PUMS2000VariableList')
+        check = self.checkIfTableExists('pums2000variablelist')
         if check:
-            PUMSVariableDefTable = ImportUserProvData("PUMS2000VariableList",
+            #PUMSVariableDefTable = ImportUserProvData("PUMS2000VariableList",
+            #                                          "./data/PUMS2000_Variables.csv",
+            #                                          [], [],True, True)
+            PUMSVariableDefTable = ImportUserProvData("pums2000variablelist",
                                                       "./data/PUMS2000_Variables.csv",
                                                       [], [],True, True)
             if not self.query.exec_(PUMSVariableDefTable.query1):
@@ -321,7 +330,8 @@ class AutoImportPUMS2000Data():
                 return 0
             else:
                 return 1
-        except WindowsError, e:
+        #except WindowsError, e:
+        except Exception, e:
             print 'Warning: File - %s not present' %(file)
             return 0
 
@@ -492,13 +502,13 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
         self.project = project
 
         self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'PUMSACS'
-        self.loc = os.path.realpath(self.loc)
+        self.loc = '%s' %os.path.realpath(self.loc)
 
 
     def pumsVariableTable(self):
-        check = self.checkIfTableExists('PUMSACSVariableList')
+        check = self.checkIfTableExists('pumsacsvariablelist')
         if check:
-            PUMSVariableDefTable = ImportUserProvData("PUMSACSVariableList",
+            PUMSVariableDefTable = ImportUserProvData("pumsacsvariablelist",
                                                       "./data/PUMSACS_Variables.csv",
                                                       [], [],True, True)
             if not self.query.exec_(PUMSVariableDefTable.query1):
@@ -605,7 +615,8 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
 
         try:
             os.makedirs(self.loc)
-        except WindowsError, e:
+        #except WindowsError, e:
+        except Exception, e:
             print e
 
 
@@ -656,7 +667,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
     def housingVarDicts(self):
         # Reading the list of PUMS housing variable names
         if not self.query.exec_("""select variablename, description from """
-                                """pumsACSvariablelist where type = 'H'"""):
+                                """pumsacsvariablelist where type = 'H'"""):
             raise FileError, self.query.lastError().text()
         else:
             self.housingVariableDict = {}
@@ -665,7 +676,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
 
     def housingDefVar(self):
         # Reading the list of PUMS default housing variable names
-        if not self.query.exec_("""select variablename from pumsACSvariablelist where type = 'H' and defaultvar = 1"""):
+        if not self.query.exec_("""select variablename from pumsacsvariablelist where type = 'H' and defaultvar = 1"""):
             raise FileError, self.query.lastError().text()
         else:
             self.housingDefaultVariables = []
@@ -678,7 +689,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
     def personVarDicts(self):
         # Reading the list of PUMS person variable names
         if not self.query.exec_("""select variablename, description from """
-                                """pumsACSvariablelist where type = 'P'"""):
+                                """pumsacsvariablelist where type = 'P'"""):
             raise FileError, self.query.lastError().text()
         else:
             self.personVariableDict = {}
@@ -689,7 +700,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
 
     def personDefVar(self):
         # Reading the list of PUMS default person variable names
-        if not self.query.exec_("""select variablename from pumsACSvariablelist where type = 'P' and defaultvar = 1"""):
+        if not self.query.exec_("""select variablename from pumsacsvariablelist where type = 'P' and defaultvar = 1"""):
             raise FileError, self.query.lastError().text()
         else:
             self.personDefaultVariables = []

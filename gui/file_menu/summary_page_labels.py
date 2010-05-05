@@ -185,7 +185,8 @@ class SummaryPage(QWizardPage):
         try:
             os.makedirs("%s/%s/results" %(projectLocation, projectName))
             self.projectLocationDummy = True
-        except WindowsError, e:
+        #except WindowsError, e:
+        except Exception, e:
             print e
             reply = QMessageBox.question(self, "Project Setup Wizard",
                                          QString("""Cannot create a project folder when the folder already exists. \n\nDo you wish"""

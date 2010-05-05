@@ -89,7 +89,7 @@ class Toolbar(QToolBar):
         self.canvas.setMapTool(self.toolZoomOut)
 
     def zoomFull(self):
-        self.canvas.zoomFullExtent()
+        self.canvas.zoomToFullExtent()
 
     def pan(self):
         self.canvas.setMapTool(self.toolPan)
@@ -103,24 +103,24 @@ class Toolbar(QToolBar):
         self.toolSelect.canvas.setCursor(self.toolClickSelect.cursor)
 
     def donePointSelect(self):
-        provider = self.layer.getDataProvider()
-        allAttrs = provider.allAttributesList()
+        provider = self.layer.dataProvider()
+        allAttrs = provider.attributeIndexes()
         renderer = self.layer.renderer()
         self.layer.select(self.toolClickSelect.bb, False)
         provider.select(allAttrs, self.toolClickSelect.bb, True, True)
         feat = QgsFeature()
-        provider.getNextFeature(feat)
+        provider.nextFeature(feat)
         attrMap = feat.attributeMap()
         self.emit(SIGNAL("currentGeoChanged"), provider, feat)
 
     def doneRectangle(self):
-        provider = self.layer.getDataProvider()
-        allAttrs = provider.allAttributesList()
+        provider = self.layer.dataProvider()
+        allAttrs = provider.attributeIndexes()
         self.layer.select(self.toolSelect.bb, False)
         provider.select(allAttrs, self.toolSelect.bb, True, True)
         feat = QgsFeature()
 
-        while provider.getNextFeature(feat):
+        while provider.nextFeature(feat):
             attrMap = feat.attributeMap()
             if feat.geometry().wkbType() == QGis.WKBPoint:
                 transform = self.canvas.getCoordinateTransform()

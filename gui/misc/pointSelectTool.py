@@ -23,7 +23,7 @@ class ClickTool(QgsMapTool):
     def canvasPressEvent(self,event):
         transform = self.canvas.getCoordinateTransform()
         coord = transform.toMapCoordinates(event.pos().x(),event.pos().y())
-        self.bb = QgsRect(
+        self.bb = QgsRectangle(
             QgsPoint(coord.x()*(1-self.precision),coord.y()*(1-self.precision)),
             QgsPoint(coord.x()*(1+self.precision),coord.y()*(1+self.precision))
             )

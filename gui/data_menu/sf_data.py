@@ -104,8 +104,10 @@ class AutoImportSF2000Data():
         self.stateAbb = self.project.stateAbb
         self.stateCode = self.project.stateCode
 
-        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SF2000'
-        self.loc = os.path.realpath(self.loc)
+        #self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SF2000'
+        #self.loc = '%s' %os.path.realpath(self.loc)
+
+        self.loc = os.path.join(DATA_DOWNLOAD_LOCATION, '%s' %self.state, 'SF2000')
 
         self.countiesSelected = self.project.region.keys()
 
@@ -127,7 +129,8 @@ class AutoImportSF2000Data():
         try:
             os.makedirs(self.loc)
             self.retrieveAndStoreSF(self.state)
-        except WindowsError, e:
+        #except WindowsError, e:
+        except Exception, e:
             reply = QMessageBox.question(None, "Import",
                                          QString("""Cannot download data when the data already exists.\n\n"""
                                                  """Would you like to keep the existing files?"""
@@ -327,8 +330,9 @@ class AutoImportSF2000Data():
 
     def createMasterSubSFTable(self):
         #Based on the resolution import a summary file table for only that resolution
-
-        if self.checkIfTableExists('mastersftable%s' %self.project.resolution):
+        
+        resolution = ('%s' %self.project.resolution).lower()
+        if self.checkIfTableExists('mastersftable%s' %resolution):
             #print self.project.resolution
             if self.project.resolution == 'Blockgroup':
                 sumlev = 150
@@ -338,7 +342,7 @@ class AutoImportSF2000Data():
                 sumlev = 50
             if not self.query.exec_("""create table mastersftable%s """
                                     """select * from mastersftable where sumlev = %s and geocomp = 00"""
-                                    %(self.project.resolution, sumlev)):
+                                    %(resolution, sumlev)):
                 raise FileError, self.query.lastError().text()
 
 
@@ -357,7 +361,7 @@ class AutoImportSFACSData(AutoImportSF2000Data):
         self.project = project
 
         self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SFACS'
-        self.loc = os.path.realpath(self.loc)
+        self.loc = '%s' %os.path.realpath(self.loc)
         
         self.rawSF = RAW_SUMMARYACS_FILES
 
