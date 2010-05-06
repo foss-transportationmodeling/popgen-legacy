@@ -160,6 +160,7 @@ DEFAULT_HOUSING_PUMS2000_QUERIES = ["alter table housing_pums add index(serialno
                                 "update housing_pums set hyrmoved = yrmoved",
 
 
+
                                 "update housing_pums set hhtype = 1 where unittype = 0",
                                 "update housing_pums set hhtype = 2 where unittype = 1 or unittype = 2",
                                 "update housing_pums set hhldtype = 1 where hht = 1",
@@ -391,6 +392,90 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set hhldfam1 = hhldtype1 + hhldtype2 + hhldtype3",
                           "update %s set hhldfam2 = hhldtype4 + hhldtype5",
                           
+                          "alter table %s add column hyrmoved1 bigint",
+                          "alter table %s add column hyrmoved2 bigint",
+                          "alter table %s add column hyrmoved3 bigint",
+                          "alter table %s add column hyrmoved4 bigint",
+                          "alter table %s add column hyrmoved5 bigint",
+                          "alter table %s add column hyrmoved6 bigint",
+
+                          "alter table %s add column htenure1 bigint",
+                          "alter table %s add column htenure2 bigint",
+
+                          "alter table %s add column hbldsz1 bigint",
+                          "alter table %s add column hbldsz2 bigint",
+                          "alter table %s add column hbldsz3 bigint",
+                          "alter table %s add column hbldsz4 bigint",
+                          "alter table %s add column hbldsz5 bigint",
+                          "alter table %s add column hbldsz6 bigint",
+                          "alter table %s add column hbldsz7 bigint",
+                          "alter table %s add column hbldsz8 bigint",
+                          "alter table %s add column hbldsz9 bigint",
+                          "alter table %s add column hbldsz10 bigint",
+
+                          "alter table %s add column phours1 bigint",
+                          "alter table %s add column phours2 bigint",
+                          "alter table %s add column phours3 bigint",
+                          "alter table %s add column phours4 bigint",
+                          "alter table %s add column phours5 bigint",
+
+                          "alter table %s add column pclwkr1 bigint",
+                          "alter table %s add column pclwkr2 bigint",
+                          "alter table %s add column pclwkr3 bigint",
+                          "alter table %s add column pclwkr4 bigint",
+                          "alter table %s add column pclwkr5 bigint",
+                          "alter table %s add column pclwkr6 bigint",
+                          "alter table %s add column pclwkr7 bigint",
+                          "alter table %s add column pclwkr8 bigint",
+                          "alter table %s add column pclwkr9 bigint",
+
+
+                          "update %s set hyrmoved1 = H038003 + H038010",
+                          "update %s set hyrmoved2 = H038004 + H038011",
+                          "update %s set hyrmoved3 = H038005 + H038012",
+                          "update %s set hyrmoved4 = H038006 + H038013",
+                          "update %s set hyrmoved5 = H038007 + H038014",
+                          "update %s set hyrmoved6 = H038008 + H038015",
+
+                          "update %s set htenure1 = H007002",
+                          "update %s set htenure1 = H007003",
+
+                          "update %s set hbldgsz1 = H030010",
+                          "update %s set hbldgsz2 = H030002",
+                          "update %s set hbldgsz3 = H030003",
+                          "update %s set hbldgsz4 = H030004",
+                          "update %s set hbldgsz5 = H030005",
+                          "update %s set hbldgsz6 = H030006",
+                          "update %s set hbldgsz7 = H030007",
+                          "update %s set hbldgsz8 = H030008",
+                          "update %s set hbldgsz9 = H030009",
+                          "update %s set hbldgsz10 = H0300011",
+
+                          "update %s set phours1 = P047025 + P047049", # did not work
+                          "update %s set phours2 = P047018 + P047042", # 1 - 14 hours/week
+                          "update %s set phours3 = P047011 + P047035", # 15 - 34 hours/week
+                          "update %s set phours4 = P047004 + P047028", # 35 + hours/week
+                          "update %s set phours5 = ", # Not in universe 15 and younger
+
+                          """update %s set pclwkr1 = P051005 + P051016 + P051026 + P051037 + """\
+                              """P051048 + P051058""",
+                          """update %s set pclwkr2 = P051039 + P051050 + P051060 + """\
+                              """P051007 + P051018 + P051028""",
+                          """update %s set pclwkr3 = P051040 + P051051 + P051061 + """\
+                              """P051008 + P051019 + P051029""",
+                          """update %s set pclwkr4 = P051041 + P051052 + P051062 + """\
+                              """P051009 + P051020 + P051030""",
+                          """update %s set pclwkr5 = P051042 + P051053 + P051063 + """\
+                              """P051010 + P051021 + P051031""",
+                          """update %s set pclwkr6 = P051043 + P051054 + P051064 + """\
+                              """P051011 + P051022 + P051032""",
+                          """update %s set pclwkr7 = P051038 + P051049 + P051059 + """\
+                              """P051006 + P051017 + P051027""",
+                          """update %s set pclwkr8 = P051044 + P051055 + P051065 + """\
+                              """P051012 + P051023 + P051033""",
+                          """update %s set pclwkr9 = """,
+
+                          
 
                           "drop table hhld_marginals",
                           "drop table gq_marginals",
@@ -400,14 +485,25 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """hhldinc7, hhldinc8, hhldsize1, hhldsize2, hhldsize3, hhldsize4, """\
                               """hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, """\
                               """hhldtype3, hhldtype4, hhldtype5, childpresence1, childpresence2, """\
-                              """hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
+                              """hhldrage1, hhldrage2, hhldfam1, hhldfam2, """\
+                              
+                              """hyrmoved1, hyrmoved2, hyrmoved3, hyrmoved4, hyrmoved5, hyrmoved6, """\
+                              """htenure1, htenure2, """\
+                              """hbldsz1, hbldsz2, hbldsz3, hbldsz4, hbldsz5, hbldsz6, hbldsz7, """\
+                              """hbldsz8, hbldsz9, hbldsz10 """\
+
+                              """from %s""",
                           """create table gq_marginals select state, county, tract, bg, """\
                               """groupquarter1, groupquarter2 from %s""",
                           """create table person_marginals select state, county, tract, bg, """\
                               """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, """\
                               """agep10, gender1, gender2, race1, race2, race3, race4, """\
                               """race5, race6, race7, employment1, employment2, employment3, """\
-                              """employment4 from %s"""]
+                              """employment4, """\
+                              """phours1, phours2, phours3, phours4, phours5, """\
+                              """pclwkr1, pclwkr2, pclwkr3, pclwkr4, pclwkr5, pclwkr6, pclwkr7, """\
+                              """pckwkr8, pclwkr9 """
+                              """from %s"""]
 
 DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column agep2 bigint",
