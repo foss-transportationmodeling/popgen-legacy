@@ -486,15 +486,15 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, """\
                               """hhldtype3, hhldtype4, hhldtype5, childpresence1, childpresence2, """\
                               """hhldrage1, hhldrage2, hhldfam1, hhldfam2, """\
-                              
                               """hyrmoved1, hyrmoved2, hyrmoved3, hyrmoved4, hyrmoved5, hyrmoved6, """\
                               """htenure1, htenure2, """\
-                              """hbldsz1, hbldsz2, hbldsz3, hbldsz4, hbldsz5, hbldsz6, hbldsz7, """\
-                              """hbldsz8, hbldsz9, hbldsz10 """\
-
+                              """hbldgsz1, hbldgsz2, hbldgsz3, hbldgsz4, hbldgsz5, hbldgsz6, hbldgsz7, """\
+                              """hbldgsz8, hbldgsz9, hbldgsz10 """\
                               """from %s""",
+
                           """create table gq_marginals select state, county, tract, bg, """\
                               """groupquarter1, groupquarter2 from %s""",
+
                           """create table person_marginals select state, county, tract, bg, """\
                               """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, """\
                               """agep10, gender1, gender2, race1, race2, race3, race4, """\
