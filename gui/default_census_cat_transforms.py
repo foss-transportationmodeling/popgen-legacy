@@ -502,7 +502,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """employment4, """\
                               """phours1, phours2, phours3, phours4, phours5, """\
                               """pclwkr1, pclwkr2, pclwkr3, pclwkr4, pclwkr5, pclwkr6, pclwkr7, """\
-                              """pckwkr8, pclwkr9 """
+                              """pclwkr8, pclwkr9 """
                               """from %s"""]
 
 DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
