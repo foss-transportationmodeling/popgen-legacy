@@ -449,7 +449,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set hbldgsz7 = H030007",
                           "update %s set hbldgsz8 = H030008",
                           "update %s set hbldgsz9 = H030009",
-                          "update %s set hbldgsz10 = H0300011",
+                          "update %s set hbldgsz10 = H030011",
 
                           "update %s set phours1 = P047025 + P047049", # did not work
                           "update %s set phours2 = P047018 + P047042", # 1 - 14 hours/week
