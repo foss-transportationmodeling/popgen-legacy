@@ -428,7 +428,18 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "alter table %s add column pclwkr7 bigint",
                           "alter table %s add column pclwkr8 bigint",
                           "alter table %s add column pclwkr9 bigint",
+                          "alter table %s add column pclwkr10 bigint",
+                          "alter table %s add column pclwkr11 bigint",
+                          "alter table %s add column pclwkr12 bigint",
 
+                          "alter table %s add column hyrmoved_check bigint",
+                          "alter table %s add column htenure_check bigint",
+                          "alter table %s add column hbldgsz_check bigint",
+                          "alter table %s add column phours_check bigint",
+                          "alter table %s add column pclwkr_check bigint",
+                          "alter table %s add column hchild_check bigint",
+                          "alter table %s add column pgender_check bigint",
+                          "alter table %s add column phousing_check bigint",
 
                           "update %s set hyrmoved1 = H038003 + H038010",
                           "update %s set hyrmoved2 = H038004 + H038011",
@@ -438,7 +449,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set hyrmoved6 = H038008 + H038015",
 
                           "update %s set htenure1 = H007002",
-                          "update %s set htenure1 = H007003",
+                          "update %s set htenure2 = H007003",
 
                           "update %s set hbldgsz1 = H030010",
                           "update %s set hbldgsz2 = H030002",
@@ -455,7 +466,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set phours2 = P047018 + P047042", # 1 - 14 hours/week
                           "update %s set phours3 = P047011 + P047035", # 15 - 34 hours/week
                           "update %s set phours4 = P047004 + P047028", # 35 + hours/week
-                          "update %s set phours5 = ", # Not in universe 15 and younger
+                          "update %s set phours5 = agep1+agep2+P008018+P008057""", # Not in universe 15 and younger
 
                           """update %s set pclwkr1 = P051005 + P051016 + P051026 + P051037 + """\
                               """P051048 + P051058""",
@@ -473,9 +484,24 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """P051006 + P051017 + P051027""",
                           """update %s set pclwkr8 = P051044 + P051055 + P051065 + """\
                               """P051012 + P051023 + P051033""",
-                          """update %s set pclwkr9 = """,
+                          """update %s set pclwkr9 = agep1+agep2+P008018+P008057""", # 15 and younger
+                          """update %s set pclwkr10 = P043004 + P043011""", # In Armed Forces
+                          """update %s set pclwkr11 = P043007 + P043014""", # Unemployed Civilian
+                          """update %s set pclwkr12 = P043008 + P043015""", # Not in labor force
 
-                          
+                          """update %s set hchild_check = childpresence1 + childpresence2""",
+                          """update %s set phousing_check = hchild_check + groupquarter1 + groupquarter2""",
+
+                          """update %s set hyrmoved_check = hyrmoved1 + hyrmoved2 + hyrmoved3 + """\
+                              """hyrmoved4 + hyrmoved5 + hyrmoved6""",
+                          """update %s set htenure_check = htenure1 + htenure2""",
+                          """update %s set hbldgsz_check = hbldgsz1 + hbldgsz2 + hbldgsz3 + hbldgsz4 + """\
+                              """hbldgsz5 + hbldgsz6 + hbldgsz7 + hbldgsz8 + hbldgsz9 + hbldgsz10 """,
+
+                          """update %s set phours_check = phours1 + phours2 + phours3 + phours4 + phours5""",
+                          """update %s set pclwkr_check = pclwkr1 + pclwkr2 + pclwkr3 + pclwkr4 + """\
+                              """pclwkr5 + pclwkr6 + pclwkr7 + pclwkr8 + pclwkr9 + pclwkr10 + pclwkr11 + pclwkr12""",
+                          """update %s set pgender_check = gender1 + gender2""",
 
                           "drop table hhld_marginals",
                           "drop table gq_marginals",
