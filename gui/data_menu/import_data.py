@@ -61,6 +61,8 @@ class FileProperties():
                                   'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
         line = line.replace("\"", "")
         line = line.replace("'", "")
+        line = line.replace("\r", "")
+
         line = re.split("[,|\t]", line[:-1])
 
         for i in line:
@@ -75,6 +77,7 @@ class FileProperties():
     def checkVarNames(self, line):
         line = line.replace("\"", "")
         line = line.replace("'", "")
+        line = line.replace("\r","")
         line = re.split("[,|\t]", line[:-1])
         line = ['%s' %i for i in line]
 
@@ -93,8 +96,8 @@ class ImportUserProvData():
     def __init__(self, name, filePath, varNames=[], varTypes=[], varNamesFileDummy=False, varTypesFileDummy=False):
         self.tableName = name
 
-        self.filePath = os.path.realpath(filePath)
-        self.filePath = self.filePath.replace("\\", "/")
+        self.filePath = os.path.realpath('%s' %filePath)
+        #self.filePath = self.filePath.replace("\\", "/")
 
         self.varNames = varNames
         self.varTypes = varTypes
@@ -124,6 +127,7 @@ class ImportUserProvData():
     #  creating a table query for the case when both varnames are variable type are specified
         with open(self.filePath, 'r') as f:
             if not self.varNamesDummy and self.varNamesFileDummy:
+                #print "read first line"
                 self.varNames = f.readline()
                 self.varNames = re.split("[,|\t]", self.varNames[:-1])
 
@@ -139,8 +143,8 @@ class ImportUserProvData():
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable name"
 
-        print len(self.varTypes)
-        print validVariableTypes
+        #print len(self.varTypes)
+        #print validVariableTypes
         for i in self.varTypes:
             if not re.match("[A-Za-z]", i[0]):
                 raise FileError, "Enter a valid variable type definition"

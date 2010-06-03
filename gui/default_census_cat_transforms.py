@@ -3,60 +3,86 @@
 # Copyright (C) 2009, Arizona State University
 # See PopGen/License
 
-DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column agep bigint",
-                                "alter table person_pums add column gender bigint",
-                                "alter table person_pums add column race bigint",
+DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column p1age bigint",
+                                "alter table person_pums add column p2gender bigint",
+                                "alter table person_pums add column p3race bigint",
                                 "alter table person_pums add column employment bigint",
 
-                                "alter table person_pums add column pclwkr bigint",
+                                "alter table person_pums add column p4clwkr bigint",
                                 "alter table person_pums add column pearns bigint",
                                 "alter table person_pums add column peduc bigint",
                                 "alter table person_pums add column penroll bigint",
-                                "alter table person_pums add column phours bigint",
+                                "alter table person_pums add column p5hours bigint",
                                 "alter table person_pums add column pndnaics bigint",                                   
                                 "alter table person_pums add column pocccen bigint",                                   
                                 "alter table person_pums add column ptrvmns bigint",                                   
 
-                                "update person_pums set pclwkr = clwkr",
                                 "update person_pums set pearns = earns",
                                 "update person_pums set peduc = educ",
                                 "update person_pums set penroll = enroll",
-                                "update person_pums set phours = hours",
                                 "update person_pums set pndnaics = indnaics",
                                 "update person_pums set pocccen = occcen5",
                                 "update person_pums set ptrvmns = trvmns",
  
+                                #original recodes
+                                #"update person_pums set p1age = 1 where age < 5",
+                                #"update person_pums set p1age = 2 where age >= 5 and age < 15",
+                                #"update person_pums set p1age = 3 where age >= 15 and age < 25",
+                                #"update person_pums set p1age = 4 where age >= 25 and age < 35",
+                                #"update person_pums set p1age = 5 where age >= 35 and age < 45",
+                                #"update person_pums set p1age = 6 where age >= 45 and age < 55",
+                                #"update person_pums set p1age = 7 where age >= 55 and age < 65",
+                                #"update person_pums set p1age = 8 where age >= 65 and age < 75",
+                                #"update person_pums set p1age = 9 where age >= 75 and age < 85",
+                                #"update person_pums set p1age = 10 where age >= 85",
 
-                                "update person_pums set agep = 1 where age < 5",
-                                "update person_pums set agep = 2 where age >= 5 and age < 15",
-                                "update person_pums set agep = 3 where age >= 15 and age < 25",
-                                "update person_pums set agep = 4 where age >= 25 and age < 35",
-                                "update person_pums set agep = 5 where age >= 35 and age < 45",
-                                "update person_pums set agep = 6 where age >= 45 and age < 55",
-                                "update person_pums set agep = 7 where age >= 55 and age < 65",
-                                "update person_pums set agep = 8 where age >= 65 and age < 75",
-                                "update person_pums set agep = 9 where age >= 75 and age < 85",
-                                "update person_pums set agep = 10 where age >= 85",
-                                "update person_pums set gender = sex",
-                                "update person_pums set race = 1 where race1 = 1",
-                                "update person_pums set race = 2 where race1 = 2",
-                                "update person_pums set race = 3 where race1 >=3 and race1 <= 5",
-                                "update person_pums set race = 4 where race1 = 6",
-                                "update person_pums set race = 5 where race1 = 7",
-                                "update person_pums set race = 6 where race1 = 8",
-                                "update person_pums set race = 7 where race1 = 9",
+                                # Recodes for UrbanSim for SF, Lane County, Hawaii
+                                "update person_pums set p1age = 1 where age < 15",
+                                "update person_pums set p1age = 2 where age >= 15 and age < 35",
+                                "update person_pums set p1age = 3 where age >= 35 and age < 55",
+                                "update person_pums set p1age = 4 where age >= 55 and age < 75",
+                                "update person_pums set p1age = 5 where age >= 75",
+
+                                "update person_pums set p2gender = sex",
+                                "update person_pums set p3race = 1 where race1 = 1",
+                                "update person_pums set p3race = 2 where race1 = 2",
+                                "update person_pums set p3race = 3 where race1 >=3 and race1 <= 5",
+                                "update person_pums set p3race = 4 where race1 = 6",
+                                "update person_pums set p3race = 5 where race1 = 7",
+                                "update person_pums set p3race = 6 where race1 = 8",
+                                "update person_pums set p3race = 7 where race1 = 9",
                                 "update person_pums set employment = 1 where esr = 0",
                                 """update person_pums set employment = 2 where esr = 1 """\
                                         """or esr = 2 or esr = 4 or esr = 5""",
                                 "update person_pums set employment = 3 where esr = 3",
                                 "update person_pums set employment = 4 where esr = 6",
 
+                                # employed civilians
+                                "update person_pums set p4clwkr = 1 where clwkr = 1",
+                                "update person_pums set p4clwkr = 2 where clwkr = 2",
+                                "update person_pums set p4clwkr = 3 where clwkr = 3",
+                                "update person_pums set p4clwkr = 4 where clwkr = 4",
+                                "update person_pums set p4clwkr = 5 where clwkr = 5",
+                                "update person_pums set p4clwkr = 6 where clwkr = 6",
+                                "update person_pums set p4clwkr = 7 where clwkr = 7",
+                                "update person_pums set p4clwkr = 8 where clwkr = 8",
+                                "update person_pums set p4clwkr = 9 where esr = 0", #15 and younger
+                                "update person_pums set p4clwkr = 10 where esr = 4 or esr = 5", #In armed forces
+                                "update person_pums set p4clwkr = 11 where esr = 3",# Unemployed 
+                                "update person_pums set p4clwkr = 12 where esr = 6", #Not in labor force
+
+
+                                "update person_pums set p5hours = 1 where wrklyr = 2", #did not work in 1999
+                                "update person_pums set p5hours = 2 where hours >= 1 and hours < 15", 
+                                "update person_pums set p5hours = 3 where hours >= 15 and hours < 35", 
+                                "update person_pums set p5hours = 4 where hours >= 35", 
+                                "update person_pums set p5hours = 5 where esr = 0", #15 and younger
 
 
                                 "drop table person_sample",
                                 """create table person_sample select state, pumano, hhid, serialno, """\
-                                        """pnum, agep, gender, race, employment, relate, pclwkr, pearns, """\
-                                        """peduc, penroll, phours, pndnaics, pocccen, ptrvmns """\
+                                        """pnum, p1age, p2gender, p3race, employment, relate, p4clwkr, pearns, """\
+                                        """peduc, penroll, p5hours, pndnaics, pocccen, ptrvmns """\
                                         """from person_pums""",
                                 "alter table person_sample add index(serialno, pnum)",
                                 "drop table hhld_sample_temp",
@@ -64,7 +90,7 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column agep big
                                 "alter table hhld_sample rename to hhld_sample_temp",
                                 "drop table hhld_sample",
                                 """create table hhld_sample select hhld_sample_temp.*, """\
-                                        """agep as hhldrage from hhld_sample_temp left """\
+                                        """p1age as hhldrage from hhld_sample_temp left """\
                                         """join person_sample using(serialno) where relate = 1""",
                                 "alter table hhld_sample add index(serialno)",
                                 "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
@@ -136,29 +162,65 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigin
 DEFAULT_HOUSING_PUMS2000_QUERIES = ["alter table housing_pums add index(serialno)",
                                 "alter table housing_pums add column hhtype bigint",
                                 "alter table housing_pums add column hhldtype bigint",
-                                "alter table housing_pums add column hhldinc bigint",
+                                "alter table housing_pums add column hh7ldinc bigint",
                                 "alter table housing_pums add column hhldtenure bigint",
-                                "alter table housing_pums add column hhldsize bigint",
-                                "alter table housing_pums add column childpresence bigint",
+                                "alter table housing_pums add column hh5ldsize bigint",
+                                "alter table housing_pums add column hh6childpresence bigint",
                                 "alter table housing_pums add column groupquarter bigint",
-                                "alter table housing_pums add column hhldfam bigint",
+                                "alter table housing_pums add column hh4ldfam bigint",
 
-                                "alter table housing_pums add column htenure bigint",
-                                "alter table housing_pums add column hbldgsz bigint",
+                                "alter table housing_pums add column h2tenure bigint",
+                                "alter table housing_pums add column h1bldgsz bigint",
                                 "alter table housing_pums add column hvehicl bigint",
                                 "alter table housing_pums add column hgrent bigint",
                                 "alter table housing_pums add column hvalue bigint",
                                 "alter table housing_pums add column hyrbuilt bigint",
-                                "alter table housing_pums add column hyrmoved bigint",
+                                "alter table housing_pums add column h3yrmoved bigint",
                         
-                                "update housing_pums set htenure = tenure",
-                                "update housing_pums set hbldgsz = bldgsz",
+
                                 "update housing_pums set hvehicl = vehicl",
                                 "update housing_pums set hgrent = grent",
                                 "update housing_pums set hvalue = value",
                                 "update housing_pums set hyrbuilt = yrbuilt",
-                                "update housing_pums set hyrmoved = yrmoved",
 
+                                "update housing_pums set h2tenure = 1 where tenure = 1 or tenure = 2",
+                                "update housing_pums set h2tenure = 2 where tenure = 3 or tenure = 4",
+
+                                # Original recodes
+                                #"update housing_pums set h1bldgsz = 1 where bldgsz = 1",
+                                #"update housing_pums set h1bldgsz = 2 where bldgsz = 2",
+                                #"update housing_pums set h1bldgsz = 3 where bldgsz = 3",
+                                #"update housing_pums set h1bldgsz = 4 where bldgsz = 4",
+                                #"update housing_pums set h1bldgsz = 5 where bldgsz = 5",
+                                #"update housing_pums set h1bldgsz = 6 where bldgsz = 6",
+                                #"update housing_pums set h1bldgsz = 7 where bldgsz = 7",
+                                #"update housing_pums set h1bldgsz = 8 where bldgsz = 8",
+                                #"update housing_pums set h1bldgsz = 9 where bldgsz = 9",
+                                #"update housing_pums set h1bldgsz = 10 where bldgsz = 10",
+
+                                #"update housing_pums set h3yrmoved = 1 where yrmoved = 1", 
+                                #"update housing_pums set h3yrmoved = 2 where yrmoved = 2", 
+                                #"update housing_pums set h3yrmoved = 3 where yrmoved = 3", 
+                                #"update housing_pums set h3yrmoved = 4 where yrmoved = 4", 
+                                #"update housing_pums set h3yrmoved = 5 where yrmoved = 5", 
+                                #"update housing_pums set h3yrmoved = 6 where yrmoved = 6", 
+
+
+                                # Recodes for UrbanSim SF, Lane County, Hawaii
+                                "update housing_pums set h1bldgsz = 1 where bldgsz = 1",
+                                "update housing_pums set h1bldgsz = 2 where bldgsz = 2",
+                                "update housing_pums set h1bldgsz = 3 where bldgsz = 3",
+                                "update housing_pums set h1bldgsz = 4 where bldgsz = 4 or bldgsz = 5 or bldgsz = 6",
+                                "update housing_pums set h1bldgsz = 5 where bldgsz = 7",
+                                "update housing_pums set h1bldgsz = 6 where bldgsz = 8 or bldgsz = 9",
+                                "update housing_pums set h1bldgsz = 7 where bldgsz = 10",                                    
+
+                                "update housing_pums set h3yrmoved = 1 where yrmoved = 1 or yrmoved = 2", #1995-2000
+                                "update housing_pums set h3yrmoved = 2 where yrmoved = 3", 
+                                "update housing_pums set h3yrmoved = 3 where yrmoved = 4", 
+                                "update housing_pums set h3yrmoved = 4 where yrmoved = 5", 
+                                "update housing_pums set h3yrmoved = 5 where yrmoved = 6", 
+                                    
 
 
                                 "update housing_pums set hhtype = 1 where unittype = 0",
@@ -169,34 +231,49 @@ DEFAULT_HOUSING_PUMS2000_QUERIES = ["alter table housing_pums add index(serialno
                                 "update housing_pums set hhldtype = 4 where hht = 4 or hht = 5",
                                 "update housing_pums set hhldtype = 5 where hht = 6 or hht = 7",
                                 "update housing_pums set hhldtype = -99 where hht = 0",
-                                "update housing_pums set hhldinc = 1 where hinc <15000",
-                                "update housing_pums set hhldinc = 2 where hinc >= 15000 and hinc < 25000",
-                                "update housing_pums set hhldinc = 3 where hinc >= 25000 and hinc < 35000",
-                                "update housing_pums set hhldinc = 4 where hinc >= 35000 and hinc < 45000",
-                                "update housing_pums set hhldinc = 5 where hinc >= 45000 and hinc < 60000",
-                                "update housing_pums set hhldinc = 6 where hinc >= 60000 and hinc < 100000",
-                                "update housing_pums set hhldinc = 7 where hinc >= 100000 and hinc < 150000",
-                                "update housing_pums set hhldinc = 8 where hinc >= 150000",
-                                "update housing_pums set hhldinc = -99 where hht = 0",                          
-                                "update housing_pums set hhldsize = persons where persons < 7",
-                                "update housing_pums set hhldsize = 7 where persons >= 7",
-                                "update housing_pums set hhldsize = -99 where hht = 0",                          
-                                "update housing_pums set childpresence = 1 where noc > 0",
-                                "update housing_pums set childpresence = 2 where noc = 0",
-                                "update housing_pums set childpresence = -99 where hht = 0",                          
+
+                                # Original recodes
+                                #"update housing_pums set hh7ldinc = 1 where hinc <15000",
+                                #"update housing_pums set hh7ldinc = 2 where hinc >= 15000 and hinc < 25000",
+                                #"update housing_pums set hh7ldinc = 3 where hinc >= 25000 and hinc < 35000",
+                                #"update housing_pums set hh7ldinc = 4 where hinc >= 35000 and hinc < 45000",
+                                #"update housing_pums set hh7ldinc = 5 where hinc >= 45000 and hinc < 60000",
+                                #"update housing_pums set hh7ldinc = 6 where hinc >= 60000 and hinc < 100000",
+                                #"update housing_pums set hh7ldinc = 7 where hinc >= 100000 and hinc < 150000",
+                                #"update housing_pums set hh7ldinc = 8 where hinc >= 150000",
+                                #"update housing_pums set hh7ldinc = -99 where hht = 0",                          
+
+                                #"update housing_pums set hh5ldsize = persons where persons < 7",
+                                #"update housing_pums set hh5ldsize = 7 where persons >= 7",
+                                #"update housing_pums set hh5ldsize = -99 where hht = 0",                          
+
+                                # Recodes for UrbanSim SF, Lane County, Hawaii
+                                "update housing_pums set hh5ldsize = persons where persons < 4",
+                                "update housing_pums set hh5ldsize = 4 where persons >= 4",
+                                "update housing_pums set hh5ldsize = -99 where hht = 0",                          
+
+                                "update housing_pums set hh7ldinc = 1 where hinc <25000",
+                                "update housing_pums set hh7ldinc = 2 where hinc >= 25000 and hinc < 45000",
+                                "update housing_pums set hh7ldinc = 3 where hinc >= 45000 and hinc < 100000",
+                                "update housing_pums set hh7ldinc = 4 where hinc >= 100000",
+                                "update housing_pums set hh7ldinc = -99 where hht = 0",                          
+
+                                "update housing_pums set hh6childpresence = 1 where noc > 0",
+                                "update housing_pums set hh6childpresence = 2 where noc = 0",
+                                "update housing_pums set hh6childpresence = -99 where hht = 0",                          
                                 "update housing_pums set groupquarter = unittype where unittype >0",
                                 "update housing_pums set groupquarter = -99 where unittype =0",
                                 
-                                "update housing_pums set hhldfam = 1 where hhldtype <=3",
-                                "update housing_pums set hhldfam = 2 where hhldtype > 3",
+                                "update housing_pums set hh4ldfam = 1 where hhldtype <=3",
+                                "update housing_pums set hh4ldfam = 2 where hhldtype > 3",
 
                                 "delete from housing_pums where persons = 0",
                                 "drop table hhld_sample",
                                 "drop table gq_sample",
                                 """create table hhld_sample select state, pumano, hhid, serialno, """\
-                                        """hhtype, hhldtype, hhldinc, hhldsize, childpresence, """\
-                                        """hhldfam, htenure, hbldgsz, hvehicl, hgrent, hvalue, """\
-                                        """hyrbuilt, hyrmoved from housing_pums where hhtype = 1""",
+                                        """hhtype, hhldtype, hh7ldinc, hh5ldsize, hh6childpresence, """\
+                                        """hh4ldfam, h2tenure, h1bldgsz, hvehicl, hgrent, hvalue, """\
+                                        """hyrbuilt, h3yrmoved from housing_pums where hhtype = 1""",
                                 """create table gq_sample select state, pumano, hhid, serialno, """\
                                         """hhtype, groupquarter from housing_pums where hhtype = 2""",
                                 "alter table hhld_sample add index(serialno)",
@@ -333,23 +410,43 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "alter table %s add column hhldfam1 bigint",
                           "alter table %s add column hhldfam2 bigint",
                           
+                          # Original recodes
+                          #"""update %s set agep1 = (P008003+P008004+P008005+P008006+P008007) """\
+                          #    """+ (P008042+P008043+P008044+P008045+P008046)""",
+                          #"""update %s set agep2 = (P008008+P008009+P008010+P008011+P008012+"""\
+                          #    """P008013+P008014+P008015+P008016+P008017 ) + """\
+                          #    """(P008047+P008048+P008049+P008050+P008051+P008052+P008053+"""\
+                          #    """P008054+P008055+P008056)""",
+                          #"""update %s set agep3 = (P008018+P008019+P008020+P008021+P008022"""\
+                          #    """+P008023+P008024+P008025 ) + (P008057+P008058+P008059+P008060"""\
+                          #    """+P008061+P008062+P008063+P008064)""",
+                          #"update %s set agep4 = (P008026+P008027) + (P008065+P008066)",
+                          #"update %s set agep5 = (P008028+P008029) + (P008067+P008068)",
+                          #"update %s set agep6 = (P008030+P008031) + (P008069+P008070)",
+                          #"update %s set agep7 = (P008032+P008033+P008034) + (P008071+P008072+P008073)",
+                          #"update %s set agep8 = (P008035+P008036+P008037) + (P008074+P008075+P008076)",
+                          #"update %s set agep9 = (P008038+P008039) + (P008077+P008078)",
+                          #"update %s set agep10 = (P008040) + (P008079)",
+
                           
+                          # Recodes for Urbansim SF, Lane County, Hawaii
                           """update %s set agep1 = (P008003+P008004+P008005+P008006+P008007) """\
-                              """+ (P008042+P008043+P008044+P008045+P008046)""",
-                          """update %s set agep2 = (P008008+P008009+P008010+P008011+P008012+"""\
+                              """+ (P008042+P008043+P008044+P008045+P008046) + """\
+                              """(P008008+P008009+P008010+P008011+P008012+"""\
                               """P008013+P008014+P008015+P008016+P008017 ) + """\
                               """(P008047+P008048+P008049+P008050+P008051+P008052+P008053+"""\
                               """P008054+P008055+P008056)""",
-                          """update %s set agep3 = (P008018+P008019+P008020+P008021+P008022"""\
+                          """update %s set agep2 = (P008018+P008019+P008020+P008021+P008022"""\
                               """+P008023+P008024+P008025 ) + (P008057+P008058+P008059+P008060"""\
-                              """+P008061+P008062+P008063+P008064)""",
-                          "update %s set agep4 = (P008026+P008027) + (P008065+P008066)",
-                          "update %s set agep5 = (P008028+P008029) + (P008067+P008068)",
-                          "update %s set agep6 = (P008030+P008031) + (P008069+P008070)",
-                          "update %s set agep7 = (P008032+P008033+P008034) + (P008071+P008072+P008073)",
-                          "update %s set agep8 = (P008035+P008036+P008037) + (P008074+P008075+P008076)",
-                          "update %s set agep9 = (P008038+P008039) + (P008077+P008078)",
-                          "update %s set agep10 = (P008040) + (P008079)",
+                              """+P008061+P008062+P008063+P008064) + """\
+                              """(P008026+P008027) + (P008065+P008066)""",
+                          """update %s set agep3 = (P008028+P008029) + (P008067+P008068) + """\
+                              """ (P008030+P008031) + (P008069+P008070)""",
+                          """update %s set agep4 = (P008032+P008033+P008034) + (P008071+P008072+P008073) + """\
+                              """ (P008035+P008036+P008037) + (P008074+P008075+P008076)""",
+                          "update %s set agep5 = (P008038+P008039) + (P008077+P008078) + (P008040) + (P008079)",
+
+
                           "update %s set gender1 = P008002", 
                           "update %s set gender2 = P008041", 
                           "update %s set race1 = P006002",
@@ -359,7 +456,13 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set race5 = P006006",
                           "update %s set race6 = P006007",
                           "update %s set race7 = P006008",
-                          "update %s set employment1 = agep1+agep2+P008018+P008057",
+
+                          # Original recodes
+                          #"update %s set employment1 = agep1+agep2+P008018+P008057",
+
+                          # Recodes for UrbanSim SF, Lane County, Hawaii
+                          "update %s set employment1 = agep1+P008018+P008057",
+
                           "update %s set employment2 = P043004+P043006+P043011+P043013",
                           "update %s set employment3 = P043007+P043014",
                           "update %s set employment4 = P043008+P043015",
@@ -367,21 +470,36 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set childpresence2 = P010009 + P010013 + P010016 + P010017 + P010002",
                           "update %s set groupquarter1 = P009026",
                           "update %s set groupquarter2 = P009027",
-                          "update %s set hhldinc1 = P052002 + P052003",
-                          "update %s set hhldinc2 = P052004 + P052005",
-                          "update %s set hhldinc3 = P052006 + P052007",
-                          "update %s set hhldinc4 = P052008 + P052009",
-                          "update %s set hhldinc5 = P052010 + P052011",
-                          "update %s set hhldinc6 = P052012 + P052013",
-                          "update %s set hhldinc7 = P052014 + P052015",
-                          "update %s set hhldinc8 = P052016 + P052017",
+
+                          # Original recodes
+                          #"update %s set hhldinc1 = P052002 + P052003",
+                          #"update %s set hhldinc2 = P052004 + P052005",
+                          #"update %s set hhldinc3 = P052006 + P052007",
+                          #"update %s set hhldinc4 = P052008 + P052009",
+                          #"update %s set hhldinc5 = P052010 + P052011",
+                          #"update %s set hhldinc6 = P052012 + P052013",
+                          #"update %s set hhldinc7 = P052014 + P052015",
+                          #"update %s set hhldinc8 = P052016 + P052017",
+
+                          #"update %s set hhldsize1 = P014010 ",
+                          #"update %s set hhldsize2 = P014003+P014011 ",
+                          #"update %s set hhldsize3 = P014004+P014012 ",
+                          #"update %s set hhldsize4 = P014005+P014013 ",
+                          #"update %s set hhldsize5 = P014006+P014014 ",
+                          #"update %s set hhldsize6 = P014007+P014015 ",
+                          #"update %s set hhldsize7 = P014008+P014016 ",
+
+                          # Recodes for UrbanSim for SF, Lane County, Hawaii
+                          "update %s set hhldinc1 = P052002 + P052003 + P052004 + P052005",
+                          "update %s set hhldinc2 = P052006 + P052007 + P052008 + P052009",
+                          "update %s set hhldinc3 = P052010 + P052011 + P052012 + P052013",
+                          "update %s set hhldinc4 = P052014 + P052015 + P052016 + P052017",
+
                           "update %s set hhldsize1 = P014010 ",
                           "update %s set hhldsize2 = P014003+P014011 ",
                           "update %s set hhldsize3 = P014004+P014012 ",
-                          "update %s set hhldsize4 = P014005+P014013 ",
-                          "update %s set hhldsize5 = P014006+P014014 ",
-                          "update %s set hhldsize6 = P014007+P014015 ",
-                          "update %s set hhldsize7 = P014008+P014016 ",
+                          "update %s set hhldsize4 = P014005+P014013 + P014006+P014014 + P014007+P014015 + P014008+P014016 ",
+
                           "update %s set hhldtype1 = P010007",
                           "update %s set hhldtype2 = P010011 ",
                           "update %s set hhldtype3 = P010014",
@@ -440,33 +558,58 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "alter table %s add column hchild_check bigint",
                           "alter table %s add column pgender_check bigint",
                           "alter table %s add column phousing_check bigint",
+                          "alter table %s add column pemp_check bigint",
+                          
 
-                          "update %s set hyrmoved1 = H038003 + H038010",
-                          "update %s set hyrmoved2 = H038004 + H038011",
-                          "update %s set hyrmoved3 = H038005 + H038012",
-                          "update %s set hyrmoved4 = H038006 + H038013",
-                          "update %s set hyrmoved5 = H038007 + H038014",
-                          "update %s set hyrmoved6 = H038008 + H038015",
 
                           "update %s set htenure1 = H007002",
                           "update %s set htenure2 = H007003",
 
+                          # Original recodes
+                          #"update %s set hyrmoved1 = H038003 + H038010",
+                          #"update %s set hyrmoved2 = H038004 + H038011",
+                          #"update %s set hyrmoved3 = H038005 + H038012",
+                          #"update %s set hyrmoved4 = H038006 + H038013",
+                          #"update %s set hyrmoved5 = H038007 + H038014",
+                          #"update %s set hyrmoved6 = H038008 + H038015",
+
+                          #"update %s set hbldgsz1 = H030010",
+                          #"update %s set hbldgsz2 = H030002",
+                          #"update %s set hbldgsz3 = H030003",
+                          #"update %s set hbldgsz4 = H030004",
+                          #"update %s set hbldgsz5 = H030005",
+                          #"update %s set hbldgsz6 = H030006",
+                          #"update %s set hbldgsz7 = H030007",
+                          #"update %s set hbldgsz8 = H030008",
+                          #"update %s set hbldgsz9 = H030009",
+                          #"update %s set hbldgsz10 = H030011",
+
+                          # Recodes for UrbanSim SF, Lane County, Hawaii
+                          "update %s set hyrmoved1 = H038003 + H038010 + H038004 + H038011",
+                          "update %s set hyrmoved2 = H038005 + H038012",
+                          "update %s set hyrmoved3 = H038006 + H038013",
+                          "update %s set hyrmoved4 = H038007 + H038014",
+                          "update %s set hyrmoved5 = H038008 + H038015",
+
                           "update %s set hbldgsz1 = H030010",
                           "update %s set hbldgsz2 = H030002",
                           "update %s set hbldgsz3 = H030003",
-                          "update %s set hbldgsz4 = H030004",
-                          "update %s set hbldgsz5 = H030005",
-                          "update %s set hbldgsz6 = H030006",
-                          "update %s set hbldgsz7 = H030007",
-                          "update %s set hbldgsz8 = H030008",
-                          "update %s set hbldgsz9 = H030009",
-                          "update %s set hbldgsz10 = H030011",
+                          "update %s set hbldgsz4 = H030004 + H030005 + H030006",
+                          "update %s set hbldgsz5 = H030007",
+                          "update %s set hbldgsz6 = H030008 + H030009",
+                          "update %s set hbldgsz7 = H030011",
+                          
 
                           "update %s set phours1 = P047025 + P047049", # did not work
                           "update %s set phours2 = P047018 + P047042", # 1 - 14 hours/week
                           "update %s set phours3 = P047011 + P047035", # 15 - 34 hours/week
                           "update %s set phours4 = P047004 + P047028", # 35 + hours/week
-                          "update %s set phours5 = agep1+agep2+P008018+P008057""", # Not in universe 15 and younger
+
+                          # Original recodes
+                          #"update %s set phours5 = agep1+agep2+P008018+P008057""", # Not in universe 15 and younger
+                          
+                          # Recodes for UrbanSim for SF, Lane County, Hawaii
+                          "update %s set phours5 = agep1+P008018+P008057""", # Not in universe 15 and younger
 
                           """update %s set pclwkr1 = P051005 + P051016 + P051026 + P051037 + """\
                               """P051048 + P051058""",
@@ -484,7 +627,12 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """P051006 + P051017 + P051027""",
                           """update %s set pclwkr8 = P051044 + P051055 + P051065 + """\
                               """P051012 + P051023 + P051033""",
-                          """update %s set pclwkr9 = agep1+agep2+P008018+P008057""", # 15 and younger
+                          # Original Recodes
+                          #"""update %s set pclwkr9 = agep1+agep2+P008018+P008057""", # 15 and younger
+
+                          # Recodes for UrbanSim for SF, Lane County, Hawaii
+                          """update %s set pclwkr9 = agep1+P008018+P008057""", # 15 and younger
+
                           """update %s set pclwkr10 = P043004 + P043011""", # In Armed Forces
                           """update %s set pclwkr11 = P043007 + P043014""", # Unemployed Civilian
                           """update %s set pclwkr12 = P043008 + P043015""", # Not in labor force
@@ -502,34 +650,72 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           """update %s set pclwkr_check = pclwkr1 + pclwkr2 + pclwkr3 + pclwkr4 + """\
                               """pclwkr5 + pclwkr6 + pclwkr7 + pclwkr8 + pclwkr9 + pclwkr10 + pclwkr11 + pclwkr12""",
                           """update %s set pgender_check = gender1 + gender2""",
+                          "update %s set pemp_check = employment1 + employment2 + employment3 + employment4",
 
                           "drop table hhld_marginals",
                           "drop table gq_marginals",
                           "drop table person_marginals",
+
+                          # Original Recodes
+                          #"""create table hhld_marginals select state, county, tract, bg, """\
+                          #    """hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, """\
+                          #    """hhldinc7, hhldinc8, hhldsize1, hhldsize2, hhldsize3, hhldsize4, """\
+                          #    """hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, """\
+                          #    """hhldtype3, hhldtype4, hhldtype5, childpresence1, childpresence2, """\
+                          #    """hhldrage1, hhldrage2, hhldfam1, hhldfam2, """\
+                          #    """hyrmoved1, hyrmoved2, hyrmoved3, hyrmoved4, hyrmoved5, hyrmoved6, """\
+                          #    """htenure1, htenure2, """\
+                          #    """hbldgsz1, hbldgsz2, hbldgsz3, hbldgsz4, hbldgsz5, hbldgsz6, hbldgsz7, """\
+                          #    """hbldgsz8, hbldgsz9, hbldgsz10 """\
+                          #    """from %s""",
+
+                          #"""create table gq_marginals select state, county, tract, bg, """\
+                          #    """groupquarter1, groupquarter2 from %s""",
+
+                          #"""create table person_marginals select state, county, tract, bg, """\
+                          #    """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, """\
+                          #    """agep10, gender1, gender2, race1, race2, race3, race4, """\
+                          #    """race5, race6, race7, employment1, employment2, employment3, """\
+                          #    """employment4, """\
+                          #    """phours1, phours2, phours3, phours4, phours5, """\
+                          #    """pclwkr1, pclwkr2, pclwkr3, pclwkr4, pclwkr5, pclwkr6, pclwkr7, """\
+                          #    """pclwkr8, pclwkr9, pclwkr10, pclwkr11, pclwkr12 """
+                          #    """from %s"""
+
+                          # Recodes for UrbanSim for SF, Lane County, Hawaii
                           """create table hhld_marginals select state, county, tract, bg, """\
-                              """hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, """\
-                              """hhldinc7, hhldinc8, hhldsize1, hhldsize2, hhldsize3, hhldsize4, """\
-                              """hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, """\
+                              """hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldsize1, hhldsize2, hhldsize3, hhldsize4, """\
+                              """hhldtype1, hhldtype2, """\
                               """hhldtype3, hhldtype4, hhldtype5, childpresence1, childpresence2, """\
                               """hhldrage1, hhldrage2, hhldfam1, hhldfam2, """\
-                              """hyrmoved1, hyrmoved2, hyrmoved3, hyrmoved4, hyrmoved5, hyrmoved6, """\
+                              """hyrmoved1, hyrmoved2, hyrmoved3, hyrmoved4, hyrmoved5, """\
                               """htenure1, htenure2, """\
-                              """hbldgsz1, hbldgsz2, hbldgsz3, hbldgsz4, hbldgsz5, hbldgsz6, hbldgsz7, """\
-                              """hbldgsz8, hbldgsz9, hbldgsz10 """\
+                              """hbldgsz1, hbldgsz2, hbldgsz3, hbldgsz4, hbldgsz5, hbldgsz6, hbldgsz7 """\
                               """from %s""",
 
                           """create table gq_marginals select state, county, tract, bg, """\
                               """groupquarter1, groupquarter2 from %s""",
 
                           """create table person_marginals select state, county, tract, bg, """\
-                              """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, """\
-                              """agep10, gender1, gender2, race1, race2, race3, race4, """\
+                              """agep1, agep2, agep3, agep4, agep5, """\
+                              """gender1, gender2, race1, race2, race3, race4, """\
                               """race5, race6, race7, employment1, employment2, employment3, """\
                               """employment4, """\
                               """phours1, phours2, phours3, phours4, phours5, """\
                               """pclwkr1, pclwkr2, pclwkr3, pclwkr4, pclwkr5, pclwkr6, pclwkr7, """\
-                              """pclwkr8, pclwkr9 """
+                              """pclwkr8, pclwkr9, pclwkr10, pclwkr11, pclwkr12 """
                               """from %s"""]
+
+
+
+
+
+
+
+
+
+
+
 
 DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column agep2 bigint",
