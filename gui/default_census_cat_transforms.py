@@ -89,12 +89,24 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column p1age bi
                                 "alter table hhld_sample drop column hhldrage",
                                 "alter table hhld_sample rename to hhld_sample_temp",
                                 "drop table hhld_sample",
+
+                                #original recodes    
+                                #"""create table hhld_sample select hhld_sample_temp.*, """\
+                                #        """p1age as hhldrage from hhld_sample_temp left """\
+                                #        """join person_sample using(serialno) where relate = 1""",
+                                    
+                                #"alter table hhld_sample add index(serialno)",
+                                #"update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
+                                #"update hhld_sample set hhldrage = 2 where hhldrage >7"]
+
+                                # Recodes for UrbanSim SF, Lane County, Hawaii
                                 """create table hhld_sample select hhld_sample_temp.*, """\
-                                        """p1age as hhldrage from hhld_sample_temp left """\
+                                        """age as hhldrage from hhld_sample_temp left """\
                                         """join person_sample using(serialno) where relate = 1""",
+                                    
                                 "alter table hhld_sample add index(serialno)",
-                                "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
-                                "update hhld_sample set hhldrage = 2 where hhldrage >7"]
+                                "update hhld_sample set hhldrage = 1 where hhldrage <65 ",
+                                "update hhld_sample set hhldrage = 2 where hhldrage >=65"]
 
 DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigint",
                                   "alter table person_pums change puma pumano bigint",
