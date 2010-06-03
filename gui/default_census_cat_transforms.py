@@ -81,7 +81,7 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column p1age bi
 
                                 "drop table person_sample",
                                 """create table person_sample select state, pumano, hhid, serialno, """\
-                                        """pnum, p1age, p2gender, p3race, employment, relate, p4clwkr, pearns, """\
+                                        """pnum, age, p1age, p2gender, p3race, employment, relate, p4clwkr, pearns, """\
                                         """peduc, penroll, p5hours, pndnaics, pocccen, ptrvmns """\
                                         """from person_pums""",
                                 "alter table person_sample add index(serialno, pnum)",
@@ -103,7 +103,7 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column p1age bi
                                 """create table hhld_sample select hhld_sample_temp.*, """\
                                         """age as hhldrage from hhld_sample_temp left """\
                                         """join person_sample using(serialno) where relate = 1""",
-                                    
+                                """alter table person_sample drop column age""",    
                                 "alter table hhld_sample add index(serialno)",
                                 "update hhld_sample set hhldrage = 1 where hhldrage <65 ",
                                 "update hhld_sample set hhldrage = 2 where hhldrage >=65"]
