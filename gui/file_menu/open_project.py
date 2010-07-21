@@ -182,7 +182,7 @@ class SaveFile(QFileDialog):
             if not query.exec_("""drop table tempperson"""):
                 print "FileError:%s" %query.lastError().text()
             if not query.exec_("""create table tempperson select person_synthetic_data.* %s from person_synthetic_data"""
-                               """ left join person_sample using (serialno)""" %(personvarstr)):
+                               """ left join person_sample using (serialno, pnum)""" %(personvarstr)):
                 raise FileError, query.lastError().text()
             if not query.exec_("""alter table tempperson drop column personuniqueid"""):
                 raise FileError, query.lastError().text()
@@ -198,7 +198,7 @@ class SaveFile(QFileDialog):
                 if not query.exec_("""alter table tempperson add index(hhid)"""):
                     raise FileError, query.lastError().text()
                 if not query.exec_("""create table tempperson1 select tempperson.*, serialno from tempperson"""
-                                   """ left join serialcorr using (hhid)"""):
+                                   """ left join serialcorr using (hhid, pnum)"""):
                     raise FileError, query.lastError().text()
 
                 if not query.exec_("""select * from tempperson1 into outfile """
