@@ -309,7 +309,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
             if checkPUMSTableTransforms:
                 for i in queries:
-                    #print "Executing Query: %s" %i
+                    print "Executing Query: %s" %i
                     if not query.exec_("""%s""" %i):
                         if not query.lastError().number() == 1051:
                             print "FileError: %s" %query.lastError().text()
@@ -326,7 +326,7 @@ class QTreeWidgetCMenu(QTreeWidget):
                     queries = DEFAULT_SFACS_QUERIES
 
                 for i in queries:
-                    #print "Executing Query: %s" %i
+                    print "Executing Query: %s" %i
                     if not query.exec_(i %tablename):
                         print "FileError: %s" %query.lastError().text()
 

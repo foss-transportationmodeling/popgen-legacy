@@ -34,6 +34,7 @@ class SaveFile(QFileDialog):
             self.fileSep = ','
         elif self.fileType == 'dat':
             self.fileSep = '\t'
+        self.gqAnalyzed = self.isGqAnalyzed()
         self.folder = self.getExistingDirectory(self, QString("""Select a folder for storing the files. """
                                                               """Note that two files are exported for every data table: """
                                                               """a data file containing the data in the format chosen and a """
@@ -48,6 +49,26 @@ class SaveFile(QFileDialog):
                 self.save()
             else:
                 self.saveSelectedTable()
+
+
+
+
+    def isGqAnalyzed(self):
+        if not self.project.gqVars:
+            return False
+
+        if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
+            return True
+
+        if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
+            return True
+
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
+            return True
+
+
+        return False
+
 
     def saveSummaryStats(self):
         pass
@@ -410,14 +431,18 @@ class ExportSummaryFile(SaveFile):
         if not query.exec_("""alter table hhld_marginals add index(state, county, tract, bg)"""):
             raise FileError, query.lastError().text()
 
-        if not query.exec_("""alter table gq_marginals add index(state, county, tract, bg)"""):
-            raise FileError, query.lastError().text()
+        if self.gqAnalyzed:
+            if not query.exec_("""alter table gq_marginals add index(state, county, tract, bg)"""):
+                raise FileError, query.lastError().text()
+            
 
-
-        if not query.exec_("""create table housing_marginals select state, county, tract, bg, %s """
-                           """ from hhld_marginals left join gq_marginals using(state, county, tract, bg)"""
-                           %dummy):
-            raise FileError, query.lastError().text()
+            if not query.exec_("""create table housing_marginals select state, county, tract, bg, %s """
+                               """ from hhld_marginals left join gq_marginals using(state, county, tract, bg)"""
+                               %dummy):
+                raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""create table housing_marginals select * from hhld_marginals """):
+                raise FileError, query.lastError().text()
 
 
     def createMarginalsTable(self, query, persVars):
