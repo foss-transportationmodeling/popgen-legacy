@@ -99,7 +99,7 @@ class ImportUserProvData():
         self.tableName = name
 
         self.filePath = os.path.realpath('%s' %filePath)
-        #self.filePath = self.filePath.replace("\\", "/")
+        self.filePath = self.filePath.replace("\\", "/")
 
         self.varNames = varNames
         self.varTypes = varTypes
