@@ -223,10 +223,10 @@ def configure_and_run(project, geo, varCorrDict):
 
     print 'Number of Synthetic Household/Group quarters - %d' %(sum(max_p_housing_attributes[:,-2]))
     for i in range(len(hhld_control_variables)):
-        print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], sum(hhld_marginals[i]))
+        print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], round(sum(hhld_marginals[i])))
 
     for i in range(len(gq_control_variables)):
-        print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], sum(gq_marginals[i]))
+        print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], round(sum(gq_marginals[i])))
 
 
     db.commit()
