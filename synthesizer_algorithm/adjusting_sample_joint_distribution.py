@@ -138,7 +138,7 @@ def create_aggregation_string(control_variables):
     return string
 
 
-def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
+def adjust_weights1(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
                    state, county, pumano=0, tract=0, bg=0, parameters=0, hhldsizeMargsMod=False):
 
     dbc = db.cursor()
@@ -188,6 +188,59 @@ def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAd
 #    print "Marginals off by - %s" %adjustment_characteristic
     dbc.close()
     db.commit()
+
+def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
+                    state, county, pumano=0, tract=0, bg=0, parameters=0, hhldsizeMargsMod=False):
+    dbc = db.cursor()
+
+    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, 
+                                                   controlAdjDict, state, county, tract, bg, hhldsizeMargsMod)
+
+    tol = 1
+    iteration = 0
+    adjustment_old = []
+    target_adjustment = []
+
+    while (tol):
+        iteration = iteration +1
+        adjustment_all = []
+        for i in range(len(control_variables)):
+            adjusted_marginals = marginals(db, synthesis_type, control_variables[i], pumano, tract, bg)
+            for j in range(len(adjusted_marginals)):
+                if adjusted_marginals[j] == 0:
+                    adjusted_marginals[j] = 1
+
+            adjustment = arr(control_marginals[i]) / arr(adjusted_marginals)
+            update_weights(db, synthesis_type, control_variables, control_variables[i], pumano, tract, bg, adjustment)
+
+            for k in adjustment:
+                adjustment_all.append(k)
+                if iteration == 1:
+                    if k == 0:
+                        adjustment_old.append(0)
+                    else:
+                        adjustment_old.append(k/k)
+                    target_adjustment = [adjustment_old]
+
+        tol = tolerance(adjustment_all, adjustment_old, iteration, parameters)
+        adjustment_old = adjustment_all
+        adjustment_characteristic = abs(arr(adjustment_all) - arr(target_adjustment)).sum() / len(adjustment_all)
+
+
+    if (iteration>=parameters.ipfIter):
+        pass
+#        print "Maximum iterations reached\n"
+    else:
+#        print "Convergence Achieved in iterations - %s\n" %iteration
+        pass
+
+#    print "Marginals off by - %s" %adjustment_characteristic
+
+    dbc.close()
+    db.commit()
+
+
+
 
 def marginals(db, synthesis_type, variable_name, pumano, tract, bg):
 # Returns the marginals wrt the entered dimension for calculating the adjustment in each iteration
@@ -251,7 +304,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
                     if i>0:
                         variable_marginals1.append(i)
                     else:
-                        variable_marginals1.append(0.1)
+                        variable_marginals1.append(0.00001)
             #check_marginal_sum = sum(variable_marginals1)
             else:
                 raise Exception, 'Household marginal distributions modified to account for person total inconsistency'
@@ -268,7 +321,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
                 if result[0][0] > 0:
                     variable_marginals1.append(result[0][0])
                 else:
-                    variable_marginals1.append(0.1)
+                    variable_marginals1.append(0.00001)
 
         #exceptionStatus = False
 
@@ -311,7 +364,7 @@ def check_for_zero_marginaltotals(marginals, control_variables):
         j = marginals[i]
         try:
             while(1):
-                j.remove(0.1)
+                j.remove(0.00001)
         except:
             pass
         if sum(j) == 0:
@@ -322,7 +375,7 @@ def check_for_unequal_marginaltotals(marginals, control_variables):
     i = marginals[0]
     try:
         while(1):
-            i.remove(0.1)
+            i.remove(0.00001)
     except:
         pass
     ref_sum = sum(i)
@@ -330,12 +383,13 @@ def check_for_unequal_marginaltotals(marginals, control_variables):
         j = marginals[1+i]
         try:
             while(1):
-                j.remove(0.1)
+                j.remove(0.00001)
         except:
             pass
         if ref_sum <> sum(j):
-            print ("Warning: The marginals distribution sum of %s and %s variables are not the same."
-                   %(control_variables[0], control_variables[1+i]))
+            print ("Warning: The marginals distribution sum of %s (%s) and %s (%s) variables are not the same."
+                   %(control_variables[0], ref_sum,
+                     control_variables[1+i], sum(j)))
                       
         
 def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
@@ -344,7 +398,7 @@ def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
     for i in hhld_marginals:
         try:
             while(1):
-                i.remove(0.1)
+                i.remove(0.00001)
         except:
             pass
         if len(i) <> 0:
@@ -353,7 +407,7 @@ def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
         for i in gq_marginals:
             try:
                 while(1):
-                    i.remove(0.1)
+                    i.remove(0.00001)
             except:
                 pass
             if len(i) <> 0:
@@ -368,7 +422,7 @@ def check_for_zero_person_totals(person_marginals):
     for i in person_marginals:
         try:
             while(1):
-                i.remove(0.1)
+                i.remove(0.00001)
         except:
             pass
         if len(i) <> 0:
