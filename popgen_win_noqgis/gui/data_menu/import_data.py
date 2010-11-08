@@ -56,8 +56,9 @@ class FileProperties():
 
 
     def checkVarTypes(self, line):
+
         validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
-                              'float', 'double',
+                              'float', 'double', 'float(27)',
                               'decimal',
                               'bit',
                               'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
@@ -69,7 +70,6 @@ class FileProperties():
             try:
                 validVariableTypes.index(i.lower())
             except:
-                #raise FileError, "Enter a valid variable type definition"
                 return 0
         return 1
 
@@ -118,7 +118,7 @@ class ImportUserProvData():
 
     def createTableQuery(self):
         validVariableTypes = ['tinyint', 'smallint', 'mediumint', 'int','bigint',
-                              'float', 'doubke',
+                              'float', 'double', 'float(27)',
                               'decimal',
                               'bit',
                               'char', 'varchar', 'text', 'binary', 'varbinary', 'blob', 'enum', 'set']
@@ -144,8 +144,8 @@ class ImportUserProvData():
                 raise FileError, "Enter a valid variable name"
 
         for i in self.varTypes:
-            if not re.match("[A-Za-z]", i[0]):
-                raise FileError, "Enter a valid variable type definition"
+            #if not re.match("[A-Za-z()0-9]", i[0]):
+            #    raise FileError, "Enter a valid variable type definition"
             try:
                 validVariableTypes.index(i.lower())
             except:

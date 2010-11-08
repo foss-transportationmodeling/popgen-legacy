@@ -34,6 +34,8 @@ class SaveFile(QFileDialog):
             self.fileSep = ','
         elif self.fileType == 'dat':
             self.fileSep = '\t'
+        self.gqAnalyzed = self.isGqAnalyzed()
+        self.persAnalyzed = self.isPersonAnalyzed()
         self.folder = self.getExistingDirectory(self, QString("""Select a folder for storing the files. """
                                                               """Note that two files are exported for every data table: """
                                                               """a data file containing the data in the format chosen and a """
@@ -48,6 +50,42 @@ class SaveFile(QFileDialog):
                 self.save()
             else:
                 self.saveSelectedTable()
+
+
+
+
+    def isGqAnalyzed(self):
+        if not self.project.gqVars:
+            return False
+
+        if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
+            return True
+
+        if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.gqLocation <> "":
+            return True
+
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.gqLocation <> "":
+            return True
+
+
+        return False
+
+
+    def isPersonAnalyzed(self):
+        if not self.project.selVariableDicts.persControl:
+            return False
+
+        if self.project.sampleUserProv.userProv == False and self.project.controlUserProv.userProv == False:
+            return True
+
+        if self.project.sampleUserProv.userProv == True and self.project.sampleUserProv.personLocation <> "":
+            return True
+
+        if self.project.controlUserProv.userProv == True and self.project.controlUserProv.personLocation <> "":
+            return True
+
+        return False
+
 
     def saveSummaryStats(self):
         pass
@@ -166,7 +204,11 @@ class SaveFile(QFileDialog):
         if check  < 2:
             personVariablesDict, personVariables = self.getVariables('person_sample', query)
             personVariablesDict = self.deleteDictEntries(personVariablesDict)
-            personSelVariables = self.getSelectedVariables(personVariablesDict, self.project.personVars, 
+            if self.project.personVars is None:
+                personVarsList = []
+            else:
+                personVarsList = self.project.personVars
+            personSelVariables = self.getSelectedVariables(personVariablesDict, personVarsList, 
                                                            "Select Person Variables to Add to Synthetic Data")
 
             personvarstr = ","
@@ -372,8 +414,10 @@ class ExportSummaryFile(SaveFile):
             self.createMarginalsTable(query, varCorrDict.values())
 
             self.createGivenControlTotalColumns(query, self.project.selVariableDicts.hhld)
-            self.createGivenControlTotalColumns(query, self.project.selVariableDicts.gq)
-            self.createGivenControlTotalColumns(query, self.project.selVariableDicts.person)
+            if self.isGqAnalyzed:
+                self.createGivenControlTotalColumns(query, self.project.selVariableDicts.gq)
+            if self.isPersonAnalyzed:
+                self.createGivenControlTotalColumns(query, self.project.selVariableDicts.person)
 
             self.createMarginalsSummaryTable(query)
         
@@ -410,14 +454,18 @@ class ExportSummaryFile(SaveFile):
         if not query.exec_("""alter table hhld_marginals add index(state, county, tract, bg)"""):
             raise FileError, query.lastError().text()
 
-        if not query.exec_("""alter table gq_marginals add index(state, county, tract, bg)"""):
-            raise FileError, query.lastError().text()
+        if self.gqAnalyzed:
+            if not query.exec_("""alter table gq_marginals add index(state, county, tract, bg)"""):
+                raise FileError, query.lastError().text()
+            
 
-
-        if not query.exec_("""create table housing_marginals select state, county, tract, bg, %s """
-                           """ from hhld_marginals left join gq_marginals using(state, county, tract, bg)"""
-                           %dummy):
-            raise FileError, query.lastError().text()
+            if not query.exec_("""create table housing_marginals select state, county, tract, bg, %s """
+                               """ from hhld_marginals left join gq_marginals using(state, county, tract, bg)"""
+                               %dummy):
+                raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""create table housing_marginals select * from hhld_marginals """):
+                raise FileError, query.lastError().text()
 
 
     def createMarginalsTable(self, query, persVars):
@@ -432,14 +480,18 @@ class ExportSummaryFile(SaveFile):
         if not query.exec_("""alter table housing_marginals add index(state, county, tract, bg)"""):
             raise FileError, query.lastError().text()
 
-        if not query.exec_("""alter table person_marginals add index(state, county, tract, bg)"""):
-            raise FileError, query.lastError().text()
-
-
-        if not query.exec_("""create table marginals select housing_marginals.*, %s """
-                           """ from housing_marginals left join person_marginals using(state, county, tract, bg)"""
-                           %dummy):
-            raise FileError, query.lastError().text()
+        if self.persAnalyzed:        
+            if not query.exec_("""alter table person_marginals add index(state, county, tract, bg)"""):
+                raise FileError, query.lastError().text()
+    
+            if not query.exec_("""create table marginals select housing_marginals.*, %s """
+                               """ from housing_marginals left join person_marginals using(state, county, tract, bg)"""
+                               %dummy):
+                raise FileError, query.lastError().text()
+        else:
+            if not query.exec_("""create table marginals select * from housing_marginals"""):
+                raise FileError, query.lastError().text()
+            
 
     def createMarginalsSummaryTable(self, query):
         if not query.exec_("""alter table marginals add index(state, county, tract, bg)"""):
@@ -478,7 +530,7 @@ class ExportSummaryFile(SaveFile):
 
     def createGivenControlTotalColumns(self, query, varDict):
         for i in varDict.keys():
-            if not query.exec_("""alter table marginals add column %s_act_sum bigint"""
+            if not query.exec_("""alter table marginals add column %s_act_sum int"""
                                %(i)):
                 print "FileError: %s" %query.lastError().text()
 

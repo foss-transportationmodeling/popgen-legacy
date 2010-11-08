@@ -356,8 +356,10 @@ class AutoImportSFACSData(AutoImportSF2000Data):
         AutoImportSF2000Data.__init__(self, project)
         self.project = project
 
-        self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SFACS'
-        self.loc = os.path.realpath(self.loc)
+        #self.loc = DATA_DOWNLOAD_LOCATION + os.path.sep + self.state + os.path.sep + 'SFACS'
+        #self.loc = '%s' %os.path.realpath(self.loc)
+
+        self.loc = os.path.join(DATA_DOWNLOAD_LOCATION, '%s' %self.state, 'SFACS')
         
         self.rawSF = RAW_SUMMARYACS_FILES
 
