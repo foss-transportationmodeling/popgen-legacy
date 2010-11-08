@@ -485,13 +485,13 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set hhldinc7 = P052014 + P052015",
                           "update %s set hhldinc8 = P052016 + P052017",
 
-                          "update %s set hhldsize1 = P014010 ",
-                          "update %s set hhldsize2 = P014003+P014011 ",
-                          "update %s set hhldsize3 = P014004+P014012 ",
-                          "update %s set hhldsize4 = P014005+P014013 ",
-                          "update %s set hhldsize5 = P014006+P014014 ",
-                          "update %s set hhldsize6 = P014007+P014015 ",
-                          "update %s set hhldsize7 = P014008+P014016 ",
+                          #"update %s set hhldsize1 = P014010 ",
+                          #"update %s set hhldsize2 = P014003+P014011 ",
+                          #"update %s set hhldsize3 = P014004+P014012 ",
+                          #"update %s set hhldsize4 = P014005+P014013 ",
+                          #"update %s set hhldsize5 = P014006+P014014 ",
+                          #"update %s set hhldsize6 = P014007+P014015 ",
+                          #"update %s set hhldsize7 = P014008+P014016 ",
 
                           # Recodes for UrbanSim for SF, Lane County, Hawaii
                           #update %s set hhldinc1 = P052002 + P052003 + P052004 + P052005",
@@ -499,10 +499,10 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           #update %s set hhldinc3 = P052010 + P052011 + P052012 + P052013",
                           #update %s set hhldinc4 = P052014 + P052015 + P052016 + P052017",
 
-                          #update %s set hhldsize1 = P014010 ",
-                          #update %s set hhldsize2 = P014003+P014011 ",
-                          #update %s set hhldsize3 = P014004+P014012 ",
-                          #update %s set hhldsize4 = P014005+P014013 + P014006+P014014 + P014007+P014015 + P014008+P014016 ",
+                          "update %s set hhldsize1 = P014010 ",
+                          "update %s set hhldsize2 = P014003+P014011 ",
+                          "update %s set hhldsize3 = P014004+P014012 ",
+                          "update %s set hhldsize4 = P014005+P014013 + P014006+P014014 + P014007+P014015 + P014008+P014016 ",
 
                           "update %s set hhldtype1 = P010007",
                           "update %s set hhldtype2 = P010011 ",
@@ -692,7 +692,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "create table gq_marginals select state, county, tract, bg, groupquarter1, groupquarter2 from %s",
                           """create table person_marginals select state, county, tract, bg, agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
                           """gender1, gender2, race1, race2, race3, race4, race5, race6, race7, employment1, employment2, employment3, employment4 from"""
-                          """ %s"""]
+                          """ %s""",
 
                           # Original Recodes
                           #"""create table hhld_marginals select state, county, tract, bg, """\
