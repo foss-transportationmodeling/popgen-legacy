@@ -26,13 +26,13 @@ HSUB,Substitution Flag,H,A,0,109,109,1
 HAUG,Augmentation Flag,H,A,0,110,110,1
 VACSTAT,Vacancy Status,H,A,0,111,111,1
 VACSTATA,Vacancy Status Allocation Flag,H,A,0,112,112,1
-TENURE,Home Ownership,H,A,0,113,113,1
+TENURE,Home Ownership,H,A,1,113,113,1
 TENUREA,Home Ownership Allocation Flag,H,A,0,114,114,1
-BLDGSZ,Size of Building,H,A,0,115,116,2
+BLDGSZ,Size of Building,H,A,1,115,116,2
 BLDGSZA,Size of Building Allocation Flag,H,A,0,117,117,1
-YRBUILT,Year Building Built,H,A,0,118,118,1
+YRBUILT,Year Building Built,H,A,1,118,118,1
 YRBUILTA,Year Building Built Allocation Flag,H,A,0,119,119,1
-YRMOVED,Year Moved In,H,A,0,120,120,1
+YRMOVED,Year Moved In,H,A,1,120,120,1
 YRMOVEDA,Year Moved In Allocation Flag,H,A,0,121,121,1
 ROOMS,Number of Rooms,H,A,0,122,122,1
 ROOMSA,Number of Rooms Allocation Flag,H,A,0,123,123,1
@@ -46,7 +46,7 @@ PHONE,Telephone Availability,H,A,0,130,130,1
 PHONEA,Telephone Availability Allocation Flag,H,A,0,131,131,1
 FUEL,Heating Fuel,H,A,0,132,132,1
 FUELA,Heating Fuel Allocation Flag,H,A,0,133,133,1
-VEHICL,Number of Vehicles Available,H,A,0,134,134,1
+VEHICL,Number of Vehicles Available,H,A,1,134,134,1
 VEHICLA,Number of Vehicles Available Allocation Flag,H,A,0,135,135,1
 BUSINES,Commercial Business on Property,H,A,0,136,136,1
 BUSINESA,Commercial Business on Property Allocation Flag,H,A,0,137,137,1
@@ -84,7 +84,7 @@ INSAMT,Property Insurance Amount (annual),H,A,0,192,195,4
 INSAMTA,Property Insurance Amount (annual) Allocation Flag,H,A,0,196,196,1
 CONDFEE,Condominium Fee (monthly),H,A,0,197,200,4
 CONDFEEA,Condominium Fee (monthly) Allocation Flag,H,A,0,201,201,1
-VALUE,Property Value,H,A,0,202,203,2
+VALUE,Property Value,H,A,1,202,203,2
 VALUEA,Property Value Allocation Flag,H,A,0,204,204,1
 MHLOAN,Mobile Home Loan Status,H,A,0,205,205,1
 MHLOANA,Mobile Home Loan Status Allocation Flag,H,A,0,206,206,1
@@ -103,7 +103,7 @@ SVAL,Specified Value Indicator,H,A,0,227,227,1
 SMOC,Selected Monthly Owner Costs,H,A,0,228,232,5
 SMOCAPI,Selected Monthly Owner Costs as a Percentage of Household Income,H,A,0,233,235,3
 SRNT,Specified Rent Indicator,H,A,0,236,236,1
-GRENT,Gross Rent,H,A,0,237,240,4
+GRENT,Gross Rent,H,A,1,237,240,4
 GRAPI,Gross Rent as a Percentage of Household Income,H,A,0,241,243,3
 FNF,Farm/Nonfarm Recode,H,A,0,244,244,1
 HHL,Household Language,H,A,0,245,245,1
@@ -146,11 +146,11 @@ MARSTATA,Marital Status Allocation Flag,P,A,0,45,45,1
 MSP,Married Spouse Present Recode,P,A,0,46,46,1
 SFN,Subfamily Number for this person,P,A,0,47,47,1
 SFREL,Subfamily Relationship,P,A,0,48,48,1
-ENROLL,School Enrollment; Attended since February 1 2000,P,A,0,49,49,1
+ENROLL,School Enrollment; Attended since February 1 2000,P,A,1,49,49,1
 ENROLLA,School Enrollment: Attended since February 1 2000 Allocation Flag,P,A,0,50,50,1
 GRADE,School Enrollment: Grade Level Attending,P,A,0,51,51,1
 GRADEA,School Enrollment: Grade Level Attending Allocation Flag,P,A,0,52,52,1
-EDUC,Educational Attainment,P,A,0,53,54,2
+EDUC,Educational Attainment,P,A,1,53,54,2
 EDUCA,Educational Attainment Allocation Flag,P,A,0,55,55,1
 ANCFRST5,Ancestry Code 1 for 5% file,P,A,0,56,58,3
 ANCSCND5,Ancestry Code 2 for 5% file,P,A,0,59,61,3
@@ -227,7 +227,7 @@ POWCMA5,Place of Work MA: MSA/CMSA for Place of Work PUMA,P,A,0,175,178,4
 POWCMA1,Place of Work MA: MSA/CMSA for Place of Work SuperPUMA,P,A,0,179,182,4
 POWPMA5,Place of Work MA: MSA/PMSA for Place of Work PUMA,P,A,0,183,186,4
 POWPMA1,Place of Work MA: MSA/PMSA for Place of Work SuperPUMA,P,A,0,187,190,4
-TRVMNS,Means of Transportation to Work,P,A,0,191,192,2
+TRVMNS,Means of Transportation to Work,P,A,1,191,192,2
 TRVMNSA,Means of Transportation to Work Allocation Flag,P,A,0,193,193,1
 CARPOOL,Vehicle Occupancy,P,A,0,194,194,1
 CARPOOLA,Vehicle Occupancy Allocation Flag,P,A,0,195,195,1
@@ -244,17 +244,17 @@ LASTWRK,Year Last Worked,P,A,0,209,209,1
 LASTWRKA,Year Last Worked Allocation Flag,P,A,0,210,210,1
 INDCEN,Industry (Census),P,A,0,211,213,3
 INDCENA,Industry (Census) Allocation Flag,P,A,0,214,214,1
-INDNAICS,Industry (NAICS),P,A,0,215,222,8
-OCCCEN5,Occupation (Census) for 5% file,P,A,0,223,225,3
+INDNAICS,Industry (NAICS),P,A,1,215,222,8
+OCCCEN5,Occupation (Census) for 5% file,P,A,1,223,225,3
 OCCCENA,Occupation (Census) Allocation Flag,P,A,0,226,226,1
 OCCSOC5,Occupation (SOC) for 5% file,P,A,0,227,233,7
-CLWKR,Class of Worker,P,A,0,234,234,1
+CLWKR,Class of Worker,P,A,1,234,234,1
 CLWKRA,Class of Worker Allocation Flag,P,A,0,235,235,1
-WRKLYR,Worked in 1999,P,A,0,236,236,1
+WRKLYR,Worked in 1999,P,A,1,236,236,1
 WRKLYRA,Worked in 1999 Allocation Flag,P,A,0,237,237,1
 WEEKS,Weeks Worked in 1999,P,A,0,238,239,2
 WEEKSA,Weeks Worked in 1999 Allocation Flag,P,A,0,240,240,1
-HOURS,Hours per Week in 1999,P,A,0,241,242,2
+HOURS,Hours per Week in 1999,P,A,1,241,242,2
 HOURSA,Hours per Week in 1999 Allocation Flag,P,A,0,243,243,1
 INCWS,Wage/Salary Income in 1999,P,A,0,244,249,6
 INCWSA,Wage/Salary Income in 1999 Allocation Flag,P,A,0,250,250,1
@@ -274,5 +274,5 @@ INCOTH,Other Income in 1999,P,A,0,290,295,6
 INCOTHA,Other Income in 1999 Allocation Flag,P,A,0,296,296,1
 INCTOT,Person's Total Income in 1999,P,A,0,297,303,7
 INCTOTA,Person's Total Income in 1999 Allocation Flag,P,A,0,304,304,1
-EARNS,Person's Total Earnings in 1999,P,A,0,305,311,7
+EARNS,Person's Total Earnings in 1999,P,A,1,305,311,7
 POVERTY,Person's Poverty Status,P,A,0,312,314,3
