@@ -476,14 +476,14 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "update %s set groupquarter2 = P009027",
 
                           # Original recodes
-                          "update %s set hhldinc1 = P052002 + P052003",
-                          "update %s set hhldinc2 = P052004 + P052005",
-                          "update %s set hhldinc3 = P052006 + P052007",
-                          "update %s set hhldinc4 = P052008 + P052009",
-                          "update %s set hhldinc5 = P052010 + P052011",
-                          "update %s set hhldinc6 = P052012 + P052013",
-                          "update %s set hhldinc7 = P052014 + P052015",
-                          "update %s set hhldinc8 = P052016 + P052017",
+                          #"update %s set hhldinc1 = P052002 + P052003",
+                          #"update %s set hhldinc2 = P052004 + P052005",
+                          #"update %s set hhldinc3 = P052006 + P052007",
+                          #"update %s set hhldinc4 = P052008 + P052009",
+                          #"update %s set hhldinc5 = P052010 + P052011",
+                          #"update %s set hhldinc6 = P052012 + P052013",
+                          #"update %s set hhldinc7 = P052014 + P052015",
+                          #"update %s set hhldinc8 = P052016 + P052017",
 
                           #"update %s set hhldsize1 = P014010 ",
                           #"update %s set hhldsize2 = P014003+P014011 ",
@@ -494,10 +494,10 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           #"update %s set hhldsize7 = P014008+P014016 ",
 
                           # Recodes for UrbanSim for SF, Lane County, Hawaii
-                          #update %s set hhldinc1 = P052002 + P052003 + P052004 + P052005",
-                          #update %s set hhldinc2 = P052006 + P052007 + P052008 + P052009",
-                          #update %s set hhldinc3 = P052010 + P052011 + P052012 + P052013",
-                          #update %s set hhldinc4 = P052014 + P052015 + P052016 + P052017",
+                          "update %s set hhldinc1 = P052002 + P052003 + P052004 + P052005",
+                          "update %s set hhldinc2 = P052006 + P052007 + P052008 + P052009",
+                          "update %s set hhldinc3 = P052010 + P052011 + P052012 + P052013",
+                          "update %s set hhldinc4 = P052014 + P052015 + P052016 + P052017",
 
                           "update %s set hhldsize1 = P014010 ",
                           "update %s set hhldsize2 = P014003+P014011 ",
@@ -686,13 +686,13 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                           "drop table hhld_marginals",
                           "drop table gq_marginals",
                           "drop table person_marginals",
-                          """create table hhld_marginals select state, county, tract, bg, hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, hhldinc7, hhldinc8,"""
-                          """hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
-                          """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
-                          "create table gq_marginals select state, county, tract, bg, groupquarter1, groupquarter2 from %s",
-                          """create table person_marginals select state, county, tract, bg, agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
-                          """gender1, gender2, race1, race2, race3, race4, race5, race6, race7, employment1, employment2, employment3, employment4 from"""
-                          """ %s""",
+                          #"""create table hhld_marginals select state, county, tract, bg, hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, hhldinc7, hhldinc8,"""
+                          #"""hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
+                          #"""childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
+                          #"create table gq_marginals select state, county, tract, bg, groupquarter1, groupquarter2 from %s",
+                          #"""create table person_marginals select state, county, tract, bg, agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
+                          #"""gender1, gender2, race1, race2, race3, race4, race5, race6, race7, employment1, employment2, employment3, employment4 from"""
+                          #""" %s"""]
 
                           # Original Recodes
                           #"""create table hhld_marginals select state, county, tract, bg, """\
