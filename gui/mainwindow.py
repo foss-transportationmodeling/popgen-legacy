@@ -752,7 +752,7 @@ class MainWindow(QMainWindow):
 
     def resultsExportSummary(self):
         reqTables = ['housing_synthetic_data', 'person_synthetic_data', 
-                     'hhld_marginals', 'person_marginals']
+                     'hhld_marginals']
         scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
         tableList = self.tableList(scenarioDatabase)
         if self.checkIfTablesExist(reqTables, tableList):
