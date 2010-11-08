@@ -21,12 +21,11 @@ SYNTHETIC_POP_MAX_DRAWS = 25
 SYNTHETIC_POP_PVALUE_TOLERANCE = 0.9999
 ROUNDING_PROCEDURE = 'arithmetic'
 
-RAW_SUMMARY2000_FILES = ['geo_uf3.zip', '00001_uf3.zip', '00003_uf3.zip', 
-                         '00004_uf3.zip', '00005_uf3.zip', '00006_uf3.zip', 
-                         '00056_uf3.zip', '00058_uf3.zip', '00059_uf3.zip', 
-                         '00060_uf3.zip']
-RAW_SUMMARY2000_FILES_NOEXT = ['geo', '00001', '00003', '00004', '00005', 
-                               '00006', '00056', '00058', '00059', '00060']
+RAW_SUMMARY2000_FILES = ['geo_uf3.zip', '00001_uf3.zip', '00004_uf3.zip',
+                         '00005_uf3.zip', '00006_uf3.zip',
+                         '00056_uf3.zip', '00058_uf3.zip']
+RAW_SUMMARY2000_FILES_NOEXT = ['geo', '00001', '00004', '00005',
+                               '00006', '00056', '00058']
 
 RAW_SUMMARYACS_FILES = ['g20073%s.txt', 
                         '20073%s0011000.zip', '20073%s0013000.zip', '20073%s0014000.zip', 
