@@ -10,7 +10,7 @@ import synthesizer_algorithm.psuedo_sparse_matrix
 import synthesizer_algorithm.drawing_households
 import synthesizer_algorithm.adjusting_sample_joint_distribution
 import synthesizer_algorithm.ipf
-from gui.file_menu.newproject import Geography
+from newproject import Geography
 import scipy
 import scipy.stats
 import numpy
@@ -167,7 +167,7 @@ def configure_and_run(fileLoc, geo, varCorrDict):
         stat = synth_housing_stat
         dof = count_housing - 1
 
-        p_value = scipy.stats.stats.chisqprob(stat, dof)
+        p_value = scipy.stats.chisqprob(stat, dof)
         if p_value > max_p or stat < min_chi:
             max_p = p_value
             max_p_housing_attributes = synthetic_housing_attributes
@@ -219,6 +219,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict):
                'synthesizer_algorithm.drawing_households',
                'synthesizer_algorithm.adjusting_sample_joint_distribution',
                'synthesizer_algorithm.ipf',
+               'synthesizer_algorithm',
                'cPickle',
                'scipy',
                'numpy',
