@@ -9,7 +9,7 @@ from qgis.core import *
 from qgis.gui import *
 
 from coreplot import *
-from file_menu.newproject import Geography
+from newproject import Geography
 from misc.map_toolbar import *
 from results_preprocessor import *
 

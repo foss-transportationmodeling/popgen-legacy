@@ -32,7 +32,7 @@ import synthesizer_algorithm.demo_parallel_nogqs_noper as demo_parallel_nogqs_no
 
 import synthesizer_algorithm.demo_parallel as demo_parallel
 import synthesizer_algorithm.demo_parallel_nogqs as demo_parallel_nogqs
-from gui.file_menu.newproject import Geography
+from newproject import Geography
 from gui.misc.widgets import VariableSelectionDialog, ListWidget
 from gui.misc.errors  import *
 
