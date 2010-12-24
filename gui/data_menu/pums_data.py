@@ -232,7 +232,7 @@ class AutoImportPUMS2000Data():
         check = self.checkIfTableExists('pums2000variablelist')
         if check:
             #PUMSVariableDefTable = ImportUserProvData("PUMS2000VariableList",
-            #                                          "./data/PUMS2000_Variables.csv",
+            #                                          "./data/pums2000_variables.csv",
             #                                          [], [],True, True)
             PUMSVariableDefTable = ImportUserProvData("pums2000variablelist",
                                                       "./data/PUMS2000_Variables.csv",
@@ -510,7 +510,7 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
         check = self.checkIfTableExists('pumsacsvariablelist')
         if check:
             PUMSVariableDefTable = ImportUserProvData("pumsacsvariablelist",
-                                                      "./data/PUMSACS_Variables.csv",
+                                                      "./data/pumsacs_variables.csv",
                                                       [], [],True, True)
             if not self.query.exec_(PUMSVariableDefTable.query1):
                 raise FileError, self.query.lastError().text()
