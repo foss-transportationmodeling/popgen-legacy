@@ -8,7 +8,7 @@ from PyQt4.QtGui import *
 from PyQt4.QtSql import *
 
 from misc.widgets import RecodeDialog
-from file_menu.newproject import DBInfo
+from newproject import DBInfo
 from database.createDBConnection import createDBC
 from misc.widgets import *
 from misc.errors import *

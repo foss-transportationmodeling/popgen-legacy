@@ -7,7 +7,7 @@ from PyQt4.QtSql import *
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
 import sys
-from gui.file_menu.newproject import DBInfo
+from newproject import DBInfo
 
 class createDBC(object):
     def __init__(self, db, name=None):
