@@ -80,6 +80,8 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dummy_table[result[:,-1]-1,-1] = result[:,-2]
     else:
         dbc.execute('select %s, count(*), %suniqueid from %s_sample where pumano = %s group by %s '%(dummy, synthesis_type, synthesis_type, pumano, dummy))
+        if dbc.rowcount == 0:
+            dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
         result = arr(dbc.fetchall(), int)
         if result.shape[0] == 0:
             print "The PUMS sample for the corresponding PUMA is empty. Therefore sample from the entire region is considered for the geography."
@@ -302,7 +304,9 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
                     if i>0:
                         variable_marginals1.append(i)
                     else:
-                        variable_marginals1.append(0.00001)
+                        #variable_marginals1.append(0.00001)
+                        variable_marginals1.append(0)
+                        
             #check_marginal_sum = sum(variable_marginals1)
             else:
                 raise Exception, 'Household marginal distributions modified to account for person total inconsistency'
@@ -313,13 +317,15 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
             for i in cats:
                 corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
                 dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
+                #print('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
                 result = arr(dbc.fetchall(), float)
                 #check_marginal_sum = result[0][0] + check_marginal_sum
 
                 if result[0][0] > 0:
                     variable_marginals1.append(result[0][0])
                 else:
-                    variable_marginals1.append(0.00001)
+                    #variable_marginals1.append(0.00001)
+                    variable_marginals1.append(0)
 
         #exceptionStatus = False
 
@@ -327,7 +333,7 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
         #    exceptionStatus = True
         #if check_marginal_sum == 0 and (synthesis_type == 'person'):
         #    exceptionStatus = True
-
+        variable_marginals1 = zero_marginal_adjustment(variable_marginals1)
             
 
         #if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
@@ -351,6 +357,32 @@ def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict
     print 'marginals used', control_marginals
     return control_marginals
 
+
+def zero_marginal_adjustment(marginals):
+    c = 0
+    # identifying number of zeros
+    for i in marginals:
+        if i == 0:
+            c += 1
+    
+    # if no zero marginals send back original
+    if c == 0:
+        return marginals
+
+    # zero marginal adjustment
+    adj = 0.1/c
+
+    # replacing zeros with adjustment
+
+    #print 'old marginals', marginals
+    for i in range(len(marginals)):
+        if marginals[i] == 0:
+            marginals[i] = adj
+    #print 'zero marginal adjusted ', marginals
+    return marginals
+        
+            
+
 def check_marginals(marginals, control_variables):
     check_for_zero_marginaltotals(marginals, control_variables)
     check_for_unequal_marginaltotals(marginals, control_variables)
@@ -360,55 +392,56 @@ def check_marginals(marginals, control_variables):
 def check_for_zero_marginaltotals(marginals, control_variables):
     for i in range(len(marginals)):
         j = marginals[i]
-        try:
-            while(1):
-                j.remove(0.00001)
-        except:
-            pass
-        if sum(j) == 0:
+        #try:
+        #    while(1):
+        #        j.remove(0.00001)
+        #except:
+        #    pass
+        if (sum(j) - .1) == 0:
             print ("Warning: The marginals distribution sum of the %s control variable is zero."
                    %control_variables[i])
             
 def check_for_unequal_marginaltotals(marginals, control_variables):
     i = marginals[0]
-    try:
-        while(1):
-            i.remove(0.00001)
-    except:
-        pass
-    ref_sum = sum(i)
+    #try:
+    #    while(1):
+    #        i.remove(0.00001)
+    #except:
+    #    pass
+    ref_sum = sum(i) - .1
     for i in range(len(marginals[1:])):
         j = marginals[1+i]
-        try:
-            while(1):
-                j.remove(0.00001)
-        except:
-            pass
-        if ref_sum <> sum(j):
+        #try:
+        #    while(1):
+        #        j.remove(0.00001)
+        #except:
+        #    pass
+
+        if (ref_sum - (sum(j) - .1)) >= 1:
             print ("Warning: The marginals distribution sum of %s (%s) and %s (%s) variables are not the same."
                    %(control_variables[0], ref_sum,
-                     control_variables[1+i], sum(j)))
+                     control_variables[1+i], (sum(j) - .1)))
                       
         
 def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
     checkHhld = 0
     checkGq = 0
     for i in hhld_marginals:
-        try:
-            while(1):
-                i.remove(0.00001)
-        except:
-            pass
-        if len(i) <> 0:
+        #try:
+        #    while(1):
+        #        i.remove(0.00001)
+        #except:
+        #    pass
+        if ((sum(i) - .1) > 0.5):
             checkHhld = checkHhld + 1
     if not gq_marginals is None:
         for i in gq_marginals:
-            try:
-                while(1):
-                    i.remove(0.00001)
-            except:
-                pass
-            if len(i) <> 0:
+            #try:
+            #    while(1):
+            #        i.remove(0.00001)
+            #except:
+            #    pass
+            if ((sum(i) - .1) > 0.5):
                 checkGq = checkGq + 1
 
     if checkHhld == 0 and checkGq == 0:
@@ -418,12 +451,12 @@ def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
 def check_for_zero_person_totals(person_marginals):
     checkPers = 0
     for i in person_marginals:
-        try:
-            while(1):
-                i.remove(0.00001)
-        except:
-            pass
-        if len(i) <> 0:
+        #try:
+        #    while(1):
+        #        i.remove(0.00001)
+        #except:
+        #    pass
+        if ((sum(i) - .1) > 0.5):
             checkPers = checkPers + 1
     if checkPers == 0:
         raise Exception, "There are no persons in the geography to synthesize data"
