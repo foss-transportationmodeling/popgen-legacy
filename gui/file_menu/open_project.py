@@ -24,7 +24,7 @@ class OpenProject(QFileDialog):
 
 
 class SaveFile(QFileDialog):
-    def __init__(self, project, fileType, tablename=None, treeParent=None, parent=None):
+    def __init__(self, project, fileType, tablename=None, treeParent=None, parent=None, uniqueIds=None):
         super(SaveFile, self).__init__(parent)
         self.project = project
         self.fileType = fileType
@@ -45,6 +45,7 @@ class SaveFile(QFileDialog):
                                                 "/tmp",
                                                 QFileDialog.ShowDirsOnly)
 
+        self.uniqueIds = uniqueIds
         if not self.folder.isEmpty():
             if not self.tablename:
                 self.save()
@@ -101,6 +102,7 @@ class SaveFile(QFileDialog):
         filename = '%s/housing_synthetic_data.%s' %(self.folder, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
+            #os.chmod(filename, 0777)
             os.remove(filename)
         if check < 2:
             hhldVariablesDict, hhldVariables = self.getVariables('hhld_sample', query)
@@ -165,27 +167,121 @@ class SaveFile(QFileDialog):
                 if not query.exec_("""create table temphou3 select temphou2.*, serialno from temphou2"""
                                    """ left join serialcorr using (hhid)"""):
                     raise FileError, query.lastError().text()
-
-                if not query.exec_("""select * from temphou3 into outfile """
-                                   """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
-                                   %(self.folder, self.fileType, self.fileSep)):
-                    raise FileError, query.lastError().text()
-
+               
                 housingSynTableVarDict, housingSynTableVars = self.getVariables('temphou3', query)
+
+                if self.uniqueIds is None:
+                    if not query.exec_("""select * from temphou3 into outfile """
+                                       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                                       %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+
+                else:
+                    if not query.exec_("""create table if not exists temphou_unique select * from temphou3 where 0"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""delete from temphou_unique"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""select * from temphou3"""):
+                        raise FileError, query.lastError().text()
+
+                    rec = query.record()
+                    cols = rec.count()
+
+                    indexOfFrequency = rec.indexOf("frequency")
+
+                    fileRef = open("%s/housing_synthetic_data.%s" %(self.folder, self.fileType), 'w')
+
+                    colIndices = range(cols)
+                    while query.next():
+                        freq = query.value(indexOfFrequency).toInt()[0]
+                        cols = []
+
+                        for i in colIndices:
+                            cols.append('%s' %query.value(i).toString())
+                            cols.append(self.fileSep)
+                            
+                        for i in range(freq):
+                            cols[indexOfFrequency*2] = '%s' %(i+1)
+                            fileRef.write(''.join(cols[:-1]))
+                            fileRef.write('\n')
+                    fileRef.close()
+                            
+                    #print ("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
+                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+                    if not query.exec_("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
+                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                        
+                    #print housingSynTableVarDict, housingSynTableVars
+                    #print "-- Unique RECORDS EXPORT --"
+
 
                 if not query.exec_("""drop table temphou3"""):
                     print "FileError:%s" %query.lastError().text()
 
             else:
-                print ("""select * from temphou2 into outfile """
-                       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
-                       %(self.folder, self.fileType, self.fileSep))
-                if not query.exec_("""select * from temphou2 into outfile """
-                                   """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
-                                   %(self.folder, self.fileType, self.fileSep)):
-                    raise FileError, query.lastError().text()
 
                 housingSynTableVarDict, housingSynTableVars = self.getVariables('temphou2', query)
+
+                if self.uniqueIds is None:
+                    #print ("""select * from temphou2 into outfile """
+                    #       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                    #       %(self.folder, self.fileType, self.fileSep))
+                    if not query.exec_("""select * from temphou2 into outfile """
+                                       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
+                                       %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+
+                else:
+
+                    if not query.exec_("""create table if not exists temphou_unique select * from temphou2 where 0"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""delete from temphou_unique"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""select * from temphou2"""):
+                        raise FileError, query.lastError().text()
+
+
+
+                    rec = query.record()
+                    cols = rec.count()
+
+                    indexOfFrequency = rec.indexOf("frequency")
+
+                    fileRef = open("%s/housing_synthetic_data.%s" %(self.folder, self.fileType), 'w')
+
+                    colIndices = range(cols)
+                    while query.next():
+                        freq = query.value(indexOfFrequency).toInt()[0]
+                        cols = []
+
+                        for i in colIndices:
+                            cols.append('%s' %query.value(i).toString())
+                            cols.append(self.fileSep)
+                            
+                        for i in range(freq):
+                            cols[indexOfFrequency*2] = '%s' %(i+1)
+                            fileRef.write(''.join(cols[:-1]))
+                            fileRef.write('\n')
+                    fileRef.close()
+                            
+                    #print ("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
+                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+                    if not query.exec_("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
+                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                        
+                    #if not query.exec_("""
+
+                    #print housingSynTableVarDict, housingSynTableVars
+                    #print "-- Unique RECORDS EXPORT --"
+
+
+
             
             self.storeMetaData(housingSynTableVars, self.folder, 'housing_synthetic_data')
             
@@ -243,25 +339,113 @@ class SaveFile(QFileDialog):
                                    """ left join serialcorr using (hhid, pnum)"""):
                     raise FileError, query.lastError().text()
 
-                if not query.exec_("""select * from tempperson1 into outfile """
-                                   """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
-                                   %(self.folder, self.fileType, self.fileSep)):
-                    raise FileError, query.lastError().text()
-
                 personSynTableVarDict, personSynTableVars = self.getVariables('tempperson1', query)
 
+                if self.uniqueIds is None:
+                    if not query.exec_("""select * from tempperson1 into outfile """
+                                       """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
+                                       %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                else:
+                    if not query.exec_("""create table if not exists tempperson_unique select * from tempperson1 where 0"""):
+                        raise FileError, query.lastError().text()
 
-                #if not query.exec_("""drop table tempperson1"""):
-                #    print "FileError:%s" %query.lastError().text()
+                    if not query.exec_("""delete from tempperson_unique"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""select * from tempperson1"""):
+                        raise FileError, query.lastError().text()
+
+
+
+                    rec = query.record()
+                    cols = rec.count()
+
+                    indexOfFrequency = rec.indexOf("frequency")
+
+                    fileRef = open("%s/person_synthetic_data.%s" %(self.folder, self.fileType), 'w')
+
+                    colIndices = range(cols)
+                    while query.next():
+                        freq = query.value(indexOfFrequency).toInt()[0]
+                        cols = []
+
+                        for i in colIndices:
+                            cols.append('%s' %query.value(i).toString())
+                            cols.append(self.fileSep)
+                            
+                        for i in range(freq):
+                            cols[indexOfFrequency*2] = '%s' %(i+1)
+                            #hhid += 1
+                            fileRef.write(''.join(cols[:-1]))
+                            fileRef.write('\n')
+                    fileRef.close()
+                            
+                    #print ("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
+                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+                    if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
+                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                        
+                    #print personSynTableVarDict, personSynTableVars
+                    #print "-- Unique RECORDS EXPORT --"
+
             else:
-                if not query.exec_("""select * from tempperson into outfile """
-                                   """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
-                                   %(self.folder, self.fileType, self.fileSep)):
-                    raise FileError, query.lastError().text()
-
 
                 personSynTableVarDict, personSynTableVars = self.getVariables('tempperson', query)
-            
+
+                if self.uniqueIds is None:
+                    if not query.exec_("""select * from tempperson into outfile """
+                                       """'%s/person_synthetic_data.%s' fields terminated by '%s'"""
+                                       %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                    
+
+                else:
+
+                    if not query.exec_("""create table if not exists tempperson_unique select * from tempperson where 0"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""delete from tempperson_unique"""):
+                        raise FileError, query.lastError().text()
+
+                    if not query.exec_("""select * from tempperson"""):
+                        raise FileError, query.lastError().text()
+
+
+
+                    rec = query.record()
+                    cols = rec.count()
+
+                    indexOfFrequency = rec.indexOf("frequency")
+
+                    fileRef = open("%s/person_synthetic_data.%s" %(self.folder, self.fileType), 'w')
+
+                    colIndices = range(cols)
+                    while query.next():
+                        freq = query.value(indexOfFrequency).toInt()[0]
+                        cols = []
+
+                        for i in colIndices:
+                            cols.append('%s' %query.value(i).toString())
+                            cols.append(self.fileSep)
+                            
+                        for i in range(freq):
+                            cols[indexOfFrequency*2] = '%s' %(i+1)
+                            #hhid += 1
+                            fileRef.write(''.join(cols[:-1]))
+                            fileRef.write('\n')
+                    fileRef.close()
+                            
+                    #print ("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
+                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+                    if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
+                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                        raise FileError, query.lastError().text()
+                        
+                    #print personSynTableVarDict, personSynTableVars
+                    #print "-- Unique RECORDS EXPORT --"
+
             self.storeMetaData(personSynTableVars, self.folder, 'person_synthetic_data')
 
             #if not query.exec_("""drop table tempperson"""):
@@ -298,7 +482,7 @@ class SaveFile(QFileDialog):
         while query.next():
             varname = query.value(0).toString()
             varDict['%s' %varname] = ""
-            varNameList.append(varname)
+            varNameList.append('%s' %varname)
             
         return varDict, varNameList
         

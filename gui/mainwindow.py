@@ -249,9 +249,21 @@ class MainWindow(QMainWindow):
                                                 tip = "Export results into a tab-delimited file")
 
 
-        resultsExportSummaryAction = self.createAction("Summary Statistics", 
+        resultsExportSummaryAction = self.createAction("&Summary Statistics", 
                                                        self.resultsExportSummary,
                                                        tip = "Export summary statistics for the synthetic population")
+
+
+
+        resultsExportUniqueCSVAction = self.createAction("Into CSV Format with Unique Records",
+                                                         self.resultsCSVUniqueExport,
+                                                         tip = """Export results into a comma-spearated file such that"""\
+                                                             """each record corresponds to a synthetic household/person.""")
+
+        resultsExportUniqueTabAction = self.createAction("Into Tab-delimited Format with Unique Records",
+                                                         self.resultsTabUniqueExport,
+                                                         tip = """Export results into a tab-delimited file such that"""\
+                                                             """each record corresponds to a synthetic household/person.""")
 
 
 
@@ -285,7 +297,9 @@ class MainWindow(QMainWindow):
         self.addActions(self.resultsMenu, (None, ))
 
         self.exportSubMenu = self.resultsMenu.addMenu(QIcon("images/export.png"), "&Export Synthetic Population Tables")
-        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportTabAction, None, resultsExportSummaryAction))
+        self.addActions(self.exportSubMenu, (resultsExportCSVAction, resultsExportUniqueCSVAction, 
+                                             resultsExportTabAction, resultsExportUniqueTabAction, 
+                                             None, resultsExportSummaryAction))
 
 
 
@@ -392,10 +406,13 @@ class MainWindow(QMainWindow):
         self.connect(self.scenarioComboBox, SIGNAL("currentIndexChanged(int)"), self.scenarioChanged)
 
     def scenarioChanged(self, index):
-        file = (self.project.location + os.path.sep 
-                + self.project.name + os.path.sep 
-                + '%s%s%s.pop' %(self.project.name, 'scenario', index + 1))
-        file = os.path.realpath(file)
+        #file = (self.project.location + os.path.sep 
+        #        + self.project.name + os.path.sep 
+        #        + '%s%s%s.pop' %(self.project.name, 'scenario', index + 1))
+        #file = os.path.realpath(file)
+        
+        file = os.path.join('%s' %self.project.location, '%s' %self.project.name, 
+                            '%s%s%s.pop' %(self.project.name, 'scenario', index + 1))
         with open(file, 'rb') as f:
             self.project = pickle.load(f)
             self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
@@ -739,6 +756,16 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
                                 QMessageBox.Ok)
 
+    def resultsCSVUniqueExport(self):
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        tableList = self.tableList(scenarioDatabase)
+        if self.checkIfTablesExist(reqTables, tableList):
+            fileDlg = SaveFile(self.project, "csv", uniqueIds=True)
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
+                                QMessageBox.Ok)        
+
     def resultsTabExport(self):
         reqTables = ['housing_synthetic_data', 'person_synthetic_data']
         scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
@@ -749,6 +776,15 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
                                 QMessageBox.Ok)
 
+    def resultsTabUniqueExport(self):
+        reqTables = ['housing_synthetic_data', 'person_synthetic_data']
+        scenarioDatabase = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)
+        tableList = self.tableList(scenarioDatabase)
+        if self.checkIfTablesExist(reqTables, tableList):
+            fileDlg = SaveFile(self.project, "dat", uniqueIds=True)
+        else:
+            QMessageBox.warning(self, "Synthesizer", "Run synthesizer before exporting results.", 
+                                QMessageBox.Ok)
 
     def resultsExportSummary(self):
         reqTables = ['housing_synthetic_data', 'person_synthetic_data', 
