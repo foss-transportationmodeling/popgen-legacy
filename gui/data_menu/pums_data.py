@@ -235,7 +235,7 @@ class AutoImportPUMS2000Data():
             #                                          "./data/pums2000_variables.csv",
             #                                          [], [],True, True)
             PUMSVariableDefTable = ImportUserProvData("pums2000variablelist",
-                                                      "./data/PUMS2000_Variables.csv",
+                                                      "./data/pums2000_variables.csv",
                                                       [], [],True, True)
             if not self.query.exec_(PUMSVariableDefTable.query1):
                 raise FileError, self.query.lastError().text()
