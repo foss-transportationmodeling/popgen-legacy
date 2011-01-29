@@ -260,10 +260,10 @@ class MainWindow(QMainWindow):
 
 
 
-        thematicMapsHhldAction = self.createAction("Household",
-                                                   self.thematicMapsHhld, 
-                                                   tip = """Display thematic maps of the synthetic population for """
-                                                   """household attribute categories""")
+        #thematicMapsHhldAction = self.createAction("Household",
+        #                                           self.thematicMapsHhld, 
+        #                                           tip = """Display thematic maps of the synthetic population for """
+        #                                           """household attribute categories""")
 
 
 # Adding actions to menu
