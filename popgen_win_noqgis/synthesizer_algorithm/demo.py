@@ -231,7 +231,7 @@ def configure_and_run(project, geo, varCorrDict):
     values = (int(state), int(county), int(tract), int(bg), min_chi, max_p, draw_count, iteration, conv_crit_array[-1])
     drawing_households.store_performance_statistics(db, geo, values)
 
-    print 'Number of Synthetic Household/Group quarters - %d' %(sum(max_p_housing_attributes[:,-2]))
+    print 'Number of Synthetic Household/Group quarters - %d' %((max_p_housing_attributes[:,-2]).sum())
     for i in range(len(hhld_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], round(sum(hhld_marginals[i])))
 
@@ -239,7 +239,7 @@ def configure_and_run(project, geo, varCorrDict):
         print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], round(sum(gq_marginals[i])))
 
 
-    print 'Number of Synthetic Persons - %d' %(sum(max_p_person_attributes[:,-2]))
+    print 'Number of Synthetic Persons - %d' %((max_p_person_attributes[:,-2]).sum())
     for i in range(len(person_control_variables)):
         print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], round(sum(person_marginals[i])))
     print 'Synthetic households created for the geography in %.2f\n' %(time.time()-ti)
