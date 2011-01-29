@@ -39,21 +39,21 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix, 
 # Adjusting for person types
         for i in index_matrix[hh_colno:,:]:
 
-            adjustment = control[i[0]-4] / sum(weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4])
+            adjustment = control[i[0]-4] / (weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4]).sum()
             weights[sp_matrix[i[1]-1:i[2], 2]] = weights[sp_matrix[i[1]-1:i[2], 2]] * adjustment
-        wts_personadj.append(sum(weights))
+        wts_personadj.append((weights).sum())
 
 # Adjusting for housing types including both household and group quarters
         for i in index_matrix[:hh_colno,:]:
             if control[i[0]-4] == 0:
                 print 'Zero Control'
-            adjustment = control[i[0]-4] / sum(weights[sp_matrix[i[1]-1:i[2], 2]])
+            adjustment = control[i[0]-4] / (weights[sp_matrix[i[1]-1:i[2], 2]]).sum()
             weights[sp_matrix[i[1]-1:i[2], 2]] = weights[sp_matrix[i[1]-1:i[2], 2]] * adjustment
 
 
 # Creating the evaluation statistic
         for i in index_matrix[hh_colno:,:]:
-            dummy = (sum(weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4]) - control[i[0]-4]) / control[i[0]-4]
+            dummy = ((weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4]).sum() - control[i[0]-4]) / control[i[0]-4]
             conv_criterion = conv_criterion + abs(dummy)
 
 
@@ -79,7 +79,7 @@ def heuristic_adjustment(db, pumano, index_matrix, weights, control, sp_matrix, 
                 convergence = 0
         conv_criterion = 0
     conv_criterion = conv_criterion / ( tot_colno - hh_colno)
-    print '%d, %.4f, %.4f, %d, %.4f, %d'%(iteration, sum(weights), wts_personadj[-1], tot_colno, conv_criterion_array[-1], convergence)
+    print '%d, %.4f, %.4f, %d, %.4f, %d'%(iteration, (weights).sum(), wts_personadj[-1], tot_colno, conv_criterion_array[-1], convergence)
     return iteration, weights, conv_criterion_array, wts_personadj
 
 # How to deal with the fact that zero marginals will multiply the weights out to zeros
