@@ -233,15 +233,15 @@ def configure_and_run(project, geo, varCorrDict):
 
     print 'Number of Synthetic Household/Group quarters - %d' %((max_p_housing_attributes[:,-2]).sum())
     for i in range(len(hhld_control_variables)):
-        print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], round((hhld_marginals[i])).sum())
+        print '%s variable\'s marginal distribution sum is %d' %(hhld_control_variables[i], round(sum(hhld_marginals[i])))
 
     for i in range(len(gq_control_variables)):
-        print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], round((gq_marginals[i])).sum())
+        print '%s variable\'s marginal distribution sum is %d' %(gq_control_variables[i], round(sum(gq_marginals[i])))
 
 
     print 'Number of Synthetic Persons - %d' %((max_p_person_attributes[:,-2]).sum())
     for i in range(len(person_control_variables)):
-        print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], round((person_marginals[i])).sum())
+        print '%s variable\'s marginal distribution sum is %d' %(person_control_variables[i], round(sum(person_marginals[i])))
     print 'Synthetic households created for the geography in %.2f\n' %(time.time()-ti)
 
 
