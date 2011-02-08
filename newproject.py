@@ -19,6 +19,15 @@ class Geocorr(object):
         self.userProv = userprov
         self.location = geocorrLocation
 
+
+    def __repr__(self):
+        return ("""GEOGRAPHIC CORRESPONDENCE:\n"""\
+                    """\tUserProvided - %s\n"""\
+                    """\tfile - %s\n""" %(self. userProv,
+                                        self.location))
+
+
+
 class Sample(object):
     def __init__(self, userprov=None, defSource="", sampleHHLocation="", sampleGQLocation="", samplePersonLocation=""):
         self.userProv = userprov
@@ -27,6 +36,16 @@ class Sample(object):
         self.gqLocation = sampleGQLocation
         self.personLocation = samplePersonLocation
 
+    def __repr__(self):
+        return ("""SAMPLE INPUT INFO:\n"""\
+                    """\tUserProvided - %s, Source - %s\n"""\
+                    """\thousehold file - %s\n"""\
+                    """\tgq file - %s\n"""\
+                    """\tperson file - %s\n""" %(self.userProv, self.defSource,
+                                                 self.hhLocation,
+                                                 self.gqLocation,
+                                                 self.personLocation))
+                
 class Control(object):
     def __init__(self, userprov=None, defSource="", controlHHLocation="", controlGQLocation="", controlPersonLocation=""):
         self.userProv = userprov
@@ -35,12 +54,30 @@ class Control(object):
         self.gqLocation = controlGQLocation
         self.personLocation = controlPersonLocation
 
+    def __repr__(self):
+        return ("""CONTROL INPUT INFO:\n"""\
+                    """\tUserProvided - %s, Source - %s\n"""\
+                    """\thousehold file - %s\n"""\
+                    """\tgq file - %s\n"""\
+                    """\tperson file - %s\n""" %(self.userProv, self.defSource,
+                                                 self.hhLocation,
+                                                 self.gqLocation,
+                                                 self.personLocation))
+
+
+
 class DBInfo(object):
     def __init__(self, hostname="", username="", password="", driver="QMYSQL"):
         self.driver = driver
         self.hostname = hostname
         self.username = username
         self.password = password
+
+    def __repr__(self):
+        return "DATABASE ATTRIBUTES:\n"""\
+            """\thostname-%s, username-%s, driver-%s\n""" %(self.hostname, 
+                                                          self.username, 
+                                                          self.driver)
 
 
 class SelectedVariableDicts(object):
@@ -55,14 +92,17 @@ class SelectedVariableDicts(object):
         self.aveHhldSizeLastCat = aveHhldSizeLastCat
         self.refPersName = refPersName
 
+    def __repr__(self):
+	return "Hhld Dict - %s" %self.hhld
+
 
 
 class AdjControlsDicts(object):
-    def __init__(self, hhldAdj=defaultdict(dict), gqAdj=defaultdict(dict), personAdj=defaultdict(dict)):
+    def __init__(self, hhldAdj=defaultdict(dict), gqAdj=defaultdict(dict), 
+		 personAdj=defaultdict(dict)):
         self.hhld = hhldAdj
         self.gq = gqAdj
         self.person = personAdj
-
 
 class Geography(object):
     def __init__(self, state, county, tract, bg, puma5=None):
@@ -72,6 +112,11 @@ class Geography(object):
         self.bg = bg
         self.puma5 = puma5
 
+
+    def __repr__(self):
+        return ('Geo Id - (state-%s, count-%s, tract-%s, bg-%s, pumano-%s)' 
+                %(self.state, self.county, self.tract, self.bg, self.puma5))
+        
 
 class Parameters(object):
     def __init__(self,
@@ -90,6 +135,19 @@ class Parameters(object):
         self.synPopDraws = synPopDraws
         self.synPopPTol = synPopPTol
         self.roundingProcedure = roundingProcedure
+
+    def __repr__(self):
+        return ("""PARAMETER OBJECT:\n"""\
+                    """\tIPF Tolerance - %s, IPF Iterators - %s \n"""\
+                    """\tIPU Tolerance - %s, IPU Iterators - %s \n"""\
+                    """\tSynthetic Draws Tolerance - %s, SyntheticDraws Iterators - %s \n"""\
+                    """\tRounding Procedure - %s\n""" 
+                %(self.ipfTol, self.ipfIter,
+                  self.ipuTol, self.ipuIter,
+                  self.synPopPTol, self.synPopDraws,
+                  self.roundingProcedure))
+                
+                
 
 
 
@@ -140,6 +198,14 @@ class NewProject(object):
         pass
 
 
+class NewProjectPopGenCore(NewProject):
+    def __init__(self):
+        NewProject.__init__(self)
+        self.synthesizeGeoIds = []
+	self.createTables = False
+	self.prepareData = False
+	
+	
 
 if __name__ == "__main__":
     a = ControlVariable()

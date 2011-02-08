@@ -21,7 +21,6 @@ import cPickle
 
 def configure_and_run(project, geo, varCorrDict):
 
-
     f = open('indexMatrix_99999.pkl', 'rb')
     index_matrix = cPickle.load(f)
     f.close()
