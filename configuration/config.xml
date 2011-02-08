@@ -1,0 +1,296 @@
+<ProjectConfig>
+  <Project name="bmc_popgen" location="/home/kkonduri/popgen/bmc"/>
+  <DBConfig dbprotocol = "mysql" dbhost="localhost" dbname="bmc_popgen" dbusername="root" dbpassword="1234"/>
+	
+  <Inputs create="False">
+    <GeographicCorrespondence location="/home/kkonduri/simtravel/test/mag_data/usgeocorr.csv"/>
+    <HouseholdSample location="/home/kkonduri/simtravel/test/mag_data/hhld_sample.csv"/>
+    <GQSample location="/home/kkonduri/simtravel/test/mag_data/gq_sample.csv"/>
+    <PersonSample location="/home/kkonduri/simtravel/test/mag_data/person_sample.csv"/>
+    <HouseholdControl location="/home/kkonduri/simtravel/test/mag_data/hhld_marginals.csv"/>
+    <GQControl location="/home/kkonduri/simtravel/test/mag_data/gq_marginals.csv"/>
+    <PersonControl location="/home/kkonduri/simtravel/test/mag_data/person_marginals.csv"/>
+  </Inputs>
+
+  <Scenario value="1" description="Test Scenario" prepare_data="False">
+  <ControlVariables>
+    <Household>
+      <Variable name="hhldsize" order="1" num_categories="7"/>
+      <Variable name="hhldinc" order="3" num_categories="8"/>
+      <Variable name="hhchildpresence" order="4" num_categories="2"/>
+    </Household>
+    <GroupQuarter>
+      <Variable name="groupquarter" order="1" num_categories="2"/>
+    </GroupQuarter>
+    <Person control="True">
+      <Variable name="page" order="1" num_categories="10"/>
+      <Variable name="pgender" order="2" num_categories="2"/>
+      <Variable name="prace" order="3" num_categories="7"/>
+    </Person>
+  </ControlVariables>    
+
+  <CorrespondenceMap>
+    <Household>
+      <ControlVariableMap name="hhldsize" category="1" marginal_variable="hhldsize1"/>
+      <ControlVariableMap name="hhldsize" category="2" marginal_variable="hhldsize2"/>
+      <ControlVariableMap name="hhldsize" category="3" marginal_variable="hhldsize3"/>
+      <ControlVariableMap name="hhldsize" category="4" marginal_variable="hhldsize4"/>
+      <ControlVariableMap name="hhldsize" category="5" marginal_variable="hhldsize5"/>
+      <ControlVariableMap name="hhldsize" category="6" marginal_variable="hhldsize6"/>
+      <ControlVariableMap name="hhldsize" category="7" marginal_variable="hhldsize7"/>
+      <ControlVariableMap name="hhldinc" category="1" marginal_variable="hhldinc1"/>
+      <ControlVariableMap name="hhldinc" category="2" marginal_variable="hhldinc2"/>
+      <ControlVariableMap name="hhldinc" category="3" marginal_variable="hhldinc3"/>
+      <ControlVariableMap name="hhldinc" category="4" marginal_variable="hhldinc4"/>
+      <ControlVariableMap name="hhldinc" category="5" marginal_variable="hhldinc5"/>
+      <ControlVariableMap name="hhldinc" category="6" marginal_variable="hhldinc6"/>
+      <ControlVariableMap name="hhldinc" category="7" marginal_variable="hhldinc7"/>
+      <ControlVariableMap name="hhldinc" category="8" marginal_variable="hhldinc8"/>
+      <ControlVariableMap name="hhchildpresence" category="1" marginal_variable="childpresence1"/>
+      <ControlVariableMap name="hhchildpresence" category="2" marginal_variable="childpresence2"/>
+    </Household>
+    <GroupQuarter>
+      <ControlVariableMap name="groupquarter" category="1" marginal_variable="groupquarter1"/>
+      <ControlVariableMap name="groupquarter" category="2" marginal_variable="groupquarter2"/>
+    </GroupQuarter>
+    <Person>
+      <ControlVariableMap name="page" category="1" marginal_variable="agep1"/>
+      <ControlVariableMap name="page" category="2" marginal_variable="agep2"/>
+      <ControlVariableMap name="page" category="3" marginal_variable="agep3"/>
+      <ControlVariableMap name="page" category="4" marginal_variable="agep4"/>
+      <ControlVariableMap name="page" category="5" marginal_variable="agep5"/>
+      <ControlVariableMap name="page" category="6" marginal_variable="agep6"/>
+      <ControlVariableMap name="page" category="7" marginal_variable="agep7"/>
+      <ControlVariableMap name="page" category="8" marginal_variable="agep8"/>
+      <ControlVariableMap name="page" category="9" marginal_variable="agep9"/>
+      <ControlVariableMap name="page" category="10" marginal_variable="agep10"/>
+      <ControlVariableMap name="pgender" category="1" marginal_variable="pgender1"/>
+      <ControlVariableMap name="pgender" category="2" marginal_variable="pgender2"/>
+      <ControlVariableMap name="prace" category="1" marginal_variable="prace1"/>
+      <ControlVariableMap name="prace" category="2" marginal_variable="prace2"/>
+      <ControlVariableMap name="prace" category="3" marginal_variable="prace3"/>
+      <ControlVariableMap name="prace" category="4" marginal_variable="prace4"/>
+      <ControlVariableMap name="prace" category="5" marginal_variable="prace5"/>
+      <ControlVariableMap name="prace" category="6" marginal_variable="prace6"/>
+      <ControlVariableMap name="prace" category="7" marginal_variable="prace7"/>
+    </Person>
+  </CorrespondenceMap>
+
+  <Parameters>
+    <IPFTolerance value="0.0001"/>
+    <IPFIterations value="250"/>
+    <IPUTolerance value="0.0001"/>
+    <IPUIterations value="50"/>
+    <SyntheticDrawsTolerance value="0.9999"/>
+    <SyntheticDrawsIterations value="25"/>
+    <RoundingProcedure name="Arithmetic Rounding"/>
+  </Parameters>
+ 
+
+  <SynthesizeGeographies>
+    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  </SynthesizeGeographies>
+
+  </Scenario>
+
+
+
+
+
+
+
+  <Scenario value="2" description="Scenarion where marginals are scaled to match person totals closely" prepare_data="False">
+  <ControlVariables>
+    <Household>
+      <Variable name="hhldsize" order="1" num_categories="7"/>
+      <Variable name="hhldinc" order="3" num_categories="8"/>
+      <Variable name="hhchildpresence" order="4" num_categories="2"/>
+    </Household>
+    <GroupQuarter>
+      <Variable name="groupquarter" order="1" num_categories="2"/>
+    </GroupQuarter>
+    <Person control="True">
+      <Variable name="page" order="1" num_categories="10"/>
+      <Variable name="pgender" order="2" num_categories="2"/>
+      <Variable name="prace" order="3" num_categories="7"/>
+    </Person>
+  </ControlVariables>    
+
+  <CorrespondenceMap>
+    <Household>
+      <ControlVariableMap name="hhldsize" category="1" marginal_variable="hhldsize1"/>
+      <ControlVariableMap name="hhldsize" category="2" marginal_variable="hhldsize2"/>
+      <ControlVariableMap name="hhldsize" category="3" marginal_variable="hhldsize3"/>
+      <ControlVariableMap name="hhldsize" category="4" marginal_variable="hhldsize4"/>
+      <ControlVariableMap name="hhldsize" category="5" marginal_variable="hhldsize5"/>
+      <ControlVariableMap name="hhldsize" category="6" marginal_variable="hhldsize6"/>
+      <ControlVariableMap name="hhldsize" category="7" marginal_variable="hhldsize7"/>
+      <ControlVariableMap name="hhldinc" category="1" marginal_variable="hhldinc1"/>
+      <ControlVariableMap name="hhldinc" category="2" marginal_variable="hhldinc2"/>
+      <ControlVariableMap name="hhldinc" category="3" marginal_variable="hhldinc3"/>
+      <ControlVariableMap name="hhldinc" category="4" marginal_variable="hhldinc4"/>
+      <ControlVariableMap name="hhldinc" category="5" marginal_variable="hhldinc5"/>
+      <ControlVariableMap name="hhldinc" category="6" marginal_variable="hhldinc6"/>
+      <ControlVariableMap name="hhldinc" category="7" marginal_variable="hhldinc7"/>
+      <ControlVariableMap name="hhldinc" category="8" marginal_variable="hhldinc8"/>
+      <ControlVariableMap name="hhchildpresence" category="1" marginal_variable="childpresence1"/>
+      <ControlVariableMap name="hhchildpresence" category="2" marginal_variable="childpresence2"/>
+    </Household>
+    <GroupQuarter>
+      <ControlVariableMap name="groupquarter" category="1" marginal_variable="groupquarter1"/>
+      <ControlVariableMap name="groupquarter" category="2" marginal_variable="groupquarter2"/>
+    </GroupQuarter>
+    <Person>
+      <ControlVariableMap name="page" category="1" marginal_variable="agep1"/>
+      <ControlVariableMap name="page" category="2" marginal_variable="agep2"/>
+      <ControlVariableMap name="page" category="3" marginal_variable="agep3"/>
+      <ControlVariableMap name="page" category="4" marginal_variable="agep4"/>
+      <ControlVariableMap name="page" category="5" marginal_variable="agep5"/>
+      <ControlVariableMap name="page" category="6" marginal_variable="agep6"/>
+      <ControlVariableMap name="page" category="7" marginal_variable="agep7"/>
+      <ControlVariableMap name="page" category="8" marginal_variable="agep8"/>
+      <ControlVariableMap name="page" category="9" marginal_variable="agep9"/>
+      <ControlVariableMap name="page" category="10" marginal_variable="agep10"/>
+      <ControlVariableMap name="pgender" category="1" marginal_variable="pgender1"/>
+      <ControlVariableMap name="pgender" category="2" marginal_variable="pgender2"/>
+      <ControlVariableMap name="prace" category="1" marginal_variable="prace1"/>
+      <ControlVariableMap name="prace" category="2" marginal_variable="prace2"/>
+      <ControlVariableMap name="prace" category="3" marginal_variable="prace3"/>
+      <ControlVariableMap name="prace" category="4" marginal_variable="prace4"/>
+      <ControlVariableMap name="prace" category="5" marginal_variable="prace5"/>
+      <ControlVariableMap name="prace" category="6" marginal_variable="prace6"/>
+      <ControlVariableMap name="prace" category="7" marginal_variable="prace7"/>
+    </Person>
+  </CorrespondenceMap>
+
+  <Parameters>
+    <IPFTolerance value="0.0001"/>
+    <IPFIterations value="250"/>
+    <IPUTolerance value="0.0001"/>
+    <IPUIterations value="50"/>
+    <SyntheticDrawsTolerance value="0.9999"/>
+    <SyntheticDrawsIterations value="25"/>
+    <RoundingProcedure name="Arithmetic Rounding"/>
+  </Parameters>
+ 
+
+  <AdjustHouseholdMarginals modify="True">
+    <HouseholdSize name="hhldsize"/>
+    <AverageHouseholdSizeLastCategory value="7.4"/>	
+    <ReferencePersonTotalVariable name="pgender"/>
+  </AdjustHouseholdMarginals>
+
+
+  <SynthesizeGeographies>
+    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  </SynthesizeGeographies>
+  </Scenario>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="False">
+  <ControlVariables>
+    <Household>
+      <Variable name="hhldsize" order="1" num_categories="7"/>
+      <Variable name="hhldinc" order="3" num_categories="8"/>
+      <Variable name="hhchildpresence" order="4" num_categories="2"/>
+    </Household>
+    <GroupQuarter>
+      <Variable name="groupquarter" order="1" num_categories="2"/>
+    </GroupQuarter>
+    <Person control="True">
+      <Variable name="page" order="1" num_categories="10"/>
+      <Variable name="pgender" order="2" num_categories="2"/>
+      <Variable name="prace" order="3" num_categories="7"/>
+    </Person>
+  </ControlVariables>    
+
+  <CorrespondenceMap>
+    <Household>
+      <ControlVariableMap name="hhldsize" category="1" marginal_variable="hhldsize1"/>
+      <ControlVariableMap name="hhldsize" category="2" marginal_variable="hhldsize2"/>
+      <ControlVariableMap name="hhldsize" category="3" marginal_variable="hhldsize3"/>
+      <ControlVariableMap name="hhldsize" category="4" marginal_variable="hhldsize4"/>
+      <ControlVariableMap name="hhldsize" category="5" marginal_variable="hhldsize5"/>
+      <ControlVariableMap name="hhldsize" category="6" marginal_variable="hhldsize6"/>
+      <ControlVariableMap name="hhldsize" category="7" marginal_variable="hhldsize7"/>
+      <ControlVariableMap name="hhldinc" category="1" marginal_variable="hhldinc1"/>
+      <ControlVariableMap name="hhldinc" category="2" marginal_variable="hhldinc2"/>
+      <ControlVariableMap name="hhldinc" category="3" marginal_variable="hhldinc3"/>
+      <ControlVariableMap name="hhldinc" category="4" marginal_variable="hhldinc4"/>
+      <ControlVariableMap name="hhldinc" category="5" marginal_variable="hhldinc5"/>
+      <ControlVariableMap name="hhldinc" category="6" marginal_variable="hhldinc6"/>
+      <ControlVariableMap name="hhldinc" category="7" marginal_variable="hhldinc7"/>
+      <ControlVariableMap name="hhldinc" category="8" marginal_variable="hhldinc8"/>
+      <ControlVariableMap name="hhchildpresence" category="1" marginal_variable="childpresence1"/>
+      <ControlVariableMap name="hhchildpresence" category="2" marginal_variable="childpresence2"/>
+    </Household>
+    <GroupQuarter>
+      <ControlVariableMap name="groupquarter" category="1" marginal_variable="groupquarter1"/>
+      <ControlVariableMap name="groupquarter" category="2" marginal_variable="groupquarter2"/>
+    </GroupQuarter>
+    <Person>
+      <ControlVariableMap name="page" category="1" marginal_variable="agep1"/>
+      <ControlVariableMap name="page" category="2" marginal_variable="agep2"/>
+      <ControlVariableMap name="page" category="3" marginal_variable="agep3"/>
+      <ControlVariableMap name="page" category="4" marginal_variable="agep4"/>
+      <ControlVariableMap name="page" category="5" marginal_variable="agep5"/>
+      <ControlVariableMap name="page" category="6" marginal_variable="agep6"/>
+      <ControlVariableMap name="page" category="7" marginal_variable="agep7"/>
+      <ControlVariableMap name="page" category="8" marginal_variable="agep8"/>
+      <ControlVariableMap name="page" category="9" marginal_variable="agep9"/>
+      <ControlVariableMap name="page" category="10" marginal_variable="agep10"/>
+      <ControlVariableMap name="pgender" category="1" marginal_variable="pgender1"/>
+      <ControlVariableMap name="pgender" category="2" marginal_variable="pgender2"/>
+      <ControlVariableMap name="prace" category="1" marginal_variable="prace1"/>
+      <ControlVariableMap name="prace" category="2" marginal_variable="prace2"/>
+      <ControlVariableMap name="prace" category="3" marginal_variable="prace3"/>
+      <ControlVariableMap name="prace" category="4" marginal_variable="prace4"/>
+      <ControlVariableMap name="prace" category="5" marginal_variable="prace5"/>
+      <ControlVariableMap name="prace" category="6" marginal_variable="prace6"/>
+      <ControlVariableMap name="prace" category="7" marginal_variable="prace7"/>
+    </Person>
+  </CorrespondenceMap>
+
+  <Parameters>
+    <IPFTolerance value="0.0001"/>
+    <IPFIterations value="250"/>
+    <IPUTolerance value="0.0001"/>
+    <IPUIterations value="50"/>
+    <SyntheticDrawsTolerance value="0.9999"/>
+    <SyntheticDrawsIterations value="25"/>
+    <RoundingProcedure name="Arithmetic Rounding"/>
+  </Parameters>
+ 
+
+  <ModifiedMarginals>
+    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106">    
+	<Variable name="hhchildpresence">
+	  <Category value="1" old_marginal="30" new_marginal="10"/>
+	  <Category value="2" old_marginal="144" new_marginal="124"/>
+	</Variable>
+    </GeoId>
+  </ModifiedMarginals>
+
+
+  <SynthesizeGeographies>
+    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  </SynthesizeGeographies>
+
+  </Scenario>
+
+</ProjectConfig>
+
+
+
