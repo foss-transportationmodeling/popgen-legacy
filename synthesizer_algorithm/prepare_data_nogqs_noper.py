@@ -11,8 +11,6 @@ import psuedo_sparse_matrix
 import psuedo_sparse_matrix_nogqs_noper
 import time
 
-from PyQt4.QtCore import *
-
 def prepare_data_nogqs_noper(db, project):
 
     dbc = db.cursor()

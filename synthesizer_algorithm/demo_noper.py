@@ -5,8 +5,6 @@
 
 # Running IPF on Person and Household data
 
-from PyQt4.QtCore import *
-
 import heuristic_algorithm_noper
 import psuedo_sparse_matrix
 import drawing_households
