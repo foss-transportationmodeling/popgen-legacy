@@ -138,9 +138,7 @@ class ConfigParser(object):
 
 	scenarioProjObj.scenario = scenario
 	scenarioProjObj.description = description
-
         scenarioProjObj.filename = scenarioProjObj.name + 'scenario' + scenario
-        scenarioProjObj.desription = description
 
         #Checking to see if data needs to be prepared
         prepareData = scenarioElement.get('prepare_data')
@@ -148,6 +146,13 @@ class ConfigParser(object):
             scenarioProjObj.prepareData = True
         if prepareData == 'False':
             scenarioProjObj.prepareData = False
+
+
+        run = scenarioElement.get('run')
+        if run == 'True':
+            scenarioProjObj.run = True
+        if run == 'False':
+            scenarioProjObj.run = False
 
 
         # Parsing control variables and number of dimensions
@@ -221,16 +226,20 @@ class ConfigParser(object):
     def parse_control_variables(self, controlVarsElement, controlType):
         controlTypeElement = controlVarsElement.find(controlType)
 
-        variables = []
-        variableDims = []
+        variableDict = {}
+
         
 
         varsIterator = controlTypeElement.getiterator('Variable')
         for varElement in varsIterator:
             name = varElement.get('name')
             numCats = int(varElement.get('num_categories'))
-            variables.append(name)
-            variableDims.append(numCats)
+            variableDict[name] = numCats
+
+        variables = variableDict.keys()
+	variables.sort()
+	variableDims = [variableDict[var] for var in variables]
+
 
         print 'For %s' %(controlType)
         print '\tCONTROL VARIABLES:%s' %(variables)
@@ -359,11 +368,11 @@ class ConfigParser(object):
         return geogObjList
 
     def return_geog_obj(self, geogElement):
-        state = geogElement.get('state')
-        county = geogElement.get('county')
-        tract = geogElement.get('tract')
-        bg = geogElement.get('bg')
-        pumano = geogElement.get('pumano')
+        state = int(geogElement.get('state'))
+        county = int(geogElement.get('county'))
+        tract = int(geogElement.get('tract'))
+        bg = int(geogElement.get('bg'))
+        pumano = int(geogElement.get('pumano'))
 
         geoObj = Geography(state, county, tract, bg, pumano)
         return geoObj

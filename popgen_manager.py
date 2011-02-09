@@ -564,6 +564,8 @@ class PopgenManager(object):
 	    self.setup_database()
             self.create_tables()
 	for scenario in self.scenarioList:
+	    if not scenario.run:
+	        continue
             print '________________________________________________________________'
 	    print 'Running Synthesis for Project - %s and Scenario - %s' %(scenario.name, scenario.scenario)
             print '  - Description for Scenario: %s' %(scenario.description)

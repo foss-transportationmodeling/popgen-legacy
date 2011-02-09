@@ -204,7 +204,7 @@ class NewProjectPopGenCore(NewProject):
         self.synthesizeGeoIds = []
 	self.createTables = False
 	self.prepareData = False
-	
+	self.run = True
 	
 
 if __name__ == "__main__":

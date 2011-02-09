@@ -12,7 +12,7 @@
     <PersonControl location="/home/kkonduri/simtravel/test/mag_data/person_marginals.csv"/>
   </Inputs>
 
-  <Scenario value="1" description="Test Scenario" prepare_data="False">
+  <Scenario value="1" description="Test Scenario" prepare_data="False" run="True">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -83,12 +83,14 @@
     <IPUIterations value="50"/>
     <SyntheticDrawsTolerance value="0.9999"/>
     <SyntheticDrawsIterations value="25"/>
-    <RoundingProcedure name="Arithmetic Rounding"/>
+    <RoundingProcedure name="arithmetic"/>
   </Parameters>
  
 
   <SynthesizeGeographies>
-    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+    <GeoId state="4" county="13" tract="10100" bg="1" pumano="106"/>
+    <GeoId1 state="4" county="13" tract="10100" bg="2" pumano="106"/>
+    <GeoId1 state="4" county="13" tract="10100" bg="3" pumano="106"/>
   </SynthesizeGeographies>
 
   </Scenario>
@@ -99,7 +101,7 @@
 
 
 
-  <Scenario value="2" description="Scenarion where marginals are scaled to match person totals closely" prepare_data="False">
+  <Scenario value="2" description="marginals are scaled to match person totals closely" prepare_data="False" run="False">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -170,7 +172,7 @@
     <IPUIterations value="50"/>
     <SyntheticDrawsTolerance value="0.9999"/>
     <SyntheticDrawsIterations value="25"/>
-    <RoundingProcedure name="Arithmetic Rounding"/>
+    <RoundingProcedure name="arithmetic"/>
   </Parameters>
  
 
@@ -199,7 +201,7 @@
 
 
 
-  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="False">
+  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="False" run="False">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -270,7 +272,7 @@
     <IPUIterations value="50"/>
     <SyntheticDrawsTolerance value="0.9999"/>
     <SyntheticDrawsIterations value="25"/>
-    <RoundingProcedure name="Arithmetic Rounding"/>
+    <RoundingProcedure name="arithmetic"/>
   </Parameters>
  
 
