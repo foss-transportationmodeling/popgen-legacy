@@ -70,6 +70,10 @@ class PopgenManager(object):
 	else:
 	    dbName = name
 
+	try:
+	    dbc.execute("Drop Database if exists %s" %(dbName))
+	except Exception, e:
+	    print '\tError occurred when dropping database:%s' %e
 
 	try:
 	    dbc.execute("Create Database %s" %(dbName))
@@ -191,7 +195,7 @@ class PopgenManager(object):
                                  passwd = '%s' %self.project.db.password,
                                  db = dbName)
 	    dbc = db.cursor()
-            dbc.execute("""drop database %s""" %dbName)
+            dbc.execute("""Drop Database if exists %s""" %dbName)
 	    dbc.close()
 	    db.commit()
 	except Exception, e:
@@ -267,12 +271,12 @@ class PopgenManager(object):
 
 
         try:
-            dbc.execute("drop table hhld_marginals_modp")
+            dbc.execute("drop table if exists hhld_marginals_modp")
         except Exception, e:
             print '\tError occurred when dropping modified household marginals table: %s' %e
 
         try:
-            dbc.execute("drop table hhld_marginals_modpgq")
+            dbc.execute("drop table if exists hhld_marginals_modpgq")
         except Exception, e:
             print '\tError occurred when dropping modified household marginals table with person vars: %s' %e
 
