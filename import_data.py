@@ -8,9 +8,6 @@ from __future__ import with_statement
 import os
 import re
 
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
-
 class FileError(Exception):
     pass
 
