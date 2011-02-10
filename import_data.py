@@ -7,6 +7,7 @@ from __future__ import with_statement
 
 import os
 import re
+import sys
 
 class FileError(Exception):
     pass
@@ -96,6 +97,10 @@ class ImportUserProvData():
         self.tableName = name
 
         self.filePath = os.path.realpath('%s' %filePath)
+        if sys.platform.startswith('win'):
+            self.filePath = self.filePath.replace("\\", "/")
+
+        #self.filePath = os.path.realpath('%s' %filePath)
         #self.filePath = self.filePath.replace("\\", "/")
 
         self.varNames = varNames
