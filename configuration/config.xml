@@ -1,18 +1,18 @@
 <ProjectConfig>
-  <Project name="bmc_popgen" location="/home/kkonduri/popgen/bmc"/>
+  <Project name="bmc_popgen" location="c:/SynTest/bmc"/>
   <DBConfig dbprotocol = "mysql" dbhost="localhost" dbname="bmc_popgen" dbusername="root" dbpassword="1234"/>
 	
-  <Inputs create="False">
-    <GeographicCorrespondence location="/home/kkonduri/simtravel/test/mag_data/usgeocorr.csv"/>
-    <HouseholdSample location="/home/kkonduri/simtravel/test/mag_data/hhld_sample.csv"/>
-    <GQSample location="/home/kkonduri/simtravel/test/mag_data/gq_sample.csv"/>
-    <PersonSample location="/home/kkonduri/simtravel/test/mag_data/person_sample.csv"/>
-    <HouseholdControl location="/home/kkonduri/simtravel/test/mag_data/hhld_marginals.csv"/>
-    <GQControl location="/home/kkonduri/simtravel/test/mag_data/gq_marginals.csv"/>
-    <PersonControl location="/home/kkonduri/simtravel/test/mag_data/person_marginals.csv"/>
+  <Inputs create="True">
+    <GeographicCorrespondence location="c:/PopGen/sample_data/usgeocorr.csv"/>
+    <HouseholdSample location="c:/PopGen/sample_data/hhld_sample.csv"/>
+    <GQSample location="c:/PopGen/sample_data/gq_sample.csv"/>
+    <PersonSample location="c:/PopGen/sample_data/person_sample.csv"/>
+    <HouseholdControl location="c:/PopGen/sample_data/hhld_marginals.csv"/>
+    <GQControl location="c:/PopGen/sample_data/gq_marginals.csv"/>
+    <PersonControl location="c:/PopGen/sample_data/person_marginals.csv"/>
   </Inputs>
 
-  <Scenario value="1" description="Test Scenario" prepare_data="False" run="True">
+  <Scenario value="1" description="Test Scenario" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -101,7 +101,7 @@
 
 
 
-  <Scenario value="2" description="marginals are scaled to match person totals closely" prepare_data="False" run="False">
+  <Scenario value="2" description="marginals are scaled to match person totals closely" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -201,7 +201,7 @@
 
 
 
-  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="False" run="False">
+  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
