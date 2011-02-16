@@ -224,8 +224,8 @@ class QTreeWidgetCMenu(QTreeWidget):
                 QMessageBox.warning(self, "Data", QString("""Invalid numeric expression, enter again"""))
             else:
                 query = QSqlQuery(projectDBC.dbc)
-                if not query.exec_("""alter table %s add column %s text""" %(self.tablename, newVarName)):
-                    print ("""alter table %s add column %s text""" %(self.tablename, newVarName))
+                if not query.exec_("""alter table %s add column %s bigint""" %(self.tablename, newVarName)):
+                    print ("""alter table %s add column %s bigint""" %(self.tablename, newVarName))
                     raise FileError, query.lastError().text()
                 if not query.exec_("""update %s set %s = %s where %s""" %(self.tablename, newVarName,
                                                                           numericExpression, whereExpression)):

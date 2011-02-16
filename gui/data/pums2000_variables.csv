@@ -108,7 +108,7 @@ GRAPI,Gross Rent as a Percentage of Household Income,H,A,0,241,243,3
 FNF,Farm/Nonfarm Recode,H,A,0,244,244,1
 HHL,Household Language,H,A,0,245,245,1
 LNGI,Linguistic Isolation,H,A,0,246,246,1
-WIF,Number of workers in family,H,A,0,247,247,1
+WIF,Number of workers in family,H,A,1,247,247,1
 EMPSTAT,Family Type and Employment Status,H,A,0,248,248,1
 WORKEXP,Family Type and Work Experience of Householder,H,A,0,249,250,2
 HINC,Household Total Income in 1999,H,A,1,251,258,8
