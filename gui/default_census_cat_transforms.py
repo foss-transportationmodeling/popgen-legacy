@@ -866,7 +866,7 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column agep1 bigint",
                               """employment4, """\
                               """phours1, phours2, phours3, phours4, phours5, """\
                               """pclwkr1, pclwkr2, pclwkr3, pclwkr4, pclwkr5, pclwkr6, pclwkr7, """\
-                              """pclwkr8, pclwkr9, pclwkr10, pclwkr11, pclwkr12 """\
+                              """pclwkr8, pclwkr9, pclwkr10, pclwkr11, pclwkr12, """\
 			      """pocccen_bmc1, pocccen_bmc2, pocccen_bmc3, pocccen_bmc4, """\
 			      """pocccen_bmc5, pocccen_bmc6, pocccen_bmc7, pocccen_bmc8, """\
 			      """pocccen_bmc_check, pgender_check, pemp_check """\
