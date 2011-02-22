@@ -184,12 +184,12 @@ class ConfigParser(object):
             modify = margAdjElement.get('modify')
 	    if modify == 'True':
 	        scenarioProjObj.selVariableDicts.hhldMargsModify = True
+                hhldSizeVar, aveHhldSize, refPersVar = self.parse_modified_marginals(margAdjElement)
+                scenarioProjObj.selVariableDicts.hhldSizeVarName = hhldSizeVar
+                scenarioProjObj.selVariableDicts.aveHhldSizeLastCat = aveHhldSize
+                scenarioProjObj.selVariableDicts.refPersName = refPersVar
 	    else:
 		scenarioProjObj.selVariableDicts.hhldMargsModify = False
-            hhldSizeVar, aveHhldSize, refPersVar = self.parse_modified_marginals(margAdjElement)
-            scenarioProjObj.selVariableDicts.hhldSizeVarName = hhldSizeVar
-            scenarioProjObj.selVariableDicts.aveHhldSizeLastCat = aveHhldSize
-            scenarioProjObj.selVariableDicts.refPersName = refPersVar
 
         # Parsing correspondence mapping
         varMapElement = scenarioElement.find('CorrespondenceMap')
@@ -208,10 +208,12 @@ class ConfigParser(object):
 
         adjustMargElement = scenarioElement.find('ModifiedMarginals')
 	if adjustMargElement is not None:
-	    adjMargs = self.parse_adjust_marginals(adjustMargElement)
-            scenarioProjObj.adjControlsDicts.hhld = adjMargs
-            scenarioProjObj.adjControlsDicts.gq = adjMargs
-            scenarioProjObj.adjControlsDicts.person = adjMargs
+            modify = adjustMargElement.get('modify')
+            if modify == 'True':
+                adjMargs = self.parse_adjust_marginals(adjustMargElement)
+                scenarioProjObj.adjControlsDicts.hhld = adjMargs
+                scenarioProjObj.adjControlsDicts.gq = adjMargs
+                scenarioProjObj.adjControlsDicts.person = adjMargs
 
         geogListElement = scenarioElement.find('SynthesizeGeographies')
         geogObjList = self.parse_geographies(geogListElement)
@@ -349,8 +351,8 @@ class ConfigParser(object):
 	adjDict = defaultdict(dict)
 	state = geoIdElement.get('state')
 	county = geoIdElement.get('county')
-	tract = geoIdElement.get('tract')
-	bg = geoIdElement.get('bg')
+	tract = 1
+	bg = geoIdElement.get('taz')
 	geoStr = '%s,%s,%s,%s' %(state, county, tract, bg)
 
 	varIterator = geoIdElement.getiterator('Variable')
