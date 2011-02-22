@@ -622,6 +622,10 @@ class PopgenManager(object):
             except Exception, e:
                 print ("\tError in the Synthesis for geography: %s" %e)
 
+    def export_results(self, scenario):
+        print '\n-- This is a placeholder for exporting results for use in the BMC TDM... --'
+        pass
+
     def getPUMA5(self, geo):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
@@ -662,6 +666,7 @@ class PopgenManager(object):
 	    self.read_data(scenario)
 	    self.delete_records_for_geographies(scenario)
 	    self.synthesize_population(scenario)
+            self.export_results(scenario)
 if __name__ == '__main__':
     pass
 
