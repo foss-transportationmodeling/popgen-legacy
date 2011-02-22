@@ -58,7 +58,8 @@ class PopgenManager(object):
 	self.scenarioList = self.configParser.scenarioList
         print 'COMPLETED PARSING CONFIG FILE'
         print '________________________________________________________________'
-        
+
+
     def setup_database(self, name=None):
 	#Create Database
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
@@ -92,33 +93,87 @@ class PopgenManager(object):
 	geoCorrFileQuery = self.mysql_queries('geocorr', 
 					      self.project.geocorrUserProv.location)
 	self.execute_queries(db, geoCorrFileQuery)
+	self.add_legacy_columns('geocorr', geocorr=True)
 
 	#Create Sample Tables
 	hhldSampleQuery = self.mysql_queries('hhld_sample',
 					     self.project.sampleUserProv.hhLocation)
 	self.execute_queries(db, hhldSampleQuery)
+	self.add_legacy_columns('hhld_sample', sample=True)
 	self.add_index(db, 'hhld_sample', ['serialno'])
-	gqSampleQuery = self.mysql_queries('gq_sample',
-					   self.project.sampleUserProv.gqLocation)
-	self.execute_queries(db, gqSampleQuery)
-	self.add_index(db, 'gq_sample', ['serialno'])
+
+	if self.project.sampleUserProv.gqLocation <> "":
+	    gqSampleQuery = self.mysql_queries('gq_sample',
+		                               self.project.sampleUserProv.gqLocation)
+            self.execute_queries(db, gqSampleQuery)
+	    self.add_legacy_columns('gq_sample', sample=True)
+	    self.add_index(db, 'gq_sample', ['serialno'])
+
 	personSampleQuery = self.mysql_queries('person_sample',
 					   self.project.sampleUserProv.personLocation)
 	self.execute_queries(db, personSampleQuery)
+	self.add_legacy_columns('person_sample', sample=True)
 	self.add_index(db, 'person_sample', ['serialno','pnum'])
 	#Create Marginal Tables
 
 	hhldMarginalQuery = self.mysql_queries('hhld_marginals',
 					       self.project.controlUserProv.hhLocation)
 	self.execute_queries(db, hhldMarginalQuery)
-	gqMarginalQuery = self.mysql_queries('gq_marginals',
-					     self.project.controlUserProv.gqLocation)
-	self.execute_queries(db, gqMarginalQuery)
+	self.add_legacy_columns('hhld_marginals', marginals=True)
+
+	if self.project.controlUserProv.gqLocation:
+	    gqMarginalQuery = self.mysql_queries('gq_marginals',
+					         self.project.controlUserProv.gqLocation)
+	    self.execute_queries(db, gqMarginalQuery)
+	    self.add_legacy_columns('gq_marginals', marginals=True)
+
 	personMarginalQuery = self.mysql_queries('person_marginals',
 					         self.project.controlUserProv.personLocation)
 	self.execute_queries(db, personMarginalQuery)
+	self.add_legacy_columns('person_marginals', marginals=True)
+
+    def add_legacy_columns(self, tableName, sample=False, marginals=False, geocorr=False):
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password,
+                             db = '%s' %(self.project.name))
+	dbc = db.cursor()
+	if sample:
+	    try:
+		dbc.execute('alter table %s add column serialno bigint after hhid' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
+	
+	    try:
+		dbc.execute('update %s set serialno = hhid' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
+
+	if marginals or geocorr:
+	    try:
+		dbc.execute('alter table %s add column tract bigint after taz' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
+
+	    try:
+		dbc.execute('alter table %s add column bg bigint after tract' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
 
 
+
+	    try:
+		dbc.execute('update %s set tract = 1' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
+		
+	    try:
+		dbc.execute('update %s set bg = taz' %tableName)
+	    except Exception, e:
+	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
+
+
+	dbc.close()
+	db.commit()
 
 
     def mysql_queries(self, name, filePath):
@@ -129,6 +184,7 @@ class PopgenManager(object):
                                        fileProp.varTypes,
                                        fileProp.varNamesDummy,
                                        fileProp.varTypesDummy)
+	#print fileQuery.query1, fileQuery.query2
         return fileQuery
 
     def execute_queries(self, db, query):
@@ -169,12 +225,16 @@ class PopgenManager(object):
 
         try:
             if self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		print 'PERSON AND GQ CONTROLLED'
                 prepare_data(db, scenario)
             if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		print 'NO PERSON and GQ CONTROLELD'
                 prepare_data_noper(db, scenario)
             if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		print 'PERSON AND NO GQ'
                 prepare_data_nogqs(db, scenario)
             if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		print 'NO PERSON AND NO GQ'
                 prepare_data_nogqs_noper(db, scenario)
         except KeyError, e:
             print ("""Check the <b>hhid, serialno</b> columns in the """\
@@ -545,6 +605,7 @@ class PopgenManager(object):
 	for geo in scenario.synthesizeGeoIds:
 	    #print ("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
             #       %(geo.state, geo.county, geo.tract, geo.bg))
+	    geo = self.getPUMA5(geo)
 	    try:
                 if self.gqAnalyzed and scenario.selVariableDicts.persControl:
                     print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
@@ -561,6 +622,25 @@ class PopgenManager(object):
             except Exception, e:
                 print ("\tError in the Synthesis for geography: %s" %e)
 
+    def getPUMA5(self, geo):
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password,
+                             db = self.project.name)
+        dbc = db.cursor()
+
+        if geo.puma5 is None:
+	    try:
+                dbc.execute("""select pumano from geocorr where state = %s and county = %s and tract = %s and bg = %s"""
+                                   %(geo.state, geo.county, geo.tract, geo.bg))
+		results = asarray(dbc.fetchall())
+  	        geo.puma5 = results[0][0]
+		print geo
+            except Exception, e:
+	       print ("\tError occurred when identifying the puma number for the geography: %s" %e)
+
+        dbc.close()
+        db.close()
+        return geo
 
 
     def run_scenarios(self):
@@ -568,12 +648,15 @@ class PopgenManager(object):
 	    self.setup_database()
             self.create_tables()
 	for scenario in self.scenarioList:
+            print '________________________________________________________________'
+	    if len(scenario.synthesizeGeoIds) == 0:
+		print 'No geographies to synthesize for scenario with description - %s' %(scenario.description)
+		continue
+	    self.gqAnalyzed = self.is_gq_analyzed(scenario)        
 	    if not scenario.run:
 	        continue
-            print '________________________________________________________________'
 	    print 'Running Synthesis for Project - %s and Scenario - %s' %(scenario.name, scenario.scenario)
             print '  - Description for Scenario: %s' %(scenario.description)
-            self.gqAnalyzed = self.is_gq_analyzed(scenario)
 	    if scenario.prepareData:
 		self.prepare_data(scenario)
 	    self.read_data(scenario)

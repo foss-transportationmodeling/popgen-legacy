@@ -4,8 +4,9 @@
 # See PopGen/License
 
 import copy
+import MySQLdb
 from lxml import etree
-from numpy import array
+from numpy import array, asarray
 from collections import defaultdict
 from newproject import *
 
@@ -214,6 +215,7 @@ class ConfigParser(object):
 
         geogListElement = scenarioElement.find('SynthesizeGeographies')
         geogObjList = self.parse_geographies(geogListElement)
+        print '\tNumber of geographies identified for synthesis - ', len(geogObjList)
         scenarioProjObj.synthesizeGeoIds = geogObjList
 
     def parse_scenario_attribs(self, scenarioElement):
@@ -226,20 +228,39 @@ class ConfigParser(object):
     def parse_control_variables(self, controlVarsElement, controlType):
         controlTypeElement = controlVarsElement.find(controlType)
 
+	variables = []
         variableDict = {}
-
-        
-
+        orderOfVars = []
+	varsOrderDict = {}
         varsIterator = controlTypeElement.getiterator('Variable')
         for varElement in varsIterator:
+            controlVar = varElement.get('control')
+            if controlVar <> 'True':
+                continue
             name = varElement.get('name')
+	    order = varElement.get('order')
+	    if order is not None:
+		orderOfVars.append(order)
+	        varsOrderDict[order] = name
             numCats = int(varElement.get('num_categories'))
             variableDict[name] = numCats
 
-        variables = variableDict.keys()
-	variables.sort()
-	variableDims = [variableDict[var] for var in variables]
 
+	orderOfVars.sort()
+	for i in range(len(orderOfVars)):
+	    variables.append(varsOrderDict[orderOfVars[i]])
+
+	
+        otherVariables = variableDict.keys()
+	otherVariables.sort()
+	
+	for var in otherVariables:
+	    if var in variables:
+		continue
+	    else:
+		variables.append(var)
+
+	variableDims = [variableDict[var] for var in variables]
 
         print 'For %s' %(controlType)
         print '\tCONTROL VARIABLES:%s' %(variables)
@@ -356,25 +377,103 @@ class ConfigParser(object):
 	return oldMarginalList, newMarginalList
 
     def parse_geographies(self, geogListElement):
-        geogIterator = geogListElement.getiterator('GeoId')
+        print 
+        checkFullRegionElement = geogListElement.get('entire_region')
+        if checkFullRegionElement == 'True':
+            checkFullRegion = True
+        else:
+            checkFullRegion = False
+        
+        if checkFullRegion:
+            print 'Identifying all geographies in the region'
+            return self.retrieve_geoIds_for_all_counties()
 
+	checkIndGeoElement = geogListElement.get('individual_geographies')
+	if checkIndGeoElement == 'True':
+	    checkIndGeo = True
+	else:
+	    checkIndGeo = False
+
+	if checkIndGeo:
+            print 'Identifying individual geographies'
+            return self.parse_individual_geographies(geogListElement)
+	else:
+            print 'Identifying all geographies for specified counties'
+	    return self.parse_county_geographies(geogListElement)
+
+    def parse_county_geographies(self, geogListElement):
+	countyIterator = geogListElement.getiterator('CountyId')
+	
+	countyGeoList = []
+	for countyElement in countyIterator:
+	    stateId = int(countyElement.get('state'))
+	    countyId = int(countyElement.get('county'))
+            synthesizer = countyElement.get('synthesize_county')
+            if synthesizer == 'True':
+                countyGeo = Geography(stateId, countyId, tract=None, bg=None)
+                countyGeoList.append(countyGeo)
+            else:
+                continue
+	return self.retrieve_geoIds_for_counties(countyGeoList) 
+
+
+    def retrieve_geoIds_for_all_counties(self):
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password,
+                             db = self.project.name)
+        dbc = db.cursor()     
+        geoObjList = []
+        try:
+            dbc.execute("""select state, county, taz from geocorr""")
+            results = asarray(dbc.fetchall())
+            for row in results:
+                geoObj = Geography(row[0], row[1], tract=1, bg = row[2])
+                #print '\t', geoObj
+                geoObjList.append(geoObj)
+        except Exception, e:
+            print ("\tError occurred when identifying geoids in county: %s" %e)
+
+	dbc.close()
+	db.close()
+        return geoObjList
+
+    def retrieve_geoIds_for_counties(self, countyGeoList):
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password,
+                             db = self.project.name)
+        dbc = db.cursor()
+	geoObjList = []
+	for countyGeo in countyGeoList:
+	    try:
+                dbc.execute("""select state, county, taz from geocorr where state = %s and county = %s"""
+                                   %(countyGeo.state, countyGeo.county))
+		results = asarray(dbc.fetchall())
+		for row in results:
+		    geoObj = Geography(row[0], row[1], tract=1, bg = row[2])
+		    #print '\t', geoObj
+		    geoObjList.append(geoObj)
+            except Exception, e:
+	       print ("\tError occurred when identifying geoids in county: %s" %e)
+	dbc.close()
+	db.close()
+	return geoObjList	    
+
+    def parse_individual_geographies(self, geogListElement):
+        geogIterator = geogListElement.getiterator('GeoId')
         geogObjList = []
-        print 'LIST OF GEOGRAPHIES TO BE SYNTHESIZED'
         for geogElement in geogIterator:
             geogObj = self.return_geog_obj(geogElement)
             geogObjList.append(geogObj)
             print '\t%s' %(geogObj)
-        print
         return geogObjList
+
 
     def return_geog_obj(self, geogElement):
         state = int(geogElement.get('state'))
         county = int(geogElement.get('county'))
-        tract = int(geogElement.get('tract'))
-        bg = int(geogElement.get('bg'))
-        pumano = int(geogElement.get('pumano'))
+        taz = int(geogElement.get('taz'))
 
-        geoObj = Geography(state, county, tract, bg, pumano)
+        geoObj = Geography(state, county, tract=1, bg=taz)
         return geoObj
 
 

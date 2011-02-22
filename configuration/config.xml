@@ -1,78 +1,55 @@
 <ProjectConfig>
-  <Project name="bmc_popgen" location="c:/SynTest/bmc"/>
+  <Project name="bmc_popgen" location="/home/kkonduri/simtravel/SynTest/bmc"/>
   <DBConfig dbprotocol = "mysql" dbhost="localhost" dbname="bmc_popgen" dbusername="root" dbpassword="1234"/>
 	
-  <Inputs create="True">
-    <GeographicCorrespondence location="c:/PopGen/sample_data/usgeocorr.csv"/>
-    <HouseholdSample location="c:/PopGen/sample_data/hhld_sample.csv"/>
-    <GQSample location="c:/PopGen/sample_data/gq_sample.csv"/>
-    <PersonSample location="c:/PopGen/sample_data/person_sample.csv"/>
-    <HouseholdControl location="c:/PopGen/sample_data/hhld_marginals.csv"/>
-    <GQControl location="c:/PopGen/sample_data/gq_marginals.csv"/>
-    <PersonControl location="c:/PopGen/sample_data/person_marginals.csv"/>
+  <Inputs create="False">
+    <GeographicCorrespondence location="/home/kkonduri/data/bmc_data/final/bmc_geocorr.csv"/>
+    <HouseholdSample location="/home/kkonduri/data/bmc_data/final/bmc_hhld_sample.csv"/>
+    <GQSample location="/home/kkonduri/data/bmc_data/final/bmc_gq_sample.csv"/>
+    <PersonSample location="/home/kkonduri/data/bmc_data/final/bmc_person_sample.csv"/>
+    <HouseholdControl location="/home/kkonduri/data/bmc_data/final/bmc_hhld_marginals.csv"/>
+    <GQControl location="/home/kkonduri/data/bmc_data/final/bmc_gq_marginals.csv"/>
+    <PersonControl location="/home/kkonduri/data/bmc_data/final/bmc_person_marginals.csv"/>
   </Inputs>
 
   <Scenario value="1" description="Test Scenario" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
-      <Variable name="hhldsize" order="1" num_categories="7"/>
-      <Variable name="hhldinc" order="3" num_categories="8"/>
-      <Variable name="hhchildpresence" order="4" num_categories="2"/>
+      <Variable name="hhperson" order="1" num_categories="5" control="True"/>
+      <Variable name="hhincgroup" order="2" num_categories="4" control="True"/>
+      <Variable name="wrkrs" order="3" num_categories="4" control="True"/>
     </Household>
     <GroupQuarter>
-      <Variable name="groupquarter" order="1" num_categories="2"/>
+      <Variable name="gq" order="1" num_categories="2" control="True"/>
     </GroupQuarter>
     <Person control="True">
-      <Variable name="page" order="1" num_categories="10"/>
-      <Variable name="pgender" order="2" num_categories="2"/>
-      <Variable name="prace" order="3" num_categories="7"/>
+      <Variable name="employment" order="1" num_categories="2" control="True"/>
     </Person>
   </ControlVariables>    
 
   <CorrespondenceMap>
     <Household>
-      <ControlVariableMap name="hhldsize" category="1" marginal_variable="hhldsize1"/>
-      <ControlVariableMap name="hhldsize" category="2" marginal_variable="hhldsize2"/>
-      <ControlVariableMap name="hhldsize" category="3" marginal_variable="hhldsize3"/>
-      <ControlVariableMap name="hhldsize" category="4" marginal_variable="hhldsize4"/>
-      <ControlVariableMap name="hhldsize" category="5" marginal_variable="hhldsize5"/>
-      <ControlVariableMap name="hhldsize" category="6" marginal_variable="hhldsize6"/>
-      <ControlVariableMap name="hhldsize" category="7" marginal_variable="hhldsize7"/>
-      <ControlVariableMap name="hhldinc" category="1" marginal_variable="hhldinc1"/>
-      <ControlVariableMap name="hhldinc" category="2" marginal_variable="hhldinc2"/>
-      <ControlVariableMap name="hhldinc" category="3" marginal_variable="hhldinc3"/>
-      <ControlVariableMap name="hhldinc" category="4" marginal_variable="hhldinc4"/>
-      <ControlVariableMap name="hhldinc" category="5" marginal_variable="hhldinc5"/>
-      <ControlVariableMap name="hhldinc" category="6" marginal_variable="hhldinc6"/>
-      <ControlVariableMap name="hhldinc" category="7" marginal_variable="hhldinc7"/>
-      <ControlVariableMap name="hhldinc" category="8" marginal_variable="hhldinc8"/>
-      <ControlVariableMap name="hhchildpresence" category="1" marginal_variable="childpresence1"/>
-      <ControlVariableMap name="hhchildpresence" category="2" marginal_variable="childpresence2"/>
+      <ControlVariableMap name="hhperson" category="1" marginal_variable="hhperson1"/>
+      <ControlVariableMap name="hhperson" category="2" marginal_variable="hhperson2"/>
+      <ControlVariableMap name="hhperson" category="3" marginal_variable="hhperson3"/>
+      <ControlVariableMap name="hhperson" category="4" marginal_variable="hhperson4"/>
+      <ControlVariableMap name="hhperson" category="5" marginal_variable="hhperson5"/>
+      <ControlVariableMap name="hhincgroup" category="1" marginal_variable="hhincgroup1"/>
+      <ControlVariableMap name="hhincgroup" category="2" marginal_variable="hhincgroup2"/>
+      <ControlVariableMap name="hhincgroup" category="3" marginal_variable="hhincgroup3"/>
+      <ControlVariableMap name="hhincgroup" category="4" marginal_variable="hhincgroup4"/>
+      <ControlVariableMap name="wrkrs" category="1" marginal_variable="wrkrs0"/>
+      <ControlVariableMap name="wrkrs" category="2" marginal_variable="wrkrs1"/>
+      <ControlVariableMap name="wrkrs" category="3" marginal_variable="wrkrs2"/>
+      <ControlVariableMap name="wrkrs" category="4" marginal_variable="wrkrs3"/>
     </Household>
     <GroupQuarter>
-      <ControlVariableMap name="groupquarter" category="1" marginal_variable="groupquarter1"/>
-      <ControlVariableMap name="groupquarter" category="2" marginal_variable="groupquarter2"/>
+      <ControlVariableMap name="gq" category="1" marginal_variable="igq"/>
+      <ControlVariableMap name="gq" category="2" marginal_variable="nigq"/>
     </GroupQuarter>
     <Person>
-      <ControlVariableMap name="page" category="1" marginal_variable="agep1"/>
-      <ControlVariableMap name="page" category="2" marginal_variable="agep2"/>
-      <ControlVariableMap name="page" category="3" marginal_variable="agep3"/>
-      <ControlVariableMap name="page" category="4" marginal_variable="agep4"/>
-      <ControlVariableMap name="page" category="5" marginal_variable="agep5"/>
-      <ControlVariableMap name="page" category="6" marginal_variable="agep6"/>
-      <ControlVariableMap name="page" category="7" marginal_variable="agep7"/>
-      <ControlVariableMap name="page" category="8" marginal_variable="agep8"/>
-      <ControlVariableMap name="page" category="9" marginal_variable="agep9"/>
-      <ControlVariableMap name="page" category="10" marginal_variable="agep10"/>
-      <ControlVariableMap name="pgender" category="1" marginal_variable="pgender1"/>
-      <ControlVariableMap name="pgender" category="2" marginal_variable="pgender2"/>
-      <ControlVariableMap name="prace" category="1" marginal_variable="prace1"/>
-      <ControlVariableMap name="prace" category="2" marginal_variable="prace2"/>
-      <ControlVariableMap name="prace" category="3" marginal_variable="prace3"/>
-      <ControlVariableMap name="prace" category="4" marginal_variable="prace4"/>
-      <ControlVariableMap name="prace" category="5" marginal_variable="prace5"/>
-      <ControlVariableMap name="prace" category="6" marginal_variable="prace6"/>
-      <ControlVariableMap name="prace" category="7" marginal_variable="prace7"/>
+      <ControlVariableMap name="employment" category="1" marginal_variable="employed"/>
+      <ControlVariableMap name="employment" category="2" marginal_variable="notemployed"/>
     </Person>
   </CorrespondenceMap>
 
@@ -87,10 +64,18 @@
   </Parameters>
  
 
-  <SynthesizeGeographies>
-    <GeoId state="4" county="13" tract="10100" bg="1" pumano="106"/>
-    <GeoId1 state="4" county="13" tract="10100" bg="2" pumano="106"/>
-    <GeoId1 state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  <SynthesizeGeographies individual_geographies="False" entire_region="False">
+    <CountyId state="11" county="1" synthesize_county="True"/>
+    <CountyId state="24" county="3" synthesize_county="True"/>
+    <CountyId state="24" county="5" synthesize_county="False"/>
+    <CountyId state="24" county="13" synthesize_county="False"/>
+    <CountyId state="24" county="21" synthesize_county="False"/>
+    <CountyId state="24" county="25" synthesize_county="False"/>
+    <CountyId state="24" county="27" synthesize_county="False"/>
+    <CountyId state="24" county="31" synthesize_county="False"/>
+    <CountyId state="24" county="33" synthesize_county="False"/>
+    <CountyId state="24" county="510" synthesize_county="False"/>
+    <GeoId state="24" county="510" taz="1"/>
   </SynthesizeGeographies>
 
   </Scenario>
@@ -101,20 +86,18 @@
 
 
 
-  <Scenario value="2" description="marginals are scaled to match person totals closely" prepare_data="True" run="True">
+  <Scenario value="2" description="marginals are scaled to match person totals closely" prepare_data="False" run="False">
   <ControlVariables>
     <Household>
-      <Variable name="hhldsize" order="1" num_categories="7"/>
-      <Variable name="hhldinc" order="3" num_categories="8"/>
-      <Variable name="hhchildpresence" order="4" num_categories="2"/>
+      <Variable name="hhperson" order="1" num_categories="5"/>
+      <Variable name="hhincgroup" order="3" num_categories="4"/>
+      <Variable name="wrkrs" order="4" num_categories="4"/>
     </Household>
     <GroupQuarter>
-      <Variable name="groupquarter" order="1" num_categories="2"/>
+      <Variable name="gq" order="1" num_categories="2"/>
     </GroupQuarter>
     <Person control="True">
-      <Variable name="page" order="1" num_categories="10"/>
-      <Variable name="pgender" order="2" num_categories="2"/>
-      <Variable name="prace" order="3" num_categories="7"/>
+      <Variable name="employment" order="1" num_categories="2"/>
     </Person>
   </ControlVariables>    
 
@@ -183,8 +166,10 @@
   </AdjustHouseholdMarginals>
 
 
-  <SynthesizeGeographies>
-    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  <SynthesizeGeographies individual_geographies="False" entire_region="False">
+    <CountyId state="24" county="510"/>
+    <CountyId state="24" county="5"/>
+    <GeoId state="24" county="510" taz="1"/>
   </SynthesizeGeographies>
   </Scenario>
 
@@ -201,7 +186,7 @@
 
 
 
-  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="True" run="True">
+  <Scenario value="3" description="Scenarion where the marginals can be modified" prepare_data="False" run="False">
   <ControlVariables>
     <Household>
       <Variable name="hhldsize" order="1" num_categories="7"/>
@@ -285,9 +270,10 @@
     </GeoId>
   </ModifiedMarginals>
 
-
-  <SynthesizeGeographies>
-    <GeoId state="4" county="13" tract="10100" bg="3" pumano="106"/>
+  <SynthesizeGeographies individual_geographies="False" entire_region="False">
+    <CountyId state="24" county="510"/>
+    <CountyId state="24" county="5"/>
+    <GeoId state="24" county="510" taz="1"/>
   </SynthesizeGeographies>
 
   </Scenario>

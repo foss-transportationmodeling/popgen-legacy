@@ -27,6 +27,7 @@ class FileProperties():
                 firstline = firstline[:-1]
                 firstline = firstline.replace("\"", "")
                 firstline = firstline.replace("'", "")
+	        firstline = firstline.replace("\r", "")
                 self.varTypes = re.split("[,|\t]", firstline)
                 self.varNamesDummy = False
             else:
@@ -36,6 +37,7 @@ class FileProperties():
                     firstline = firstline[:-1]
                     firstline = firstline.replace("\"", "")
                     firstline = firstline.replace("'", "")
+		    firstline = firstline.replace("\r", "")
                     self.varNames = re.split("[,|\t]", firstline)
                 else:
                     self.varNamesDummy = False
@@ -44,6 +46,7 @@ class FileProperties():
                     secondline = secondline[:-1]
                     secondline = secondline.replace("\"", "")
                     secondline = secondline.replace("'", "")
+		    secondline = secondline.replace("\r", "")
                     self.varTypes = re.split("[,|\t]", secondline)
                 else:
                     self.varTypesDummy = False
@@ -51,6 +54,41 @@ class FileProperties():
             if self.varNamesDummy and self.varTypesDummy:
                 if len(self.varNames) <> len(self.varTypes):
                     raise FileError, "Mismatch in the number of Variable Names and Variable Types"
+
+	    # Automatically identifying the variable types
+	    if not self.varTypesDummy and self.varNamesDummy:	
+	        #self.varTypesDummy = True
+		self.varTypes = self.createVarTypes(secondline)
+                if len(self.varNames) <> len(self.varTypes):
+                    raise FileError, "Mismatch in the number of Variable Names and Variable Types"
+		
+
+    def createVarTypes(self, line):
+        line = line.replace("\"", "")
+        line = line.replace("'", "")
+        line = line.replace("\r", "")
+        line = re.split("[,|\t]", line[:-1])
+	
+	varTypes = []
+	for field in line:
+	    if re.match("[0-9]", field[0]):
+	        numType = True
+		textType = False
+	    elif re.match("[a-zA-Z]", field[0]):
+		numType = False
+		textType = True
+		varTypes.append('text')
+
+	    if numType:
+		try:
+		    intVal = int(field)
+		    varTypes.append('bigint')
+		except ValueError, e:
+		    floatVal = float(field)
+		    varTypes.append('float(27)')
+	#print 'LINE - ', line
+	#print 'Variable Types', varTypes
+	return varTypes	
 
 
     def checkVarTypes(self, line):
@@ -207,14 +245,14 @@ if __name__ == "__main__":
     #for b in ['test', 'names', 'types', 'none']:
     #for b in ['test']:
     for b in ['names']:
-        a = FileProperties("C:/Documents and Settings/kkonduri/Desktop/impute.csv")
-        print b
-        print "Var Type Dummy:", a.varTypesDummy
+        a = FileProperties("/home/kkonduri/simtravel/test/bmc_taz/hhld_marginals.csv")
+        print "Var Type Dummy:", a.varTypesDummy, "Var Names Dummy:", a.varNamesDummy
         print a.varTypes
-        print "Var Names Dummy:", a.varNamesDummy
         print a.varNames
 
-        c = ImportUserProvData(b,"C:/Documents and Settings/kkonduri/Desktop/impute.csv" , a.varNames, a.varTypes, a.varNamesDummy, a.varTypesDummy)
-        print c.query1
-        print c.query2
+
+        a = FileProperties("/home/kkonduri/simtravel/test/bmc_taz/geocorr.csv")
+        print "Var Type Dummy:", a.varTypesDummy, "Var Names Dummy:", a.varNamesDummy
+        print a.varTypes 
+	print a.varNames
 
