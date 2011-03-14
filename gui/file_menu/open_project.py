@@ -336,7 +336,7 @@ class SaveFile(QFileDialog):
                 if not query.exec_("""alter table tempperson add index(hhid)"""):
                     raise FileError, query.lastError().text()
                 if not query.exec_("""create table tempperson1 select tempperson.*, serialno from tempperson"""
-                                   """ left join serialcorr using (hhid, pnum)"""):
+                                   """ left join serialcorr using (hhid)"""):
                     raise FileError, query.lastError().text()
 
                 personSynTableVarDict, personSynTableVars = self.getVariables('tempperson1', query)
