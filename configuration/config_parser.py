@@ -3,6 +3,8 @@
 # Copyright (C) 2010, Arizona State University
 # See PopGen/License
 
+import re
+import os
 import copy
 import MySQLdb
 from lxml import etree
@@ -218,7 +220,24 @@ class ConfigParser(object):
         geogListElement = scenarioElement.find('SynthesizeGeographies')
         geogObjList = self.parse_geographies(geogListElement)
         print '\tNumber of geographies identified for synthesis - ', len(geogObjList)
+        self.stateList = self.retrieve_state_list(geogObjList)
         scenarioProjObj.synthesizeGeoIds = geogObjList
+
+
+	outputElement = scenarioElement.find('Outputs')
+	scenarioProjObj.multiwayTableList = self.parse_multiway_tables(outputElement)
+	(scenarioProjObj.summaryTableExport, 
+	 scenarioProjObj.summaryTableNameLoc) = self.parse_summary_table(outputElement)
+	(scenarioProjObj.synTableExport, 
+	 scenarioProjObj.synPersTableNameLoc,
+	 scenarioProjObj.synHousingTableNameLoc) = self.parse_synthetic_population_tables(outputElement)
+
+
+    def retrieve_state_list(self, geogObjList):
+        stateList = []
+        for geogObj in geogObjList:
+            stateList.append(geogObj.state)
+        return list(set(stateList))
 
     def parse_scenario_attribs(self, scenarioElement):
         scenario = scenarioElement.get('value')
@@ -477,7 +496,77 @@ class ConfigParser(object):
 
         geoObj = Geography(state, county, tract=1, bg=taz)
         return geoObj
+ 
+    def return_location_filename(self, fullfileloc):
+	loc,fileNameIncExt = os.path.split(fullfileloc)
 
+	fileName, fileType = re.split("[.]", fileNameIncExt)
+	return loc, fileName
+	
+
+
+    def parse_multiway_tables(self, outputElement):
+	multiwayelementIter = outputElement.getiterator('MultiwayTable')
+	
+	multiwayTableList = []
+	for multiwayElement in multiwayelementIter:
+	    fullLocation = multiwayElement.get('location')
+	    #name = multiwayElement.get('name')
+	    location, name = self.return_location_filename(fullLocation)
+	
+	    tableName = multiwayElement.get('table_name')
+
+	    nameLocObj = TableNameLoc(name, location)
+	 
+	    varsIterator = multiwayElement.getiterator('Variable')
+
+	    varsList = []
+	    for varsElement in varsIterator:
+		name = varsElement.get('name')
+	        varsList.append(name)
+
+	    multiWayTabObj = MultiwayTable(nameLocObj, tableName, varsList)
+	
+	    print multiWayTabObj
+	    multiwayTableList.append(multiWayTabObj)
+
+	return multiwayTableList
+
+    def parse_summary_table(self, outputElement):
+	summaryTableElement = outputElement.find("SummaryTable")
+
+	if summaryTableElement is not None:
+	    export = True
+	    #name = summaryTableElement.get('name')
+	    fullLocation = summaryTableElement.get('location')
+	    location, name = self.return_location_filename(fullLocation)	
+
+	    nameLocObj = TableNameLoc(name, location)
+	else:
+	    export = False	
+	    nameLocObj = TableNameLoc('Summary')
+	return export, nameLocObj
+
+    def parse_synthetic_population_tables(self, outputElement):
+	synPopTableElement = outputElement.find("SyntheticPopulationTables")
+
+	if synPopTableElement is not None:
+	    export = True
+	    #pers_name = synPopTableElement.get('person_name')
+	    #housing_name = synPopTableElement.get('housing_name')
+	    persFullLocation = synPopTableElement.get('person_location')
+	    housingFullLocation = synPopTableElement.get('housing_location')
+	
+	    pers_loc, pers_name = self.return_location_filename(persFullLocation)
+	    housing_loc, housing_name = self.return_location_filename(housingFullLocation)
+
+	    persNameLocObj = TableNameLoc(pers_name, pers_loc)
+	    housingNameLocObj = TableNameLoc(housing_name, housing_loc)
+	else:
+	    export = False
+	    persNameLocObj = TableNameLoc('person_synthetic_data', location)
+	    housingNameLocObj = TableNameLoc('housing_synthetic_data', location)
+	return export, persNameLocObj, housingNameLocObj
 
 if __name__ == "__main__":
     configObject = ConfigParser(fileLoc = '/home/kkonduri/simtravel/populationsynthesis/configuration/config.xml')
