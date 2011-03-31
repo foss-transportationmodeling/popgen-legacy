@@ -194,7 +194,30 @@ class NewProject(object):
     def update(self):
         pass
 
+class TableNameLoc(object):
+    def __init__(self, name, location=""):
+	self.location = location
+	self.name = name
 
+    def __repr__(self):
+	return "File name - %s and location - %s" %(self.name, 
+						    self.location)
+
+class MultiwayTable(object):
+    def __init__(self, nameLoc, tableName, varList):
+	self.nameLoc = nameLoc
+	self.tableName = tableName
+	self.varList = varList
+
+    def __repr__(self):
+	return ("""\nMULTIWAY TABLE OBJECT - """\
+		   """\tName location object - %s \n"""\
+		   """\ttable name to create from - %s \n"""\
+		   """\tvariable list used - %s """ 
+		   %(self.nameLoc, self.tableName, 
+		     self.varList))
+		
+	
 class NewProjectPopGenCore(NewProject):
     def __init__(self):
         NewProject.__init__(self)
@@ -203,6 +226,14 @@ class NewProjectPopGenCore(NewProject):
 	self.prepareData = False
 	self.run = True
 	
+	self.multiwayTableList = []
+	self.summaryTableExport = True
+	self.summaryTableNameLoc = TableNameLoc("summary")
+	self.synTableExport = True
+	self.synPersTableNameLoc = TableNameLoc("person_synthetic_data")
+	self.synHousingTableNameLoc = TableNameLoc("housing_synthetic_data")		
+	
+
 
 if __name__ == "__main__":
     a = ControlVariable()
