@@ -11,7 +11,12 @@ import psuedo_sparse_matrix
 import psuedo_sparse_matrix_nogqs
 import time
 
-def prepare_data_nogqs(db, project):
+def prepare_data_nogqs(db, project, state=None):
+
+    if state == None:
+	stateFilterStr = ""
+    else:
+	stateFilterStr = " where state = %s" %(state)
 
     dbc = db.cursor()
     scenarioDatabase = '%s%s%s' %(project.name, 'scenario', project.scenario)
@@ -27,12 +32,12 @@ def prepare_data_nogqs(db, project):
     except:
         pass
 
-    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample'
-                %(scenarioDatabase, projectDatabase))
+    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample %s'
+                %(scenarioDatabase, projectDatabase, stateFilterStr))
     dbc.execute('alter table %s.hhld_sample add index(serialno)' %(scenarioDatabase))
     
-    dbc.execute('create table %s.person_sample select * from %s.person_sample'
-                %(scenarioDatabase, projectDatabase))
+    dbc.execute('create table %s.person_sample select * from %s.person_sample %s'
+                %(scenarioDatabase, projectDatabase, stateFilterStr))
     dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
 
     if project.selVariableDicts.hhldMargsModify:

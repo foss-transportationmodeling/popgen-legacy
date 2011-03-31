@@ -10,8 +10,12 @@ import drawing_households
 import psuedo_sparse_matrix
 import time
 
-def prepare_data(db, project):
+def prepare_data(db, project, state=None):
 
+    if state == None:
+	stateFilterStr = ""
+    else:
+	stateFilterStr = " where state = %s" %(state)
 
     dbc = db.cursor()
     
@@ -30,16 +34,16 @@ def prepare_data(db, project):
     except:
         pass
 
-    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample'
-                %(scenarioDatabase, projectDatabase))
+    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample %s'
+                %(scenarioDatabase, projectDatabase, stateFilterStr))
     dbc.execute('alter table %s.hhld_sample add index(serialno)' %(scenarioDatabase))
     
-    dbc.execute('create table %s.gq_sample select * from %s.gq_sample'
-                %(scenarioDatabase, projectDatabase))
+    dbc.execute('create table %s.gq_sample select * from %s.gq_sample %s'
+                %(scenarioDatabase, projectDatabase, stateFilterStr))
     dbc.execute('alter table %s.gq_sample add index(serialno)' %(scenarioDatabase))
 
-    dbc.execute('create table %s.person_sample select * from %s.person_sample'
-                %(scenarioDatabase, projectDatabase))
+    dbc.execute('create table %s.person_sample select * from %s.person_sample %s'
+                %(scenarioDatabase, projectDatabase, stateFilterStr))
     dbc.execute('alter table %s.person_sample add index(serialno, pnum)' %(scenarioDatabase))
 
 
