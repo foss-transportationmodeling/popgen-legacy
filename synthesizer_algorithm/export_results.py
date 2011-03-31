@@ -91,7 +91,7 @@ class SaveSyntheticPopFile():
 
     def save(self):
 
-        filename = '%s/%s.%s' %(self.housingLocation, self.housingName, self.fileType)
+        filename = os.path.join('%s' %self.housingLocation , '%s.%s' %(self.housingName, self.fileType))
 
 	check = 1
 
@@ -167,9 +167,6 @@ class SaveSyntheticPopFile():
 
 
                 if self.uniqueIds is None:
-                    #print ("""select * from temphou2 into outfile """
-                    #       """'%s/housing_synthetic_data.%s' fields terminated by '%s'"""
-                    #       %(self.folder, self.fileType, self.fileSep))
                     self.execute_query("""select * from temphou2 into outfile """
                                        """'%s/%s.%s' fields terminated by '%s'"""
                                        %(self.housingLocation, self.housingName, self.fileType, self.fileSep))
@@ -187,7 +184,8 @@ class SaveSyntheticPopFile():
 
 		    indexOfFrequency = housingSynTableVars.index('frequency')
 		
-                    fileRef = open("%s/%s.%s" %(self.housingLocation, self.housingName, self.fileType), 'w')
+                    fileRef = open("%s%s%s.%s" %(self.housingLocation, os.path.sep,
+                                                 self.housingName, self.fileType), 'w')
 
                     colIndices = range(cols)
 		    for rec in results:
@@ -220,11 +218,15 @@ class SaveSyntheticPopFile():
                             fileRef.write('\n')
                     fileRef.close()
                     """
+                    filePath = '%s%s%s.%s' %(self.housingLocation, os.path.sep,
+                                             self.housingName,
+                                             self.fileType)
+                    filePath = filePath.replace("\\", "/")
+
         
-                    self.execute_query("""load data local infile '%s/%s.%s' into table temphou_unique """\
-                                           """fields terminated by '%s' (%s)""" %(self.housingLocation, self.housingName, 
-									     self.fileType, self.fileSep,
-									     housingVarStr))
+                    self.execute_query("""load data local infile '%s' into table temphou_unique """\
+                                           """fields terminated by '%s' (%s)""" %(filePath, self.fileSep,
+									          housingVarStr))
                         
             
             self.storeMetaData(housingSynTableVars, self.housingLocation, self.housingName)
@@ -234,7 +236,7 @@ class SaveSyntheticPopFile():
             if not self.project.gqVars:
                 self.execute_query("""drop table temphou2""")
 
-        filename = '%s/%s.%s' %(self.personLocation, self.personName, self.fileType)
+        filename = os.path.join('%s'%self.personLocation, '%s.%s' %(self.personName, self.fileType))
 	check = 1
 
         if check  == 1:
@@ -307,7 +309,8 @@ class SaveSyntheticPopFile():
 
 		    indexOfFrequency = housingSynTableVars.index('frequency')
 		
-                    fileRef = open("%s/%s.%s" %(self.personLocation, self.personName, self.fileType), 'w')
+                    fileRef = open("%s%s%s.%s" %(self.personLocation, os.path.sep,
+                                                 self.personName, self.fileType), 'w')
 
                     colIndices = range(cols)
 		    for rec in results:
@@ -323,10 +326,14 @@ class SaveSyntheticPopFile():
 			    fileRef.write('\n')
 		    fileRef.close()
 
+                    filePath = '%s%s%s.%s' %(self.personLocation, os.path.sep,
+                                             self.personName,
+                                             self.fileType)
+                    filePath = filePath.replace("\\", "/")
+
       
-                    self.execute_query("""load data local infile '%s/%s.%s' into table tempperson_unique """\
-                                           """fields terminated by '%s' (%s)""" %(self.personLocation, self.personName, 
-										  self.fileType, self.fileSep,
+                    self.execute_query("""load data local infile '%s' into table tempperson_unique """\
+                                           """fields terminated by '%s' (%s)""" %(filePath, self.fileSep,
 										  personVarStr))
                         
             self.storeMetaData(personSynTableVars, self.personLocation, self.personName)
@@ -378,7 +385,7 @@ class ExportSummaryFile(SaveSyntheticPopFile):
 
     def save(self):
 
-	filename = '%s/%s.%s'%(self.location, self.name, self.fileType)
+	filename = os.path.join('%s'%self.location, '%s.%s'%(self.name, self.fileType))
 
 
 	check = 1
@@ -393,12 +400,12 @@ class ExportSummaryFile(SaveSyntheticPopFile):
             self.createSummaryTables('person')
 
             varCorrDict = {}
-            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld))
-            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq))
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.hhld, self.project.hhldVars))
+            varCorrDict.update(self.variableControlCorrDict(self.project.selVariableDicts.gq, self.project.gqVars))
 
             self.createHousingMarginalsTable(varCorrDict.values())
 
-            varCorrDict = self.variableControlCorrDict(self.project.selVariableDicts.person)
+            varCorrDict = self.variableControlCorrDict(self.project.selVariableDicts.person, self.project.personVars)
 
             self.createMarginalsTable(varCorrDict.values())
 
@@ -415,9 +422,14 @@ class ExportSummaryFile(SaveSyntheticPopFile):
 	    self.execute_query("""alter table geo_perf_summary drop column tract""")
 	    self.execute_query("""alter table geo_perf_summary change bg taz bigint""")
 
+            filePath = '%s%s%s.%s' %(self.location, os.path.sep,
+                                     self.name,
+                                     self.fileType)
+            filePath = filePath.replace("\\", "/")
+
+
             self.execute_query("""select * from geo_perf_summary into outfile """
-                               """'%s/%s.%s' fields terminated by '%s'""" %(self.location, self.name, 
-									    self.fileType, self.fileSep))
+                               """'%s' fields terminated by '%s'""" %(filePath, self.fileSep))
 
             summaryTableVarDict, summaryTableVars = self.getVariables('geo_perf_summary')
             self.storeMetaData(summaryTableVars, self.location, self.name)
@@ -500,10 +512,10 @@ class ExportSummaryFile(SaveSyntheticPopFile):
                            """ from comparison left join performance_statistics using(state, county,tract, bg)""")
 
         
-    def variableControlCorrDict(self, vardict):
+    def variableControlCorrDict(self, vardict, controlVars):
         varCorrDict = {}
         vars = vardict.keys()
-        for i in vars:
+        for i in controlVars:
             for j in vardict[i].keys():
                 cat = (('%s' %j).split())[-1]
                 varCorrDict['%s%s' %(i, cat)] = '%s' %vardict[i][j]
@@ -549,7 +561,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 		
 	self.save()
 
-	filename = '%s/%s.%s'%(self.location, self.name, self.fileType)
+	filename = os.path.join('%s'%self.location, '%s.%s'%(self.name, self.fileType))
 
 
 	check = 1
@@ -561,7 +573,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 		print 'Error while deleting file - %s and error is - %s' %(filename, e)
 
 	multiWayEntries = self.createMultiWayTables()
-        fileRef = open("%s/%s.%s" %(self.location, self.name, self.fileType), 'w')
+        fileRef = open("%s%s%s.%s" %(self.location, os.path.sep, self.name, self.fileType), 'w')
 	
 	cols = multiWayEntries.shape[-1]
 	
