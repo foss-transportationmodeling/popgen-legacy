@@ -1,55 +1,56 @@
 <ProjectConfig>
-  <Project name="bmc_popgen" location="/home/kkonduri/simtravel/SynTest/bmc"/>
+  <Skip run="False"/>
+  <Project name="bmc_popgen" location="/tmp"/>
   <DBConfig dbprotocol = "mysql" dbhost="localhost" dbname="bmc_popgen" dbusername="root" dbpassword="1234"/>
 	
-  <Inputs create="True">
-    <GeographicCorrespondence location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_geocorr.csv"/>
-    <HouseholdSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_hhld_sample.csv"/>
-    <GQSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_gq_sample.csv"/>
-    <PersonSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_person_sample.csv"/>
-    <HouseholdControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_hhld_marginals.csv"/>
-    <GQControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_gq_marginals.csv"/>
-    <PersonControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_taz\final\bmc_person_marginals.csv"/>
+  <Inputs create="False">
+    <GeographicCorrespondence location="/home/kkonduri/data/bmc_data/latest_taz_marginals/bmc_geocorr.csv"/>
+    <HouseholdSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/hhld_sample.csv"/>
+    <GQSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/gq_sample.csv"/>
+    <PersonSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/person_sample.csv"/>
+    <HouseholdControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/household_marginals.csv"/>
+    <GQControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/groupquarters_marginals.csv"/>
+    <PersonControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/person_marginals.csv"/>
   </Inputs>
 
   <Scenario value="1" description="Test Scenario" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
-      <Variable name="hhperson" order="1" num_categories="5" control="True"/>
-      <Variable name="hhincgroup" order="2" num_categories="4" control="True"/>
-      <Variable name="wrkrs" order="3" num_categories="4" control="True"/>
+      <Variable name="persons_bmc" order="1" num_categories="5" control="True"/>
+      <Variable name="hinc_bmc" order="2" num_categories="4" control="True"/>
+      <Variable name="wif_bmc" order="3" num_categories="4" control="True"/>
     </Household>
     <GroupQuarter>
       <Variable name="gq" order="1" num_categories="2" control="True"/>
     </GroupQuarter>
     <Person control="True">
-      <Variable name="employment" order="1" num_categories="2" control="True"/>
+      <Variable name="esr_bmc" order="1" num_categories="2" control="True"/>
     </Person>
   </ControlVariables>    
 
   <CorrespondenceMap>
     <Household>
-      <ControlVariableMap name="hhperson" category="1" marginal_variable="hhperson1"/>
-      <ControlVariableMap name="hhperson" category="2" marginal_variable="hhperson2"/>
-      <ControlVariableMap name="hhperson" category="3" marginal_variable="hhperson3"/>
-      <ControlVariableMap name="hhperson" category="4" marginal_variable="hhperson4"/>
-      <ControlVariableMap name="hhperson" category="5" marginal_variable="hhperson5"/>
-      <ControlVariableMap name="hhincgroup" category="1" marginal_variable="hhincgroup1"/>
-      <ControlVariableMap name="hhincgroup" category="2" marginal_variable="hhincgroup2"/>
-      <ControlVariableMap name="hhincgroup" category="3" marginal_variable="hhincgroup3"/>
-      <ControlVariableMap name="hhincgroup" category="4" marginal_variable="hhincgroup4"/>
-      <ControlVariableMap name="wrkrs" category="1" marginal_variable="wrkrs0"/>
-      <ControlVariableMap name="wrkrs" category="2" marginal_variable="wrkrs1"/>
-      <ControlVariableMap name="wrkrs" category="3" marginal_variable="wrkrs2"/>
-      <ControlVariableMap name="wrkrs" category="4" marginal_variable="wrkrs3"/>
+      <ControlVariableMap name="persons_bmc" category="1" marginal_variable="hhperson1"/>
+      <ControlVariableMap name="persons_bmc" category="2" marginal_variable="hhperson2"/>
+      <ControlVariableMap name="persons_bmc" category="3" marginal_variable="hhperson3"/>
+      <ControlVariableMap name="persons_bmc" category="4" marginal_variable="hhperson4"/>
+      <ControlVariableMap name="persons_bmc" category="5" marginal_variable="hhperson5"/>
+      <ControlVariableMap name="hinc_bmc" category="1" marginal_variable="hhincgroup1"/>
+      <ControlVariableMap name="hinc_bmc" category="2" marginal_variable="hhincgroup2"/>
+      <ControlVariableMap name="hinc_bmc" category="3" marginal_variable="hhincgroup3"/>
+      <ControlVariableMap name="hinc_bmc" category="4" marginal_variable="hhincgroup4"/>
+      <ControlVariableMap name="wif_bmc" category="1" marginal_variable="wrkrs0"/>
+      <ControlVariableMap name="wif_bmc" category="2" marginal_variable="wrkrs1"/>
+      <ControlVariableMap name="wif_bmc" category="3" marginal_variable="wrkrs2"/>
+      <ControlVariableMap name="wif_bmc" category="4" marginal_variable="wrkrs3"/>
     </Household>
     <GroupQuarter>
       <ControlVariableMap name="gq" category="1" marginal_variable="igq"/>
       <ControlVariableMap name="gq" category="2" marginal_variable="nigq"/>
     </GroupQuarter>
     <Person>
-      <ControlVariableMap name="employment" category="1" marginal_variable="employed"/>
-      <ControlVariableMap name="employment" category="2" marginal_variable="notemployed"/>
+      <ControlVariableMap name="esr_bmc" category="1" marginal_variable="employed"/>
+      <ControlVariableMap name="esr_bmc" category="2" marginal_variable="notemployed"/>
     </Person>
   </CorrespondenceMap>
 
@@ -82,8 +83,8 @@
 
 
   <SynthesizeGeographies individual_geographies="True" entire_region="False">
-    <CountyId state="11" county="1" synthesize_county="True"/>
-    <CountyId state="24" county="3" synthesize_county="True"/>
+    <CountyId state="11" county="1" synthesize_county="False"/>
+    <CountyId state="24" county="3" synthesize_county="False"/>
     <CountyId state="24" county="5" synthesize_county="False"/>
     <CountyId state="24" county="13" synthesize_county="False"/>
     <CountyId state="24" county="21" synthesize_county="False"/>
@@ -93,7 +94,21 @@
     <CountyId state="24" county="33" synthesize_county="False"/>
     <CountyId state="24" county="510" synthesize_county="False"/>
     <GeoId state="24" county="510" taz="1"/>
+    <GeoId state="11" county="1" taz="1900"/>
   </SynthesizeGeographies>
+
+  <Outputs>
+    <MultiwayTable location="/tmp/sizinc_popgen.dat" table_name="housing_synthetic">
+      <Variable name="persons_bmc"/>
+      <Variable name="hinc_bmc"/>
+    </MultiwayTable>
+    <MultiwayTable location="/tmp/wkrinc_popgen.dat" table_name="housing_synthetic">
+      <Variable name="wif_bmc"/>
+      <Variable name="hinc_bmc"/>
+    </MultiwayTable>
+    <SummaryTable location="/tmp/summary.dat"/>
+    <SyntheticPopulationTables housing_location="/tmp/housing_synthetic.dat" person_location="/tmp/person_synthetic.dat"/>
+  </Outputs>
 
   </Scenario>
 
