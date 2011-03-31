@@ -341,7 +341,7 @@ def store(db, filePath, tablename):
 def create_performance_table(db):
     dbc = db.cursor()
     dbc.execute("""create table if not exists performance_statistics(state bigint, county bigint, tract bigint,"""
-                """bg bigint, chivalue float, pvalue float, synpopiter float, heuriter float, aardvalue float)""")
+                """bg bigint, chivalue float(27), pvalue float(27), synpopiter float, heuriter float, aardvalue float(27))""")
     dbc.execute("""delete from performance_statistics""")
     dbc.close()
     db.commit()
