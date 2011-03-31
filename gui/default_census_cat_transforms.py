@@ -6,6 +6,7 @@
 DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column page bigint",
                                 "alter table person_pums add column pgender bigint",
                                 "alter table person_pums add column prace bigint",
+                                "alter table person_pums add column prace_scag bigint",
                                 "alter table person_pums add column employment bigint",
 
                                 "alter table person_pums add column pclwkr bigint",
@@ -54,6 +55,15 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column page big
                                 "update person_pums set prace = 5 where race1 = 7",
                                 "update person_pums set prace = 6 where race1 = 8",
                                 "update person_pums set prace = 7 where race1 = 9",
+
+
+                                "update person_pums set prace_scag = 1 where hispan > 1",
+                                "update person_pums set prace_scag = 2 where race1 = 1 and hispan = 1",
+                                "update person_pums set prace_scag = 3 where race1 = 2 and hispan = 1",
+                                "update person_pums set prace_scag = 4 where (race1 >= 3 and race1 <= 5) and hispan = 1",
+                                "update person_pums set prace_scag = 5 where (race1 >= 6 and race1 <= 7) and hispan = 1",
+                                "update person_pums set prace_scag = 6 where race1 >= 8 and hispan = 1",
+
                                 "update person_pums set employment = 1 where esr = 0",
                                 "update person_pums set employment = 2 where esr = 1 or esr = 2 or esr = 4 or esr = 5",
                                 "update person_pums set employment = 3 where esr = 3",
@@ -97,8 +107,9 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column page big
 
                                 "drop table person_sample",
                                 """create table person_sample select state, pumano, hhid, serialno, """\
-                                        """pnum, age, page, pgender, prace, employment, relate, pclwkr, pearns, """\
-                                        """peduc, penroll, phours, pndnaics, pocccen, ptrvmns, pocccen_bmc """\
+                                        """pnum, page, pgender, prace, prace_scag, employment, relate, pclwkr, pearns, """\
+                                        """peduc, penroll, phours, pndnaics, pocccen, ptrvmns, pocccen_bmc, """\
+                                        """age, race1, esr, sex, occcen5, clwkr, indnaics, enroll, educ """\
                                         """from person_pums""",
                                 "alter table person_sample add index(serialno, pnum)",
                                 "drop table hhld_sample_temp",
@@ -119,9 +130,10 @@ DEFAULT_PERSON_PUMS2000_QUERIES = [ "alter table person_pums add column page big
 
                                 # Recodes for UrbanSim SF, Lane County, Hawaii
                                 """create table hhld_sample select hhld_sample_temp.*, """\
-                                        """page as hhldrage, page as hhldrage_bmc, prace as hhldrrace from hhld_sample_temp left """\
+                                        """page as hhldrage, page as hhldrage_bmc, age as hhldrage_raw, """\
+					"""race1 as hhldrrace_raw, prace as hhldrrace from hhld_sample_temp left """\
                                         """join person_sample using(serialno) where relate = 1""",
-                                """alter table person_sample drop column age""",    
+                                #"""alter table person_sample drop column age""",    
                                 "alter table hhld_sample add index(serialno)",
                                 "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
                                 "update hhld_sample set hhldrage = 2 where hhldrage >7",
@@ -320,7 +332,8 @@ DEFAULT_HOUSING_PUMS2000_QUERIES = ["alter table housing_pums add index(serialno
                                 """create table hhld_sample select state, pumano, hhid, serialno, """\
                                         """hhtype, hhldtype, hhldinc, hhldsize, hhchildpresence, """\
                                         """hhldfam, htenure, hbldgsz, hvehicl, hgrent, hvalue, """\
-                                        """hyrbuilt, hyrmoved, hbldgsz_bmc, hwif_bmc """\
+                                        """hyrbuilt, hyrmoved, hbldgsz_bmc, hwif_bmc, """\
+                                        """persons, hinc, wif, hht, unittype, vehicl, noc, bldgsz, yrmoved """\
 					"""from housing_pums where hhtype = 1""",
                                 """create table gq_sample select state, pumano, hhid, serialno, """\
                                         """hhtype, groupquarter from housing_pums where hhtype = 2""",

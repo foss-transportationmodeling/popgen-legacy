@@ -128,7 +128,7 @@ SEX,Sex,P,A,1,23,23,1
 SEXA,Sex Allocation Flag,P,A,0,24,24,1
 AGE,Age,P,A,1,25,26,2
 AGEA,Age Allocation Flag,P,A,0,27,27,1
-HISPAN,Hispanic or Latino Origin,P,A,0,28,29,2
+HISPAN,Hispanic or Latino Origin,P,A,1,28,29,2
 HISPANA,Hispanic or Latino Origin Allocation Flag,P,A,0,30,30,1
 NUMRACE,Number of Major Race Groups Marked,P,A,0,31,31,1
 WHITE,White recode,P,A,0,32,32,1
