@@ -22,6 +22,19 @@ class ConfigParser(object):
 
         self.configObject = configObject
 
+    def parse_skip(self):
+        runElement = self.configObject.find('Skip')
+
+        if runElement is None:
+            return False
+
+        runValue = runElement.get('run')
+
+        if runValue == 'True':
+            return True
+        else:
+            return False
+
 
     def parse(self):
 
