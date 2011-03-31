@@ -17,7 +17,7 @@ from synthesizer_algorithm import demo_nogqs
 from synthesizer_algorithm import demo_nogqs_noper
 from synthesizer_algorithm import demo_noper
 
-
+from synthesizer_algorithm.export_results import SaveSyntheticPopFile, ExportSummaryFile, ExportMultiwayTables
 
 class ConfigurationError(Exception):
     pass
@@ -56,6 +56,7 @@ class PopgenManager(object):
 	self.configParser.parse()
 	self.project = self.configParser.project
 	self.scenarioList = self.configParser.scenarioList
+        self.stateList = self.configParser.stateList
         print 'COMPLETED PARSING CONFIG FILE'
         print '________________________________________________________________'
 
@@ -72,15 +73,29 @@ class PopgenManager(object):
 	    dbName = name
 
 	try:
-	    dbc.execute("Drop Database if exists %s" %(dbName))
-	except Exception, e:
-	    print '\tError occurred when dropping database:%s' %e
-
-	try:
-	    dbc.execute("Create Database %s" %(dbName))
+	    dbc.execute("Create Database if not exists %s" %(dbName))
 	except Exception, e:
 	    print '\tError occurred when creating database:%s' %e
 	dbc.close()
+
+
+    def drop_database(self):
+	db = MySQLdb.connect(user= '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password)
+	dbc = db.cursor()
+	
+	dbList = [self.project.name]
+	for scenario in self.scenarioList:
+	    dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+	
+	for dbName in dbList:
+	    try:
+	        dbc.execute("Drop Database if exists %s" %(dbName))
+ 	    except Exception, e:
+	        print '\tError occurred when dropping database:%s' %e
+
+	#raw_input('--Completed deleting all databases--')
+	
 
     def create_tables(self):
 	# Connect to the actual project database
@@ -94,43 +109,71 @@ class PopgenManager(object):
 					      self.project.geocorrUserProv.location)
 	self.execute_queries(db, geoCorrFileQuery)
 	self.add_legacy_columns('geocorr', geocorr=True)
+        #self.add_index(db, 'geocorr', ['taz'])
 
 	#Create Sample Tables
 	hhldSampleQuery = self.mysql_queries('hhld_sample',
 					     self.project.sampleUserProv.hhLocation)
 	self.execute_queries(db, hhldSampleQuery)
 	self.add_legacy_columns('hhld_sample', sample=True)
-	self.add_index(db, 'hhld_sample', ['serialno'])
+	self.add_index(db, 'hhld_sample', ['state', 'serialno'])
 
 	if self.project.sampleUserProv.gqLocation <> "":
 	    gqSampleQuery = self.mysql_queries('gq_sample',
 		                               self.project.sampleUserProv.gqLocation)
             self.execute_queries(db, gqSampleQuery)
 	    self.add_legacy_columns('gq_sample', sample=True)
-	    self.add_index(db, 'gq_sample', ['serialno'])
+	    self.add_index(db, 'gq_sample', ['state', 'serialno'])
 
 	personSampleQuery = self.mysql_queries('person_sample',
 					   self.project.sampleUserProv.personLocation)
 	self.execute_queries(db, personSampleQuery)
 	self.add_legacy_columns('person_sample', sample=True)
-	self.add_index(db, 'person_sample', ['serialno','pnum'])
+	self.add_index(db, 'person_sample', ['state', 'serialno','pnum'])
 	#Create Marginal Tables
 
 	hhldMarginalQuery = self.mysql_queries('hhld_marginals',
 					       self.project.controlUserProv.hhLocation)
 	self.execute_queries(db, hhldMarginalQuery)
 	self.add_legacy_columns('hhld_marginals', marginals=True)
+        self.add_old_geo_id_columns('hhld_marginals')
 
 	if self.project.controlUserProv.gqLocation:
 	    gqMarginalQuery = self.mysql_queries('gq_marginals',
 					         self.project.controlUserProv.gqLocation)
 	    self.execute_queries(db, gqMarginalQuery)
 	    self.add_legacy_columns('gq_marginals', marginals=True)
+            self.add_old_geo_id_columns('gq_marginals')
 
 	personMarginalQuery = self.mysql_queries('person_marginals',
 					         self.project.controlUserProv.personLocation)
 	self.execute_queries(db, personMarginalQuery)
 	self.add_legacy_columns('person_marginals', marginals=True)
+        self.add_old_geo_id_columns('person_marginals')
+
+
+    def add_old_geo_id_columns(self, tableName):
+        db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password,
+                             db = '%s' %(self.project.name))
+	dbc = db.cursor()
+        try:
+            print ("""create table %s_temp select geocorr.state, geocorr.county, """\
+                       """%s.* from geocorr, %s where %s.taz = geocorr.taz""" \
+                       %(tableName, tableName, tableName, tableName))
+            
+            dbc.execute("""create table %s_temp select geocorr.state, geocorr.county, """\
+                            """%s.* from geocorr, %s where %s.taz = geocorr.taz""" \
+                            %(tableName, tableName, tableName, tableName))
+
+            dbc.execute("""drop table %s""" %tableName)
+            dbc.execute("""rename table %s_temp to %s """ %(tableName, tableName))
+                        
+        except Exception, e:
+            print '\t Error occurred when adding legacy columns to %s: %s' %(tableName, e)
+
+	dbc.close()
+	db.commit()
 
     def add_legacy_columns(self, tableName, sample=False, marginals=False, geocorr=False):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
@@ -171,9 +214,9 @@ class PopgenManager(object):
 	    except Exception, e:
 	        print '\tError occurred when adding legacy columns to %s: %s' % (tableName, e)
 
-
 	dbc.close()
 	db.commit()
+
 
 
     def mysql_queries(self, name, filePath):
@@ -213,7 +256,7 @@ class PopgenManager(object):
 	except Exception, e:
 	    print '\tError occurred when adding index to the table: %s' %e
 
-    def prepare_data(self, scenario):
+    def prepare_data(self, scenario, state=None):
         self.remove_tables(scenario)
 
         if scenario.selVariableDicts.hhldMargsModify:
@@ -226,7 +269,7 @@ class PopgenManager(object):
         try:
             if self.gqAnalyzed and scenario.selVariableDicts.persControl:
 		print 'PERSON AND GQ CONTROLLED'
-                prepare_data(db, scenario)
+                prepare_data(db, scenario, state=state)
             if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
 		print 'NO PERSON and GQ CONTROLELD'
                 prepare_data_noper(db, scenario)
@@ -250,18 +293,68 @@ class PopgenManager(object):
                              
     def remove_tables(self, scenario):
 	dbName = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario)
+
+        self.setup_database(dbName)
+
 	try:
 	    db = MySQLdb.connect(user = '%s' %self.project.db.username,
                                  passwd = '%s' %self.project.db.password,
                                  db = dbName)
 	    dbc = db.cursor()
-            dbc.execute("""Drop Database if exists %s""" %dbName)
+            dbc.execute("""Drop table if exists hhld_sample""")
+            dbc.execute("""Drop table if exists person_sample""")
+            dbc.execute("""Drop table if exists gq_sample""")
+            dbc.execute("""Drop table if exists hhld_marginals""")
+            dbc.execute("""Drop table if exists person_marginals""")
+            dbc.execute("""Drop table if exists gq_marginals""")
 	    dbc.close()
 	    db.commit()
 	except Exception, e:
 	    print '\tError occurred when dropping the database: %s' %e
-        self.setup_database(dbName)
+	#raw_input('--Completed deleting input tables from the scenario database--')
 
+    def populate_full_input_tables(self, scenario):
+	scenarioDatabase = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario)
+	projectDatabase = self.project.name
+	
+	try:
+	    db = MySQLdb.connect(user = '%s' %self.project.db.username,
+                                 passwd = '%s' %self.project.db.password,
+                                 db = scenarioDatabase)
+
+	    dbc = db.cursor()
+
+    	    dbc.execute('create table %s.hhld_sample select * from %s.hhld_sample '%(scenarioDatabase, projectDatabase))
+	    self.add_index(db, 'hhld_sample', ['state', 'serialno'])
+
+
+	    dbc.execute('create table %s.person_sample select * from %s.person_sample'%(scenarioDatabase, projectDatabase))
+	    self.add_index(db, 'person_sample', ['state', 'serialno', 'pnum'])
+
+
+    	    if scenario.selVariableDicts.hhldMargsModify:
+        	dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals_modpgq'
+                    	     %(scenarioDatabase, projectDatabase))
+    	    else:
+        	dbc.execute('create table %s.hhld_marginals select * from %s.hhld_marginals'
+                    	     %(scenarioDatabase, projectDatabase))
+
+    	    dbc.execute('create table %s.person_marginals select * from %s.person_marginals'
+                	 %(scenarioDatabase, projectDatabase))
+
+
+            if self.gqAnalyzed:
+	        dbc.execute('create table %s.gq_sample select * from %s.gq_sample' %(scenarioDatabase, projectDatabase))
+ 	        self.add_index(db, 'gq_sample', ['state', 'serialno'])
+
+    	    	dbc.execute('create table %s.gq_marginals select * from %s.gq_marginals'
+                	     %(scenarioDatabase, projectDatabase))
+
+	    dbc.close()
+	    db.commit()
+	except Exception, e:
+	    print '\tError occurred when dropping the database: %s' %e
+	#raw_input('--Completed importing full inputs across all states --')
 
     def modify_marginals(self, scenario):
         # Calculating the Person Total
@@ -552,17 +645,24 @@ class PopgenManager(object):
         dbc.close()
         db.close()
 
-    def delete_records_for_geographies(self, scenario):
+    def delete_records_for_geographies(self, scenario, state=None):
 	dbName = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario)
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
                              db = dbName)
         dbc = db.cursor()
 
+        if state == None:
+            stateFilterStr = ""
+        else:
+            stateFilterStr = state
+
 	for geo in scenario.synthesizeGeoIds:
+	    if geo.state <> state:
+		continue
 	    try:
 	        dbc.execute("""delete from %s.housing_synthetic_data where state = %s and county = %s """
-                                       """ and tract = %s and bg = %s  """ %(dbName, geo.state, geo.county,
+                                       """ and tract = %s and bg = %s  """ %(dbName, stateFilterStr, geo.county,
 									     geo.tract, geo.bg))
 	    except Exception, e:
 	        print '\tError occurred when deleting housing records: %s' %e
@@ -588,7 +688,7 @@ class PopgenManager(object):
         return varCorrDict
 
 
-    def synthesize_population(self, scenario):
+    def synthesize_population(self, scenario, state=None):
         varCorrDict = {}
 
         hhldDict = copy.deepcopy(scenario.selVariableDicts.hhld)
@@ -606,25 +706,26 @@ class PopgenManager(object):
 	    #print ("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
             #       %(geo.state, geo.county, geo.tract, geo.bg))
 	    geo = self.getPUMA5(geo)
-	    try:
-                if self.gqAnalyzed and scenario.selVariableDicts.persControl:
-                    print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                    demo.configure_and_run(scenario, geo, varCorrDict)
-                if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
-                    print '  - GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                    demo_noper.configure_and_run(scenario, geo, varCorrDict)
-                if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
-                    print '  - NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                    demo_nogqs.configure_and_run(scenario, geo, varCorrDict)
-                if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
-                    print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                    demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
-            except Exception, e:
-                print ("\tError in the Synthesis for geography: %s" %e)
+            print '\t State for geography - %s and state synthesized - %s' %(geo.state, state)
 
-    def export_results(self, scenario):
-        print '\n-- This is a placeholder for exporting results for use in the BMC TDM... --'
-        pass
+            if state <> None and geo.state <> state:
+                continue
+            else:
+                try:
+                    if self.gqAnalyzed and scenario.selVariableDicts.persControl:
+                        print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo.configure_and_run(scenario, geo, varCorrDict)
+                    if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+                        print '  - GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_noper.configure_and_run(scenario, geo, varCorrDict)
+                    if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
+                        print '  - NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs.configure_and_run(scenario, geo, varCorrDict)
+                    if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+                        print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
+                except Exception, e:
+                    print ("\tError in the Synthesis for geography: %s" %e)
 
     def getPUMA5(self, geo):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
@@ -646,26 +747,62 @@ class PopgenManager(object):
         db.close()
         return geo
 
+    def export_results(self, scenario):
+        print '\nExporting results for use in the BMC TDM...'
+
+        print '\t\tExporting disaggregate synthetic population results ... --'
+	if scenario.synTableExport:
+            popFileDlg = SaveSyntheticPopFile(scenario, scenario.synPersTableNameLoc, scenario.synHousingTableNameLoc)
+	    popFileDlg.save()
+
+
+        print '\t\tExporting disaggregate synthetic population results ... --'
+	if scenario.summaryTableExport:
+            summaryFileDlg = ExportSummaryFile(scenario, scenario.summaryTableNameLoc)
+	    summaryFileDlg.save()
+
+        print '\t\tExporting multiway table results ... --'
+	if len(scenario.multiwayTableList) > 0:
+	    for mwayTable in scenario.multiwayTableList:
+            	mwayFileDlg = ExportMultiwayTables(scenario, mwayTable)
+		mwayFileDlg.saveMultiwayTables()
+	
+
 
     def run_scenarios(self):
+	
 	if self.project.createTables:
+	    self.drop_database()
 	    self.setup_database()
             self.create_tables()
+	
 	for scenario in self.scenarioList:
-            print '________________________________________________________________'
-	    if len(scenario.synthesizeGeoIds) == 0:
-		print 'No geographies to synthesize for scenario with description - %s' %(scenario.description)
-		continue
+            if len(self.stateList) > 1:
+                print 'Synthesis for multiple states is required'
 	    self.gqAnalyzed = self.is_gq_analyzed(scenario)        
-	    if not scenario.run:
-	        continue
-	    print 'Running Synthesis for Project - %s and Scenario - %s' %(scenario.name, scenario.scenario)
-            print '  - Description for Scenario: %s' %(scenario.description)
-	    if scenario.prepareData:
-		self.prepare_data(scenario)
-	    self.read_data(scenario)
-	    self.delete_records_for_geographies(scenario)
-	    self.synthesize_population(scenario)
+	    
+            for state in self.stateList:
+                print '\t\tGeoIds for state - ', state
+
+
+                print '________________________________________________________________'
+                if len(scenario.synthesizeGeoIds) == 0:
+                    print 'No geographies to synthesize for scenario with description - %s and state - %s' %(scenario.description,
+                                                                                                             state)
+                    continue
+                
+                if not scenario.run:
+                    continue
+                print 'Running Synthesis for Project - %s and Scenario - %s' %(scenario.name, scenario.scenario)
+                print '  - Description for Scenario: %s' %(scenario.description)
+                if scenario.prepareData:
+                    self.prepare_data(scenario, state=state)
+                self.delete_records_for_geographies(scenario, state=state)
+                self.read_data(scenario)
+                self.synthesize_population(scenario, state=state)
+	    
+	    self.remove_tables(scenario)
+	    self.populate_full_input_tables(scenario)
             self.export_results(scenario)
 if __name__ == '__main__':
     pass
