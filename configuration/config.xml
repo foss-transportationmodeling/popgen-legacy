@@ -1,30 +1,36 @@
 <ProjectConfig>
   <Skip run="False"/>
-  <Project name="bmc_popgen" location="/tmp"/>
+  <Project name="bmc_popgen" location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen"/>
   <DBConfig dbprotocol = "mysql" dbhost="localhost" dbname="bmc_popgen" dbusername="root" dbpassword="1234"/>
 	
-  <Inputs create="False">
-    <GeographicCorrespondence location="/home/kkonduri/data/bmc_data/latest_taz_marginals/bmc_geocorr.csv"/>
-    <HouseholdSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/hhld_sample.csv"/>
-    <GQSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/gq_sample.csv"/>
-    <PersonSample location="/home/kkonduri/data/bmc_data/PUMS/full_bmc_region/person_sample.csv"/>
-    <HouseholdControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/household_marginals.csv"/>
-    <GQControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/groupquarters_marginals.csv"/>
-    <PersonControl location="/home/kkonduri/data/bmc_data/latest_taz_marginals/2000/person_marginals.csv"/>
+  <Inputs create="True">
+    <GeographicCorrespondence location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\bmc_geocorr.csv"/>
+    <HouseholdSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\full_bmc_region_PUMS\hhld_sample.csv"/>
+    <GQSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\full_bmc_region_PUMS\gq_sample.csv"/>
+    <PersonSample location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\full_bmc_region_PUMS\person_sample.csv"/>
+    <HouseholdControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\latest_taz_marginals\2000\household_marginals.csv"/>
+    <GQControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\latest_taz_marginals\2000\groupquarters_marginals.csv"/>
+    <PersonControl location="C:\Documents and Settings\kkonduri\Desktop\bmc\inputs\latest_taz_marginals\2000\person_marginals.csv"/>
   </Inputs>
 
   <Scenario value="1" description="Test Scenario" prepare_data="True" run="True">
   <ControlVariables>
     <Household>
-      <Variable name="persons_bmc" order="1" num_categories="5" control="True"/>
-      <Variable name="hinc_bmc" order="2" num_categories="4" control="True"/>
-      <Variable name="wif_bmc" order="3" num_categories="4" control="True"/>
+      <Variable name="persons_bmc" order="3" num_categories="5" control="True"/>
+      <Variable name="hinc_bmc" order="4" num_categories="4" control="True"/>
+      <Variable name="wif_bmc" order="5" num_categories="4" control="True"/>
+      <Variable name="hbldgsz_bmc" order="1" num_categories="3" control="False"/>
+      <Variable name="hhldrage_bmc" order="2" num_categories="4" control="False"/>
+
     </Household>
     <GroupQuarter>
       <Variable name="gq" order="1" num_categories="2" control="True"/>
     </GroupQuarter>
     <Person control="True">
-      <Variable name="esr_bmc" order="1" num_categories="2" control="True"/>
+      <Variable name="esr_bmc" order="4" num_categories="2" control="True"/>
+      <Variable name="age_bmc" order="3" num_categories="2" control="False"/>
+      <Variable name="sex_bmc" order="2" num_categories="2" control="False"/>
+      <Variable name="occcen5_bmc" order="1" num_categories="2" control="False"/>
     </Person>
   </ControlVariables>    
 
@@ -43,6 +49,13 @@
       <ControlVariableMap name="wif_bmc" category="2" marginal_variable="wrkrs1"/>
       <ControlVariableMap name="wif_bmc" category="3" marginal_variable="wrkrs2"/>
       <ControlVariableMap name="wif_bmc" category="4" marginal_variable="wrkrs3"/>
+      <ControlVariableMap name="hbldgsz_bmc" category="1" marginal_variable="hbldgsz1"/>
+      <ControlVariableMap name="hbldgsz_bmc" category="2" marginal_variable="hbldgsz2"/>
+      <ControlVariableMap name="hhldrage_bmc" category="3" marginal_variable="hbldgsz3"/>
+      <ControlVariableMap name="hhldrage_bmc" category="1" marginal_variable="hhldrage1"/>
+      <ControlVariableMap name="hhldrage_bmc" category="2" marginal_variable="hhldrage2"/>
+      <ControlVariableMap name="hhldrage_bmc" category="3" marginal_variable="hhldrage3"/>
+      <ControlVariableMap name="hhldrage_bmc" category="4" marginal_variable="hhldrage4"/>
     </Household>
     <GroupQuarter>
       <ControlVariableMap name="gq" category="1" marginal_variable="igq"/>
@@ -51,6 +64,29 @@
     <Person>
       <ControlVariableMap name="esr_bmc" category="1" marginal_variable="employed"/>
       <ControlVariableMap name="esr_bmc" category="2" marginal_variable="notemployed"/>
+      <ControlVariableMap name="age_bmc" category="1" marginal_variable="age1"/>
+      <ControlVariableMap name="age_bmc" category="2" marginal_variable="age2"/>
+      <ControlVariableMap name="age_bmc" category="3" marginal_variable="age3"/>
+      <ControlVariableMap name="age_bmc" category="4" marginal_variable="age4"/>
+      <ControlVariableMap name="age_bmc" category="5" marginal_variable="age5"/>
+      <ControlVariableMap name="age_bmc" category="6" marginal_variable="age6"/>
+      <ControlVariableMap name="age_bmc" category="7" marginal_variable="age7"/>
+      <ControlVariableMap name="age_bmc" category="8" marginal_variable="age8"/>
+      <ControlVariableMap name="age_bmc" category="9" marginal_variable="age10"/>
+      <ControlVariableMap name="age_bmc" category="1o" marginal_variable="age11"/>
+      <ControlVariableMap name="sex_bmc" category="1" marginal_variable="sex1"/>
+      <ControlVariableMap name="sex_bmc" category="2" marginal_variable="sex2"/>
+      <ControlVariableMap name="occcen5_bmc" category="1" marginal_variable="occcen1"/>
+      <ControlVariableMap name="occcen5_bmc" category="2" marginal_variable="occcen2"/>
+      <ControlVariableMap name="occcen5_bmc" category="3" marginal_variable="occcen3"/>
+      <ControlVariableMap name="occcen5_bmc" category="4" marginal_variable="occcen4"/>
+      <ControlVariableMap name="occcen5_bmc" category="5" marginal_variable="occcen5"/>
+      <ControlVariableMap name="occcen5_bmc" category="6" marginal_variable="occcen6"/>
+      <ControlVariableMap name="occcen5_bmc" category="7" marginal_variable="occcen7"/>
+      <ControlVariableMap name="occcen5_bmc" category="8" marginal_variable="occcen8"/>
+
+
+
     </Person>
   </CorrespondenceMap>
 
@@ -98,16 +134,16 @@
   </SynthesizeGeographies>
 
   <Outputs>
-    <MultiwayTable location="/tmp/sizinc_popgen.dat" table_name="housing_synthetic">
+    <MultiwayTable location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen\sizinc_popgen.dat" table_name="housing_synthetic">
       <Variable name="persons_bmc"/>
       <Variable name="hinc_bmc"/>
     </MultiwayTable>
-    <MultiwayTable location="/tmp/wkrinc_popgen.dat" table_name="housing_synthetic">
+    <MultiwayTable location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen\wkrinc_popgen.dat" table_name="housing_synthetic">
       <Variable name="wif_bmc"/>
       <Variable name="hinc_bmc"/>
     </MultiwayTable>
-    <SummaryTable location="/tmp/summary.dat"/>
-    <SyntheticPopulationTables housing_location="/tmp/housing_synthetic.dat" person_location="/tmp/person_synthetic.dat"/>
+    <SummaryTable location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen\summary.dat"/>
+    <SyntheticPopulationTables housing_location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen\housing_synthetic.dat" person_location="C:\Documents and Settings\kkonduri\Desktop\bmc\bmc_popgen\person_synthetic.dat"/>
   </Outputs>
 
   </Scenario>
