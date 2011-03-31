@@ -605,7 +605,8 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	indices[1:, 1] = indicesRowCumSum[:-1]
 	indices[:, 2] = indicesRowCumSum
 	
-	#print 'Indices', indices
+	synTazIds = list(tazIdsUnique)
+	allTazIds = self.return_allTazIds()
 	
 	catIndex = self.numBreakDown(array(multiWayDims))
 
@@ -613,25 +614,33 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	#print catIndex
         fileRef = open("%s" %(filename), 'w')
 	# Printing multiway tables
-	for i in indices:
+
+
+	for i in allTazIds:
+	    tazId = i[0]
 
  	    catIndexValDict = {}
 	    for cat in catIndex:
 	        catIndexValDict[tuple(cat)] = 0
 
-	    tazId = i[0]
-		
-	    firstRowInd = i[1]
-	    LastRowInd = i[2]
-	    corrMultiWayRows = multiWayEntries[firstRowInd:LastRowInd]
-	
-	    print 'TAZ ID - ', tazId
-	    print 'Corresponding Rows'
-	    print corrMultiWayRows	
 
-	    for rec in corrMultiWayRows:
-		catFrmDb = tuple(rec[1:1+len(self.varList)])
-		catIndexValDict[catFrmDb] = rec[-1]
+	    if tazId in synTazIds:
+		synInd = synTazIds.index(tazId)
+
+		indexRec = indices[synInd]
+	
+	    	firstRowInd = indexRec[1]
+	    	LastRowInd = indexRec[2]
+	    	corrMultiWayRows = multiWayEntries[firstRowInd:LastRowInd]
+		
+		
+	        print 'TAZ ID - ', tazId
+	        print 'Corresponding Rows'
+	        print corrMultiWayRows	
+
+	        for rec in corrMultiWayRows:
+		    catFrmDb = tuple(rec[1:1+len(self.varList)])
+		    catIndexValDict[catFrmDb] = rec[-1]
 		
 
 	    # Writing to the flat file
@@ -658,10 +667,6 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
     	table_size = dimensions.cumprod()[-1]
     	composite_index = range(table_size)
-# PopGen 1.1 is A Synthetic Population Generator for Advanced
-# Microsimulation Models of Travel Demand
-# Copyright (C) 2010, Arizona State University
-# See PopGen/License
 
     	for j in composite_index:
     	    n = j
@@ -692,7 +697,10 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	return array(results)
 	
 
-
+    def return_allTazIds(self):
+	results = self.execute_query("""select bg from hhld_marginals order by bg""")
+	return array(results)
+	
 
 
 
