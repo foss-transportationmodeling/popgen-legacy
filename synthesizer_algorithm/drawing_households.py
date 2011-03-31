@@ -366,8 +366,8 @@ def create_synthetic_attribute_tables(db):
                 """hhid bigint, serialno bigint, pnum bigint,  frequency bigint, personuniqueid bigint)""")
     dbc.execute("""alter table housing_synthetic_data add index(serialno)""")
     dbc.execute("""alter table person_synthetic_data add index(serialno, pnum)""")
-    dbc.execute("""delete from housing_synthetic_data""")
-    dbc.execute("""delete from person_synthetic_data""")
+    #dbc.execute("""delete from housing_synthetic_data""")
+    #dbc.execute("""delete from person_synthetic_data""")
     dbc.close()
     db.commit()
 
