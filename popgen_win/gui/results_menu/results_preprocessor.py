@@ -9,7 +9,7 @@ from qgis.core import *
 from qgis.gui import *
 import os, sys
 
-from gui.global_vars import *
+from global_vars import *
 
 from gui.misc.dbf import *
 

@@ -108,7 +108,7 @@ GRAPI,Gross Rent as a Percentage of Household Income,H,A,0,241,243,3
 FNF,Farm/Nonfarm Recode,H,A,0,244,244,1
 HHL,Household Language,H,A,0,245,245,1
 LNGI,Linguistic Isolation,H,A,0,246,246,1
-WIF,Number of workers in family,H,A,0,247,247,1
+WIF,Number of workers in family,H,A,1,247,247,1
 EMPSTAT,Family Type and Employment Status,H,A,0,248,248,1
 WORKEXP,Family Type and Work Experience of Householder,H,A,0,249,250,2
 HINC,Household Total Income in 1999,H,A,1,251,258,8
@@ -128,7 +128,7 @@ SEX,Sex,P,A,1,23,23,1
 SEXA,Sex Allocation Flag,P,A,0,24,24,1
 AGE,Age,P,A,1,25,26,2
 AGEA,Age Allocation Flag,P,A,0,27,27,1
-HISPAN,Hispanic or Latino Origin,P,A,0,28,29,2
+HISPAN,Hispanic or Latino Origin,P,A,1,28,29,2
 HISPANA,Hispanic or Latino Origin Allocation Flag,P,A,0,30,30,1
 NUMRACE,Number of Major Race Groups Marked,P,A,0,31,31,1
 WHITE,White recode,P,A,0,32,32,1

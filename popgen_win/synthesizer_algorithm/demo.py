@@ -5,8 +5,6 @@
 
 # Running IPF on Person and Household data
 
-from PyQt4.QtCore import *
-
 import heuristic_algorithm
 import psuedo_sparse_matrix
 import drawing_households
@@ -20,7 +18,6 @@ import time
 import cPickle
 
 def configure_and_run(project, geo, varCorrDict):
-
 
     f = open('indexMatrix_99999.pkl', 'rb')
     index_matrix = cPickle.load(f)

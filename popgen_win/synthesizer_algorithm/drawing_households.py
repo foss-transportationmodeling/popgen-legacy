@@ -341,7 +341,7 @@ def store(db, filePath, tablename):
 def create_performance_table(db):
     dbc = db.cursor()
     dbc.execute("""create table if not exists performance_statistics(state bigint, county bigint, tract bigint,"""
-                """bg bigint, chivalue float, pvalue float, synpopiter float, heuriter float, aardvalue float)""")
+                """bg bigint, chivalue float(27), pvalue float(27), synpopiter float, heuriter float, aardvalue float(27))""")
     dbc.execute("""delete from performance_statistics""")
     dbc.close()
     db.commit()
@@ -366,8 +366,8 @@ def create_synthetic_attribute_tables(db):
                 """hhid bigint, serialno bigint, pnum bigint,  frequency bigint, personuniqueid bigint)""")
     dbc.execute("""alter table housing_synthetic_data add index(serialno)""")
     dbc.execute("""alter table person_synthetic_data add index(serialno, pnum)""")
-    dbc.execute("""delete from housing_synthetic_data""")
-    dbc.execute("""delete from person_synthetic_data""")
+    #dbc.execute("""delete from housing_synthetic_data""")
+    #dbc.execute("""delete from person_synthetic_data""")
     dbc.close()
     db.commit()
 

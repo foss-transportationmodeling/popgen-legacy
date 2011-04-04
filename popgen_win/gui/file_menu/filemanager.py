@@ -32,6 +32,8 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.setEnabled(False)
         self.project = project
         self.tables = []
+        self.item = None
+        
 
 
     def contextMenuEvent(self, event):
@@ -70,38 +72,45 @@ class QTreeWidgetCMenu(QTreeWidget):
         self.connect(exportActionTab, SIGNAL("triggered()"), self.exportTableTab)
         self.connect(defaultTransforAction, SIGNAL("triggered()"), self.defaultTransformations)
 
+        
+        if self.item is not None:
+            if self.item.parent() is None:
+                menu.exec_(QCursor.pos())
+                self.item=None
 
-        if self.item.parent() is None:
-            menu.exec_(event.globalPos())
-        else:
-            if self.item.parent().text(0) == 'Project Tables' or self.item.parent().text(0) == 'Scenario Tables':
-                menuTableEdit.exec_(event.globalPos())
+            else:
+                if self.item.parent().text(0) == 'Project Tables' or self.item.parent().text(0) == 'Scenario Tables':
+                    self.tablename = self.item.text(0)
+                    self.parentText = self.item.parent().text(0)
+                    menuTableEdit.exec_(QCursor.pos())
+                    self.item=None
+
 
 
     def exportTableCSV(self):
-        tablename = self.item.text(0)
-        fileDlg = SaveFile(self.project, "csv", tablename, self.item.parent().text(0))
+        #tablename = self.item.text(0)
+        fileDlg = SaveFile(self.project, "csv", self.tablename, self.parentText)
 
     def exportTableTab(self):
-        tablename = self.item.text(0)
-        fileDlg = SaveFile(self.project, "dat", tablename, self.item.parent().text(0))
+        #tablename = self.item.text(0)
+        fileDlg = SaveFile(self.project, "dat", self.tablename, self.parentText)
 
 
     def deleteRows(self):
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
 
-        parentText = self.item.parent().text(0)
-        if parentText == 'Project Tables':
+        #parentText = self.item.parent().text(0)
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parentText == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
             
-        self.populateVariableDictionary(tablename)
+        self.populateVariableDictionary(self.tablename)
 
         projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
-        deleteRows = DeleteRows(self.project, parentText, tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
+        deleteRows = DeleteRows(self.project, self.parentText, self.tablename, self.variableTypeDictionary, "Delete Records", "modifydata")
         if deleteRows.exec_():
             projectDBC.dbc.open()
             reply = QMessageBox.question(self, "Delete Records", "Would you like to continue?",
@@ -113,7 +122,7 @@ class QTreeWidgetCMenu(QTreeWidget):
                 #print whereExpression, 'is the text'
                 if not whereExpression == "":
 
-                    if not query.exec_("""delete from %s where %s""" %(tablename, whereExpression)):
+                    if not query.exec_("""delete from %s where %s""" %(self.tablename, whereExpression)):
                         raise FileError, query.lastError().text()
                 else:
                     QMessageBox.warning(self, "Delete Records", """No filter expression selected, 0 records deleted.""",
@@ -123,35 +132,35 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def copyTable(self):
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
 
         parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
-        copyNameDialog = NameDialog("Copy Table - %s" %tablename)
+        copyNameDialog = NameDialog("Copy Table - %s" %self.tablename)
         if copyNameDialog.exec_():
             newTablename = copyNameDialog.nameLineEdit.text()
             projectDBC = createDBC(self.project.db, database)
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
-            if not query.exec_("""create table %s select * from %s""" %(newTablename, tablename)):
+            if not query.exec_("""create table %s select * from %s""" %(newTablename, self.tablename)):
                 raise FileError, query.lastError().text()
             self.populate()
             projectDBC.dbc.close()
 
     def renameTable(self):
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
         parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
-        renameNameDialog = NameDialog("Rename Table - %s" %tablename)
+        renameNameDialog = NameDialog("Rename Table - %s" %self.tablename)
         if renameNameDialog.exec_():
             newTablename = renameNameDialog.nameLineEdit.text()
 
@@ -159,21 +168,21 @@ class QTreeWidgetCMenu(QTreeWidget):
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
-            if not query.exec_("""alter table %s rename to %s""" %(tablename, newTablename)):
+            if not query.exec_("""alter table %s rename to %s""" %(self.tablename, newTablename)):
                 raise FileError, query.lastError().text()
             self.populate()
             projectDBC.dbc.close()
 
     def dropTable(self):
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
 
         parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
-        reply = QMessageBox.question(self, "Delete Table - %s" %tablename, "Do you wish to continue?",
+        reply = QMessageBox.question(self, "Delete Table - %s" %self.tablename, "Do you wish to continue?",
                                      QMessageBox.Yes| QMessageBox.Cancel)
         if reply == QMessageBox.Yes:
             projectDBC = createDBC(self.project.db, database)
@@ -181,29 +190,29 @@ class QTreeWidgetCMenu(QTreeWidget):
             projectDBC.dbc.open()
 
             query = QSqlQuery(projectDBC.dbc)
-            if not query.exec_("""drop table %s""" %tablename):
+            if not query.exec_("""drop table %s""" %self.tablename):
                 raise FileError, query.lastError().text()
             self.populate()
             projectDBC.dbc.close()
 
 
-    def click(self, item, column):
+    def click(self, item):
         self.item = item
 
     def createVariable(self):
-        parent = self.item.parent().text(0)
-        if parent == 'Project Tables':
+        #parent = self.item.parent().text(0)
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
         projectDBC = createDBC(self.project.db, database)
         projectDBC.dbc.open()
 
-        tablename = self.item.text(0)
-        self.populateVariableDictionary(tablename)
+        #tablename = self.item.text(0)
+        self.populateVariableDictionary(self.tablename)
 
-        create = CreateVariable(self.project, database, tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
+        create = CreateVariable(self.project, database, self.tablename, self.variableTypeDictionary, "Create New Variable", "modifydata")
         if create.exec_():
             projectDBC.dbc.open()
             newVarName = create.newVarNameEdit.text()
@@ -215,10 +224,10 @@ class QTreeWidgetCMenu(QTreeWidget):
                 QMessageBox.warning(self, "Data", QString("""Invalid numeric expression, enter again"""))
             else:
                 query = QSqlQuery(projectDBC.dbc)
-                if not query.exec_("""alter table %s add column %s text""" %(tablename, newVarName)):
-                    print ("""alter table %s add column %s text""" %(tablename, newVarName))
+                if not query.exec_("""alter table %s add column %s bigint""" %(self.tablename, newVarName)):
+                    print ("""alter table %s add column %s bigint""" %(self.tablename, newVarName))
                     raise FileError, query.lastError().text()
-                if not query.exec_("""update %s set %s = %s where %s""" %(tablename, newVarName,
+                if not query.exec_("""update %s set %s = %s where %s""" %(self.tablename, newVarName,
                                                                           numericExpression, whereExpression)):
                     raise FileError, query.lastError().text()
 
@@ -227,13 +236,13 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def displayTable(self):
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
 
-        disp = DisplayTable(self.project, "%s" %tablename, self.item.parent().text(0))
+        disp = DisplayTable(self.project, "%s" %self.tablename, self.parentText)
         disp.exec_()
 
     def modifyCategories(self):
-        parentText = self.item.parent().text(0)
+        #parentText = self.item.parent().text(0)
         """
         if parentText == 'Project Tables':
             database = self.project.name
@@ -243,29 +252,29 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         projectDBC.dbc.open()
         """
-        tablename = self.item.text(0)
-        modify = RecodeDialog(self.project, parentText, tablename, title = "Recode Categories - %s" %tablename, icon = "modifydata")
+        #tablename = self.item.text(0)
+        modify = RecodeDialog(self.project, self.parentText, self.tablename, title = "Recode Categories - %s" %self.tablename, icon = "modifydata")
         modify.exec_()
 
         #projectDBC.dbc.close()
 
 
     def deleteColumns(self):
-        parent = self.item.parent().text(0)
+        #parent = self.item.parent().text(0)
 
-        if parent == 'Project Tables':
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
         projectDBC = createDBC(self.project.db, database)
 
-        tablename = self.item.text(0)
-        self.populateVariableDictionary(tablename)
+        #tablename = self.item.text(0)
+        self.populateVariableDictionary(self.tablename)
         projectDBC.dbc.open()
         query = QSqlQuery(projectDBC.dbc)
 
-        title = "Delete Dialog - %s" %tablename
+        title = "Delete Dialog - %s" %self.tablename
         deleteVariablesdia = VariableSelectionDialog(self.variableTypeDictionary, title = title, icon = "modifydata",
                                                      warning = "Note: Select variables to delete.")
 
@@ -273,7 +282,7 @@ class QTreeWidgetCMenu(QTreeWidget):
             deleteVariablesSelected = deleteVariablesdia.selectedVariableListWidget.variables
 
             for i in deleteVariablesSelected:
-                if not query.exec_("""alter table %s drop %s""" %(tablename, i)):
+                if not query.exec_("""alter table %s drop %s""" %(self.tablename, i)):
                     raise FileError, query.lastError().text()
 
         projectDBC.dbc.close()
@@ -285,13 +294,13 @@ class QTreeWidgetCMenu(QTreeWidget):
 
         query = QSqlQuery(projectDBC.dbc)
 
-        tablename = self.item.text(0)
+        #tablename = self.item.text(0)
 
         checkPUMSTableTransforms = False
         checkSFTableTransforms = False
 
         if not self.project.sampleUserProv.userProv:
-            if tablename == 'housing_pums':
+            if self.tablename == 'housing_pums':
                 if self.project.sampleUserProv.defSource == 'Census 2000':
                     queries = DEFAULT_HOUSING_PUMS2000_QUERIES
                     checkPUMSTableTransforms = True
@@ -299,7 +308,7 @@ class QTreeWidgetCMenu(QTreeWidget):
                     queries = DEFAULT_HOUSING_PUMSACS_QUERIES
                     checkPUMSTableTransforms = True
 
-            if tablename == 'person_pums':
+            if self.tablename == 'person_pums':
                 if self.project.sampleUserProv.defSource == 'Census 2000':
                     queries = DEFAULT_PERSON_PUMS2000_QUERIES
                     checkPUMSTableTransforms = True
@@ -316,7 +325,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
         if not self.project.controlUserProv.userProv:
-            if tablename[:13] == 'mastersftable':
+            if self.tablename[:13] == 'mastersftable':
                 checkSFTableTransforms = True
 
             if checkSFTableTransforms:
@@ -327,7 +336,7 @@ class QTreeWidgetCMenu(QTreeWidget):
 
                 for i in queries:
                     print "Executing Query: %s" %i
-                    if not query.exec_(i %tablename):
+                    if not query.exec_(i %self.tablename):
                         print "FileError: %s" %query.lastError().text()
 
         if not (checkPUMSTableTransforms or checkSFTableTransforms):
@@ -341,11 +350,11 @@ class QTreeWidgetCMenu(QTreeWidget):
 
 
     def populateVariableDictionary(self, tablename):
-        parent = self.item.parent().text(0)
+        #parent = self.item.parent().text(0)
 
-        if parent == 'Project Tables':
+        if self.parentText == 'Project Tables':
             database = self.project.name
-        elif parent == 'Scenario Tables':
+        elif self.parentText == 'Scenario Tables':
             database = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario)            
 
 
@@ -407,7 +416,8 @@ class QTreeWidgetCMenu(QTreeWidget):
                 autoImportSFDataInstance = AutoImportSF2000Data(self.project)
                 autoImportSFDataInstance.createMasterSubSFTable()
                 autoImportSFDataInstance.projectDBC.dbc.close()
-                tablename = 'mastersftable%s' %(self.page.projectResolutionComboBox.currentText())
+                resolution = ('%s'%self.page.projectResolutionComboBox.currentText()).lower()
+                tablename = 'mastersftable%s' %(resolution)
                 self.project.save()
                 self.populate()
 
