@@ -762,6 +762,9 @@ class PopgenManager(object):
 	    summaryFileDlg.save()
 
         print '\t\tExporting multiway table results ... --'
+        print '\t\t\tCreating the synthetic files with variables appended'
+        popFileDlg = SaveSyntheticPopFile(scenario)
+        popFileDlg.save()
 	if len(scenario.multiwayTableList) > 0:
 	    for mwayTable in scenario.multiwayTableList:
             	mwayFileDlg = ExportMultiwayTables(scenario, mwayTable)
@@ -771,7 +774,7 @@ class PopgenManager(object):
 
     def run_scenarios(self):
         skipFlag = self.configParser.parse_skip()
-
+        
         if skipFlag:
             print 'Skipping PopGen run ---'
             return
@@ -779,12 +782,12 @@ class PopgenManager(object):
 	    self.drop_database()
 	    self.setup_database()
             self.create_tables()
-
+        
 	for scenario in self.scenarioList:
             if len(self.stateList) > 1:
                 print 'Synthesis for multiple states is required'
 	    self.gqAnalyzed = self.is_gq_analyzed(scenario)        
-
+            
             for state in self.stateList:
                 print '\t\tGeoIds for state - ', state
 
@@ -804,7 +807,7 @@ class PopgenManager(object):
                 self.delete_records_for_geographies(scenario, state=state)
                 self.read_data(scenario)
                 self.synthesize_population(scenario, state=state)
-
+            
 	    self.remove_tables(scenario)
 	    self.populate_full_input_tables(scenario)
             self.export_results(scenario)
