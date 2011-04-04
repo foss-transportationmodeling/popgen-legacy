@@ -480,7 +480,8 @@ class MainWindow(QMainWindow):
                                                QString("""Would you like to save the project?"""),
                                                QMessageBox.Yes| QMessageBox.No)
                     if save == QMessageBox.Yes:
-                        SaveProject(self.project)
+                        #SaveProject(self.project)
+                        self.project.save()
                     with open(project.file, 'rb') as f:
                         self.project = pickle.load(f)
                         self.setWindowTitle("PopGen: Version-1.1 (%s)" %self.project.name)
