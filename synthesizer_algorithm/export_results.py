@@ -77,9 +77,11 @@ class SaveSyntheticPopFile():
 	dbc = db.cursor()
 	
 	try:
+            results = []
 	    dbc.execute(query)
-	    results = dbc.fetchall()
-	
+            for i in dbc:
+                #print i
+                results.append(i)
 	except MySQLdb.Error, e:
 	    print 'Error executing query - %s and error is - %s' %(query, e)
 	    results = None	
@@ -179,26 +181,39 @@ class SaveSyntheticPopFile():
 
                     results = self.execute_query("""select * from temphou2""")
 
-		    if results is not None:
-			cols = len(results[0])
-
 		    indexOfFrequency = housingSynTableVars.index('frequency')
 		
                     fileRef = open("%s%s%s.%s" %(self.housingLocation, os.path.sep,
                                                  self.housingName, self.fileType), 'w')
 
-                    colIndices = range(cols)
-		    for rec in results:
-			freq = rec[indexOfFrequency]
-			cols = []
-	                for i in rec:
-			    cols.append('%s' %i)
-			    cols.append(self.fileSep)
 
-		    	for i in range(freq):
-			    cols[indexOfFrequency*2] = '%s' %(i+1)
-			    fileRef.write(''.join(cols[:-1]))
-			    fileRef.write('\n')
+                    numRows = self.execute_query("""select count(*) from temphou2""")
+                    numRows = numRows[0][0]
+                    print numRows
+                    limitRows = 500000
+                    numBins = numRows/limitRows
+                    offset = 0
+                    for i in range(numBins+1):
+                        print("""select * from temphou2 limit %s """\
+                              """offset %s""" %(limitRows, offset))
+                        results = self.execute_query("""select * from temphou2 limit %s """\
+                                                     """offset %s""" %(limitRows, offset))
+
+                        offset = (i+1) * limitRows
+
+
+                        colIndices = range(len(housingSynTableVars))
+                        for rec in results:
+                            freq = rec[indexOfFrequency]
+                            cols = []
+                            for i in rec:
+                                cols.append('%s' %i)
+                                cols.append(self.fileSep)
+
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
 		    fileRef.close()
 
 
@@ -301,29 +316,39 @@ class SaveSyntheticPopFile():
 
                     self.execute_query("""delete from tempperson_unique""")
 
-                    results = self.execute_query("""select * from tempperson""")
-
-
-		    if results is not None:
-			cols = len(results[0])
-
-		    indexOfFrequency = housingSynTableVars.index('frequency')
+		    indexOfFrequency = personSynTableVars.index('frequency')
 		
                     fileRef = open("%s%s%s.%s" %(self.personLocation, os.path.sep,
                                                  self.personName, self.fileType), 'w')
 
-                    colIndices = range(cols)
-		    for rec in results:
-			freq = rec[indexOfFrequency]
-			cols = []
-	                for i in rec:
-			    cols.append('%s' %i)
-			    cols.append(self.fileSep)
+                    numRows = self.execute_query("""select count(*) from tempperson""")
+                    numRows = numRows[0][0]
+                    print numRows
+                    limitRows = 500000
+                    numBins = numRows/limitRows
+                    offset = 0
+                    for i in range(numBins+1):
+                        print("""select * from tempperson limit %s """\
+                              """offset %s""" %(limitRows, offset))
+                        results = self.execute_query("""select * from tempperson limit %s """\
+                                                     """offset %s""" %(limitRows, offset))
 
-		    	for i in range(freq):
-			    cols[indexOfFrequency*2] = '%s' %(i+1)
-			    fileRef.write(''.join(cols[:-1]))
-			    fileRef.write('\n')
+                        offset = (i+1) * limitRows
+
+                    #results = self.execute_query("""select * from tempperson""")
+
+                        colIndices = range(len(personSynTableVars))
+                        for rec in results:
+                            freq = rec[indexOfFrequency]
+                            cols = []
+                            for i in rec:
+                                cols.append('%s' %i)
+                                cols.append(self.fileSep)
+
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
 		    fileRef.close()
 
                     filePath = '%s%s%s.%s' %(self.personLocation, os.path.sep,
@@ -559,7 +584,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
     def saveMultiwayTables(self):
 		
-	self.save()
+	#self.save()
 
 	filename = os.path.join('%s'%self.location, '%s.%s'%(self.name, self.fileType))
 
@@ -694,6 +719,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
 	results = self.execute_query("""select taz, %s, count(*) from %s where %s group by taz, %s""" 
 			   	     %(varGrpByStr, self.tableFrom, varCondStr, varGrpByStr))
+        #print results
 	return array(results)
 	
 
