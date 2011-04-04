@@ -220,11 +220,11 @@ class SaveFile(QFileDialog):
                                 fileRef.write(''.join(cols[:-1]))
                                 fileRef.write('\n')
                     fileRef.close()
-                            
+		    folder = self.folder.replace("\\", "/")                            
                     #print ("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
                     #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
                     if not query.exec_("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
-                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                                           """fields terminated by '%s'""" %(folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
                         
                     #print housingSynTableVarDict, housingSynTableVars
@@ -294,9 +294,9 @@ class SaveFile(QFileDialog):
                                 fileRef.write(''.join(cols[:-1]))
                                 fileRef.write('\n')
                     fileRef.close()
-
+		    folder = self.folder.replace("\\", "/")                            
                     if not query.exec_("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
-                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                                           """fields terminated by '%s'""" %(folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
                         
                     #if not query.exec_("""
@@ -415,9 +415,9 @@ class SaveFile(QFileDialog):
                                 fileRef.write('\n')
                     fileRef.close()
 
-
+		    folder = self.folder.replace("\\", "/")                            
                     if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
-                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                                           """fields terminated by '%s'""" %(folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
                         
                     #print personSynTableVarDict, personSynTableVars
@@ -479,9 +479,9 @@ class SaveFile(QFileDialog):
                                 fileRef.write(''.join(cols[:-1]))
                                 fileRef.write('\n')
                     fileRef.close()
-                            
+		    folder = self.folder.replace("\\", "/")                                                        
                     if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
-                                           """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
+                                           """fields terminated by '%s'""" %(folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
                         
                     #print personSynTableVarDict, personSynTableVars
@@ -555,7 +555,8 @@ class SaveFile(QFileDialog):
         query = QSqlQuery(projectDBC.dbc)
 
 
-        filename = '%s/%s.%s' %(self.folder, self.tablename, self.fileType)
+	folder = self.folder.replace('\\', '/')
+        filename = '%s/%s.%s' %(folder, self.tablename, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
             os.remove(filename)
