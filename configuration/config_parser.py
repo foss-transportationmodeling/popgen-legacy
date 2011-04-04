@@ -465,7 +465,7 @@ class ConfigParser(object):
                 #print '\t', geoObj
                 geoObjList.append(geoObj)
         except Exception, e:
-            print ("\tError occurred when identifying geoids in county: %s" %e)
+            print ("\tError occurred when identifying geoids for entire region: %s" %e)
 
 	dbc.close()
 	db.close()
