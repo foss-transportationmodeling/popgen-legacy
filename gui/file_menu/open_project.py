@@ -183,29 +183,42 @@ class SaveFile(QFileDialog):
                     if not query.exec_("""delete from temphou_unique"""):
                         raise FileError, query.lastError().text()
 
-                    if not query.exec_("""select * from temphou3"""):
-                        raise FileError, query.lastError().text()
-
-                    rec = query.record()
-                    cols = rec.count()
-
-                    indexOfFrequency = rec.indexOf("frequency")
-
                     fileRef = open("%s/housing_synthetic_data.%s" %(self.folder, self.fileType), 'w')
 
-                    colIndices = range(cols)
-                    while query.next():
-                        freq = query.value(indexOfFrequency).toInt()[0]
-                        cols = []
 
-                        for i in colIndices:
-                            cols.append('%s' %query.value(i).toString())
-                            cols.append(self.fileSep)
+		    if not query.exec_("""select count(*) from temphou3"""):
+			raise FileError, query.lastError().text()
+
+		    while query.next():
+			numRows = query.value(0).toInt()[0]
+
+		    limitRows = 500000
+	            numBins = numRows/limitRows
+		    offset = 0
+
+		    for i in range(numBins+1):
+			if not query.exec_("""select * from temphou3 limit %s offset %s"""
+					    %(limitRows, offset)):
+                    	    raise FileError, query.lastError().text()
+			offset = (i+1) * limitRows
+
+                    	rec = query.record()
+                    	cols = rec.count()
+                    	colIndices = range(cols)
+                    	indexOfFrequency = rec.indexOf("frequency")
+
+                    	while query.next():
+                            freq = query.value(indexOfFrequency).toInt()[0]
+                            cols = []
+
+                            for i in colIndices:
+                                cols.append('%s' %query.value(i).toString())
+                                cols.append(self.fileSep)
                             
-                        for i in range(freq):
-                            cols[indexOfFrequency*2] = '%s' %(i+1)
-                            fileRef.write(''.join(cols[:-1]))
-                            fileRef.write('\n')
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
                     fileRef.close()
                             
                     #print ("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
@@ -242,35 +255,46 @@ class SaveFile(QFileDialog):
                     if not query.exec_("""delete from temphou_unique"""):
                         raise FileError, query.lastError().text()
 
-                    if not query.exec_("""select * from temphou2"""):
-                        raise FileError, query.lastError().text()
-
-
-
-                    rec = query.record()
-                    cols = rec.count()
-
-                    indexOfFrequency = rec.indexOf("frequency")
 
                     fileRef = open("%s/housing_synthetic_data.%s" %(self.folder, self.fileType), 'w')
 
-                    colIndices = range(cols)
-                    while query.next():
-                        freq = query.value(indexOfFrequency).toInt()[0]
-                        cols = []
 
-                        for i in colIndices:
-                            cols.append('%s' %query.value(i).toString())
-                            cols.append(self.fileSep)
+		    if not query.exec_("""select count(*) from temphou2"""):
+			raise FileError, query.lastError().text()
+
+		    while query.next():
+			numRows = query.value(0).toInt()[0]
+
+		    limitRows = 500000
+	            numBins = numRows/limitRows
+		    offset = 0
+
+		    for i in range(numBins+1):
+			if not query.exec_("""select * from temphou2 limit %s offset %s"""
+					    %(limitRows, offset)):
+                    	    raise FileError, query.lastError().text()
+			offset = (i+1) * limitRows
+
+                    	rec = query.record()
+                    	cols = rec.count()
+                    	colIndices = range(cols)
+                    	indexOfFrequency = rec.indexOf("frequency")
+
+                    	while query.next():
+                            freq = query.value(indexOfFrequency).toInt()[0]
+                            cols = []
+
+                            for i in colIndices:
+                                cols.append('%s' %query.value(i).toString())
+                                cols.append(self.fileSep)
                             
-                        for i in range(freq):
-                            cols[indexOfFrequency*2] = '%s' %(i+1)
-                            fileRef.write(''.join(cols[:-1]))
-                            fileRef.write('\n')
+
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
                     fileRef.close()
-                            
-                    #print ("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
-                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+
                     if not query.exec_("""load data local infile '%s/housing_synthetic_data.%s' into table temphou_unique """\
                                            """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
@@ -353,36 +377,45 @@ class SaveFile(QFileDialog):
                     if not query.exec_("""delete from tempperson_unique"""):
                         raise FileError, query.lastError().text()
 
-                    if not query.exec_("""select * from tempperson1"""):
-                        raise FileError, query.lastError().text()
-
-
-
-                    rec = query.record()
-                    cols = rec.count()
-
-                    indexOfFrequency = rec.indexOf("frequency")
-
                     fileRef = open("%s/person_synthetic_data.%s" %(self.folder, self.fileType), 'w')
 
-                    colIndices = range(cols)
-                    while query.next():
-                        freq = query.value(indexOfFrequency).toInt()[0]
-                        cols = []
 
-                        for i in colIndices:
-                            cols.append('%s' %query.value(i).toString())
-                            cols.append(self.fileSep)
+		    if not query.exec_("""select count(*) from tempperson1"""):
+			raise FileError, query.lastError().text()
+
+		    while query.next():
+			numRows = query.value(0).toInt()[0]
+
+		    limitRows = 500000
+	            numBins = numRows/limitRows
+		    offset = 0
+
+		    for i in range(numBins+1):
+			if not query.exec_("""select * from tempperson1 limit %s offset %s"""
+					    %(limitRows, offset)):
+                    	    raise FileError, query.lastError().text()
+			offset = (i+1) * limitRows
+
+                    	rec = query.record()
+                    	cols = rec.count()
+                    	colIndices = range(cols)
+                    	indexOfFrequency = rec.indexOf("frequency")
+
+                    	while query.next():
+                            freq = query.value(indexOfFrequency).toInt()[0]
+                            cols = []
+
+                            for i in colIndices:
+                                cols.append('%s' %query.value(i).toString())
+                                cols.append(self.fileSep)
                             
-                        for i in range(freq):
-                            cols[indexOfFrequency*2] = '%s' %(i+1)
-                            #hhid += 1
-                            fileRef.write(''.join(cols[:-1]))
-                            fileRef.write('\n')
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
                     fileRef.close()
-                            
-                    #print ("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
-                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
+
+
                     if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
                                            """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
@@ -409,36 +442,44 @@ class SaveFile(QFileDialog):
                     if not query.exec_("""delete from tempperson_unique"""):
                         raise FileError, query.lastError().text()
 
-                    if not query.exec_("""select * from tempperson"""):
-                        raise FileError, query.lastError().text()
-
-
-
-                    rec = query.record()
-                    cols = rec.count()
-
-                    indexOfFrequency = rec.indexOf("frequency")
-
                     fileRef = open("%s/person_synthetic_data.%s" %(self.folder, self.fileType), 'w')
 
-                    colIndices = range(cols)
-                    while query.next():
-                        freq = query.value(indexOfFrequency).toInt()[0]
-                        cols = []
 
-                        for i in colIndices:
-                            cols.append('%s' %query.value(i).toString())
-                            cols.append(self.fileSep)
+		    if not query.exec_("""select count(*) from tempperson"""):
+			raise FileError, query.lastError().text()
+
+		    while query.next():
+			numRows = query.value(0).toInt()[0]
+
+		    limitRows = 500000
+	            numBins = numRows/limitRows
+		    offset = 0
+
+		    for i in range(numBins+1):
+			if not query.exec_("""select * from tempperson limit %s offset %s"""
+					    %(limitRows, offset)):
+                    	    raise FileError, query.lastError().text()
+			offset = (i+1) * limitRows
+
+                    	rec = query.record()
+                    	cols = rec.count()
+                    	colIndices = range(cols)
+                    	indexOfFrequency = rec.indexOf("frequency")
+
+                    	while query.next():
+                            freq = query.value(indexOfFrequency).toInt()[0]
+                            cols = []
+
+                            for i in colIndices:
+                                cols.append('%s' %query.value(i).toString())
+                                cols.append(self.fileSep)
                             
-                        for i in range(freq):
-                            cols[indexOfFrequency*2] = '%s' %(i+1)
-                            #hhid += 1
-                            fileRef.write(''.join(cols[:-1]))
-                            fileRef.write('\n')
+                            for i in range(freq):
+                                cols[indexOfFrequency*2] = '%s' %(i+1)
+                                fileRef.write(''.join(cols[:-1]))
+                                fileRef.write('\n')
                     fileRef.close()
                             
-                    #print ("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
-                    #                       """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep))
                     if not query.exec_("""load data local infile '%s/person_synthetic_data.%s' into table tempperson_unique """\
                                            """fields terminated by '%s'""" %(self.folder, self.fileType, self.fileSep)):
                         raise FileError, query.lastError().text()
