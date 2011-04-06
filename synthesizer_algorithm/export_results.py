@@ -659,9 +659,9 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	    	corrMultiWayRows = multiWayEntries[firstRowInd:LastRowInd]
 		
 		
-	        print 'TAZ ID - ', tazId
-	        print 'Corresponding Rows'
-	        print corrMultiWayRows	
+	        #print 'TAZ ID - ', tazId
+	        #print 'Corresponding Rows'
+	        #print corrMultiWayRows	
 
 	        for rec in corrMultiWayRows:
 		    catFrmDb = tuple(rec[1:1+len(self.varList)])
@@ -677,7 +677,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 		
 	    strToWrite = strToWrite[:-1] + '\n'
 
-	    print strToWrite
+	    #print strToWrite
 	    
 	    fileRef.write(strToWrite)	
         fileRef.close()
