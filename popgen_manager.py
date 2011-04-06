@@ -2,6 +2,7 @@ import MySQLdb
 import copy
 import cPickle as pickle
 
+import os
 from lxml import etree
 from numpy import asarray
 
@@ -633,12 +634,12 @@ class PopgenManager(object):
         dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = asarray(dbc.fetchall())
 
-        f = open('indexMatrix_99999.pkl', 'wb')
+        f = open('%s%sindexMatrix_99999.pkl' %(self.project.location, os.path.sep), 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
 
         pIndexMatrix = person_index_matrix(db)
-        f = open('pIndexMatrix.pkl', 'wb')
+        f = open('%s%spIndexMatrix.pkl' %(self.project.location, os.path.sep), 'wb')
         pickle.dump(pIndexMatrix, f)
         f.close()
 
@@ -811,6 +812,7 @@ class PopgenManager(object):
 	    self.remove_tables(scenario)
 	    self.populate_full_input_tables(scenario)
             self.export_results(scenario)
+	    
 if __name__ == '__main__':
     pass
 
