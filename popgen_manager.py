@@ -3,7 +3,7 @@ import copy
 import cPickle as pickle
 import traceback
 import sys
-
+import os
 
 from lxml import etree
 from numpy import asarray
