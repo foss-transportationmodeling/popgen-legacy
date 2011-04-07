@@ -1,8 +1,10 @@
 import MySQLdb
 import copy
 import cPickle as pickle
+import traceback
+import sys
 
-import os
+
 from lxml import etree
 from numpy import asarray
 
@@ -727,6 +729,7 @@ class PopgenManager(object):
                         demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
                 except Exception, e:
                     print ("\tError in the Synthesis for geography: %s" %e)
+                    traceback.print_exc(file=sys.stdout)
 
     def getPUMA5(self, geo):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
