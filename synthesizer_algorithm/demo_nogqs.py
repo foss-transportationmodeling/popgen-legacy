@@ -5,6 +5,8 @@
 
 # Running IPF on Person and Household data
 
+import os
+
 import heuristic_algorithm_nogqs
 import psuedo_sparse_matrix
 import drawing_households
@@ -20,7 +22,7 @@ import cPickle
 def configure_and_run(project, geo, varCorrDict):
 
 
-    f = open('indexMatrix_99999.pkl', 'rb')
+    f = open('%s%sindexMatrix_99999.pkl'%(project.location, os.path.sep), 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
@@ -142,7 +144,7 @@ def configure_and_run(project, geo, varCorrDict):
 
     ti = time.time()
 
-    f = open('pIndexMatrix.pkl', 'rb')
+    f = open('%s%spIndexMatrix.pkl'%(project.location, os.path.sep), 'rb')
     p_index_matrix = cPickle.load(f)
 
     f.close()

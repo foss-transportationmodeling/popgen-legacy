@@ -52,7 +52,7 @@
       <ControlVariableMap name="esr_sum_r_bmc" category="4" marginal_variable="wrkrs3"/>
       <ControlVariableMap name="hbldgsz_bmc" category="1" marginal_variable="hbldgsz1"/>
       <ControlVariableMap name="hbldgsz_bmc" category="2" marginal_variable="hbldgsz2"/>
-      <ControlVariableMap name="hhldrage_bmc" category="3" marginal_variable="hbldgsz3"/>
+      <ControlVariableMap name="hbldgsz_bmc" category="3" marginal_variable="hbldgsz3"/>
       <ControlVariableMap name="hhldrage_bmc" category="1" marginal_variable="hhldrage1"/>
       <ControlVariableMap name="hhldrage_bmc" category="2" marginal_variable="hhldrage2"/>
       <ControlVariableMap name="hhldrage_bmc" category="3" marginal_variable="hhldrage3"/>
@@ -74,8 +74,8 @@
       <ControlVariableMap name="age_bmc" category="6" marginal_variable="age6"/>
       <ControlVariableMap name="age_bmc" category="7" marginal_variable="age7"/>
       <ControlVariableMap name="age_bmc" category="8" marginal_variable="age8"/>
-      <ControlVariableMap name="age_bmc" category="9" marginal_variable="age10"/>
-      <ControlVariableMap name="age_bmc" category="1o" marginal_variable="age11"/>
+      <ControlVariableMap name="age_bmc" category="9" marginal_variable="age9"/>
+      <ControlVariableMap name="age_bmc" category="10" marginal_variable="age10"/>
       <ControlVariableMap name="sex_bmc" category="1" marginal_variable="sex1"/>
       <ControlVariableMap name="sex_bmc" category="2" marginal_variable="sex2"/>
       <ControlVariableMap name="occcen5_bmc" category="1" marginal_variable="occcen1"/>
@@ -120,9 +120,9 @@
   </ModifiedMarginals>
 
 
-  <SynthesizeGeographies individual_geographies="True" entire_region="True">
-    <CountyId state="11" county="1" synthesize_county="False"/>
-    <CountyId state="24" county="3" synthesize_county="True"/>
+  <SynthesizeGeographies individual_geographies="False" entire_region="False">
+    <CountyId state="11" county="1" synthesize_county="True"/>
+    <CountyId state="24" county="3" synthesize_county="False"/>
     <CountyId state="24" county="5" synthesize_county="False"/>
     <CountyId state="24" county="13" synthesize_county="False"/>
     <CountyId state="24" county="21" synthesize_county="False"/>

@@ -5,6 +5,8 @@
 
 # Running IPF on Person and Household data
 
+import os
+
 import heuristic_algorithm
 import psuedo_sparse_matrix
 import drawing_households
@@ -19,7 +21,7 @@ import cPickle
 
 def configure_and_run(project, geo, varCorrDict):
 
-    f = open('indexMatrix_99999.pkl', 'rb')
+    f = open('%s%sindexMatrix_99999.pkl'%(project.location, os.path.sep), 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
@@ -161,7 +163,7 @@ def configure_and_run(project, geo, varCorrDict):
 
     ti = time.time()
 
-    f = open('pIndexMatrix.pkl', 'rb')
+    f = open('%s%spIndexMatrix.pkl'%(project.location, os.path.sep), 'rb')
     p_index_matrix = cPickle.load(f)
 
     f.close()
@@ -184,8 +186,23 @@ def configure_and_run(project, geo, varCorrDict):
                                                                                                                        housing_sample, person_sample, hhidRowDict,
                                                                                                                        rowHhidDict)
 
+	"""
+	objective_frequency = numpy.hstack((hhld_objective_frequency[:,0], gq_objective_frequency[:,0], person_objective_frequency[:,0]))
+	
+	print synthetic_housing_attributes[:,-2:].shape, synthetic_person_attributes[:,-2:].shape
 
+	print 'before', synthetic_person_attributes[:,-1]
+	persAttrs = synthetic_person_attributes[:,-2:]
+	persAttrs[:,-1] += hhld_dimensions.prod() + gq_dimensions.prod()
+	synthetic_attributes = numpy.vstack((synthetic_housing_attributes[:,-2:], persAttrs))
+	print 'after', synthetic_person_attributes[:,-1]
+	print objective_frequency.shape, synthetic_housing_attributes[:,-2:].shape
+	
+        stat, dof, person_estimated_frequency = drawing_households.checking_against_joint_distribution(objective_frequency, synthetic_attributes,
+												       hhld_dimensions.prod() + gq_dimensions.prod() + person_dimensions.prod(),
+                                                                                                       pumano, tract, bg)
 
+	"""
         synth_person_stat, count_person, person_estimated_frequency = drawing_households.checking_against_joint_distribution(person_objective_frequency,
                                                                                                                              synthetic_person_attributes, person_dimensions.prod(),
                                                                                                                              pumano, tract, bg)
