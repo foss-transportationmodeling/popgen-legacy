@@ -765,7 +765,7 @@ class PopgenManager(object):
 
     def export_results(self, scenario):
         print '\nExporting results for use in the BMC TDM...'
-
+      
         print '\t\tExporting disaggregate synthetic population results ... --'
 	if scenario.synTableExport:
             popFileDlg = SaveSyntheticPopFile(scenario, scenario.synPersTableNameLoc, scenario.synHousingTableNameLoc)
@@ -776,11 +776,12 @@ class PopgenManager(object):
 	if scenario.summaryTableExport:
             summaryFileDlg = ExportSummaryFile(scenario, scenario.summaryTableNameLoc)
 	    summaryFileDlg.save()
-
+      
         print '\t\tExporting multiway table results ... --'
         print '\t\t\tCreating the synthetic files with variables appended'
         popFileDlg = SaveSyntheticPopFile(scenario)
         popFileDlg.save()
+      
 	if len(scenario.multiwayTableList) > 0:
 	    for mwayTable in scenario.multiwayTableList:
             	mwayFileDlg = ExportMultiwayTables(scenario, mwayTable)
