@@ -36,7 +36,7 @@ class ConfigParser(object):
             return False
 
 
-    def parse(self):
+    def parse_project(self):
 
         projectElement = self.configObject.find('Project')
         name, loc = self.parse_project_attribs(projectElement)
@@ -56,8 +56,7 @@ class ConfigParser(object):
         sampleObj = self.parse_sample_input(inputElement)
         controlObj = self.parse_control_input(inputElement)
 
-        scenarioList = []
-        scenarioIterator = self.configObject.getiterator('Scenario')
+
 
         self.project = NewProjectPopGenCore()
         # Project Attribs
@@ -73,6 +72,9 @@ class ConfigParser(object):
         self.project.controlUserProv = controlObj
         self.project.createTables = createTables
 
+    def parse_scenarios(self):
+
+        scenarioIterator = self.configObject.getiterator('Scenario')
         self.scenarioList = []
 
         for scenarioElement in scenarioIterator:

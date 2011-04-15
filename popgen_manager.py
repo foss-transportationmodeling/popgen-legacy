@@ -56,10 +56,8 @@ class PopgenManager(object):
         print '________________________________________________________________'
         print 'PARSING CONFIG FILE'
         self.configParser = ConfigParser(configObject) #creates the model configuration parser
-	self.configParser.parse()
+	self.configParser.parse_project()
 	self.project = self.configParser.project
-	self.scenarioList = self.configParser.scenarioList
-        self.stateList = self.configParser.stateList
         print 'COMPLETED PARSING CONFIG FILE'
         print '________________________________________________________________'
 
@@ -82,14 +80,12 @@ class PopgenManager(object):
 	dbc.close()
 
 
-    def drop_database(self):
+    def drop_main_database(self):
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password)
 	dbc = db.cursor()
 	
 	dbList = [self.project.name]
-	for scenario in self.scenarioList:
-	    dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
 	
 	for dbName in dbList:
 	    try:
@@ -99,8 +95,24 @@ class PopgenManager(object):
 
 	#raw_input('--Completed deleting all databases--')
 	
+    def drop_scenario_database(self):
+	db = MySQLdb.connect(user= '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password)
+	dbc = db.cursor()
+	
+	dbList = []
+	for scenario in self.scenarioList:
+	    dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+	
+	for dbName in dbList:
+	    try:
+	        dbc.execute("Drop Database if exists %s" %(dbName))
+ 	    except Exception, e:
+	        print '\tError occurred when dropping database:%s' %e
+
 
     def create_tables(self):
+	print '-- Creating tables -- '
 	# Connect to the actual project database
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
@@ -783,10 +795,15 @@ class PopgenManager(object):
             print 'Skipping PopGen run ---'
             return
 	if self.project.createTables:
-	    self.drop_database()
+	    self.drop_main_database()
 	    self.setup_database()
             self.create_tables()
-        
+
+	self.configParser.parse_scenarios()
+	self.scenarioList = self.configParser.scenarioList
+        self.stateList = self.configParser.stateList
+
+        self.drop_scenario_database()        
 	for scenario in self.scenarioList:
             if len(self.stateList) > 1:
                 print 'Synthesis for multiple states is required'
