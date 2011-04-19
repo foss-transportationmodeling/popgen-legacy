@@ -102,7 +102,8 @@ class PopgenManager(object):
 	
 	dbList = []
 	for scenario in self.scenarioList:
-	    dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+            if scenario.prepareData:
+	        dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
 	
 	for dbName in dbList:
 	    try:
