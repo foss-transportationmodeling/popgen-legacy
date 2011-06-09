@@ -225,6 +225,15 @@ class NewProjectPopGenCore(NewProject):
 	self.createTables = False
 	self.prepareData = False
 	self.run = True
+
+        self.allHhldVars = []
+        self.allHhldDims = []
+        self.allGqVars = []
+        self.allGqDims = []
+        self.allPersonVars = []
+        self.allPersonDims = []
+
+
 	
 	self.multiwayTableList = []
 	self.summaryTableExport = True

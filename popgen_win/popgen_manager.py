@@ -1,6 +1,9 @@
 import MySQLdb
 import copy
 import cPickle as pickle
+import traceback
+import sys
+import os
 
 from lxml import etree
 from numpy import asarray
@@ -53,10 +56,8 @@ class PopgenManager(object):
         print '________________________________________________________________'
         print 'PARSING CONFIG FILE'
         self.configParser = ConfigParser(configObject) #creates the model configuration parser
-	self.configParser.parse()
+	self.configParser.parse_project()
 	self.project = self.configParser.project
-	self.scenarioList = self.configParser.scenarioList
-        self.stateList = self.configParser.stateList
         print 'COMPLETED PARSING CONFIG FILE'
         print '________________________________________________________________'
 
@@ -79,14 +80,12 @@ class PopgenManager(object):
 	dbc.close()
 
 
-    def drop_database(self):
+    def drop_main_database(self):
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password)
 	dbc = db.cursor()
 	
 	dbList = [self.project.name]
-	for scenario in self.scenarioList:
-	    dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
 	
 	for dbName in dbList:
 	    try:
@@ -96,8 +95,25 @@ class PopgenManager(object):
 
 	#raw_input('--Completed deleting all databases--')
 	
+    def drop_scenario_database(self):
+	db = MySQLdb.connect(user= '%s' %self.project.db.username,
+                             passwd = '%s' %self.project.db.password)
+	dbc = db.cursor()
+	
+	dbList = []
+	for scenario in self.scenarioList:
+            if scenario.prepareData:
+	        dbList.append('%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+	
+	for dbName in dbList:
+	    try:
+	        dbc.execute("Drop Database if exists %s" %(dbName))
+ 	    except Exception, e:
+	        print '\tError occurred when dropping database:%s' %e
+
 
     def create_tables(self):
+	print '-- Creating tables -- '
 	# Connect to the actual project database
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
@@ -629,16 +645,23 @@ class PopgenManager(object):
                              db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
         dbc = db.cursor()
 
+	try:
+	    os.mkdir('%s%s%s' %(self.project.location, os.path.sep, self.project.name))
+	except Exception, e:
+	    print ('Warning when creating folder:', e)
+	
 
         dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = asarray(dbc.fetchall())
 
-        f = open('indexMatrix_99999.pkl', 'wb')
+        f = open('%s%s%s%sindexMatrix_99999.pkl' %(self.project.location, os.path.sep,
+						   self.project.name, os.path.sep), 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
 
         pIndexMatrix = person_index_matrix(db)
-        f = open('pIndexMatrix.pkl', 'wb')
+        f = open('%s%s%s%spIndexMatrix.pkl' %(self.project.location, os.path.sep,
+					      self.project.name, os.path.sep), 'wb')
         pickle.dump(pIndexMatrix, f)
         f.close()
 
@@ -726,6 +749,7 @@ class PopgenManager(object):
                         demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
                 except Exception, e:
                     print ("\tError in the Synthesis for geography: %s" %e)
+                    traceback.print_exc(file=sys.stdout)
 
     def getPUMA5(self, geo):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
@@ -749,7 +773,7 @@ class PopgenManager(object):
 
     def export_results(self, scenario):
         print '\nExporting results for use in the BMC TDM...'
-
+      
         print '\t\tExporting disaggregate synthetic population results ... --'
 	if scenario.synTableExport:
             popFileDlg = SaveSyntheticPopFile(scenario, scenario.synPersTableNameLoc, scenario.synHousingTableNameLoc)
@@ -760,11 +784,12 @@ class PopgenManager(object):
 	if scenario.summaryTableExport:
             summaryFileDlg = ExportSummaryFile(scenario, scenario.summaryTableNameLoc)
 	    summaryFileDlg.save()
-
+      
         print '\t\tExporting multiway table results ... --'
         print '\t\t\tCreating the synthetic files with variables appended'
         popFileDlg = SaveSyntheticPopFile(scenario)
         popFileDlg.save()
+      
 	if len(scenario.multiwayTableList) > 0:
 	    for mwayTable in scenario.multiwayTableList:
             	mwayFileDlg = ExportMultiwayTables(scenario, mwayTable)
@@ -779,10 +804,15 @@ class PopgenManager(object):
             print 'Skipping PopGen run ---'
             return
 	if self.project.createTables:
-	    self.drop_database()
+	    self.drop_main_database()
 	    self.setup_database()
             self.create_tables()
-        
+
+	self.configParser.parse_scenarios()
+	self.scenarioList = self.configParser.scenarioList
+        self.stateList = self.configParser.stateList
+
+        self.drop_scenario_database()        
 	for scenario in self.scenarioList:
             if len(self.stateList) > 1:
                 print 'Synthesis for multiple states is required'
@@ -811,6 +841,7 @@ class PopgenManager(object):
 	    self.remove_tables(scenario)
 	    self.populate_full_input_tables(scenario)
             self.export_results(scenario)
+	    
 if __name__ == '__main__':
     pass
 

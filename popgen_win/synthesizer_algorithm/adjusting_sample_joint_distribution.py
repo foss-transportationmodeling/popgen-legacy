@@ -78,6 +78,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dummy_table[:,:3] = [pumano, tract, bg]
         dummy_table[:,3:-1] = index_array
         dummy_table[result[:,-1]-1,-1] = result[:,-2]
+	print '\tUsing seed from the entire region'
     else:
         dbc.execute('select %s, count(*), %suniqueid from %s_sample where pumano = %s group by %s '%(dummy, synthesis_type, synthesis_type, pumano, dummy))
         if dbc.rowcount == 0:
@@ -90,6 +91,7 @@ def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano 
         dummy_table[:,:3] = [pumano, tract, bg]
         dummy_table[:,3:-1] = index_array
         dummy_table[result[:,-1]-1,-1] = result[:,-2]
+	print '\tUsing seed from the PUMA'
 
 
     dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
@@ -211,6 +213,7 @@ def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAd
                     adjusted_marginals[j] = 1
 
             adjustment = arr(control_marginals[i]) / arr(adjusted_marginals)
+
             update_weights(db, synthesis_type, control_variables, control_variables[i], pumano, tract, bg, adjustment)
 
             for k in adjustment:
@@ -225,8 +228,8 @@ def adjust_weights(db, synthesis_type, control_variables, varCorrDict, controlAd
         tol = tolerance(adjustment_all, adjustment_old, iteration, parameters)
         adjustment_old = adjustment_all
         adjustment_characteristic = abs(arr(adjustment_all) - arr(target_adjustment)).sum() / len(adjustment_all)
-
-
+	if not tol:
+            print control_variables[i], control_marginals[i], adjusted_marginals
     if (iteration>=parameters.ipfIter):
         pass
 #        print "Maximum iterations reached\n"

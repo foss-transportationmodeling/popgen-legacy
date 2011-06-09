@@ -36,7 +36,7 @@ class ConfigParser(object):
             return False
 
 
-    def parse(self):
+    def parse_project(self):
 
         projectElement = self.configObject.find('Project')
         name, loc = self.parse_project_attribs(projectElement)
@@ -56,8 +56,7 @@ class ConfigParser(object):
         sampleObj = self.parse_sample_input(inputElement)
         controlObj = self.parse_control_input(inputElement)
 
-        scenarioList = []
-        scenarioIterator = self.configObject.getiterator('Scenario')
+
 
         self.project = NewProjectPopGenCore()
         # Project Attribs
@@ -73,6 +72,9 @@ class ConfigParser(object):
         self.project.controlUserProv = controlObj
         self.project.createTables = createTables
 
+    def parse_scenarios(self):
+
+        scenarioIterator = self.configObject.getiterator('Scenario')
         self.scenarioList = []
 
         for scenarioElement in scenarioIterator:
@@ -185,6 +187,21 @@ class ConfigParser(object):
         scenarioProjObj.personVars = personVars
         scenarioProjObj.personDims = personDims
 
+
+        allHhldVars, allHhldDims = self.parse_all_control_variables(controlVarsElement, 'Household')
+        scenarioProjObj.allHhldVars = allHhldVars
+        scenarioProjObj.allHhldDims = allHhldDims
+
+        allGqVars, allGqDims = self.parse_all_control_variables(controlVarsElement, 'GroupQuarter')
+        scenarioProjObj.allGqVars = allGqVars
+        scenarioProjObj.allGqDims = allGqDims
+
+        allPersonVars, allPersonDims = self.parse_all_control_variables(controlVarsElement, 'Person')
+        scenarioProjObj.allPersonVars = allPersonVars
+        scenarioProjObj.allPersonDims = allPersonDims
+
+
+
 	personControlElement = controlVarsElement.find('Person')
 	isPersonControlled = personControlElement.get('control')	
 	if isPersonControlled == 'False':
@@ -258,6 +275,17 @@ class ConfigParser(object):
 
         return scenario, description
 
+    def parse_all_control_variables(self, controlVarsElement, controlType):
+        variables = []
+        variableDims = []
+        controlTypeElement = controlVarsElement.find(controlType)
+        varsIterator = controlTypeElement.getiterator('Variable')
+        for varElement in varsIterator:
+            name = varElement.get('name')
+            numCats = int(varElement.get('num_categories'))
+            variables.append(name)
+            variableDims.append(numCats)
+        return variables, array(variableDims)
 
     def parse_control_variables(self, controlVarsElement, controlType):
         controlTypeElement = controlVarsElement.find(controlType)
