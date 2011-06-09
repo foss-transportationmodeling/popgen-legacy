@@ -615,7 +615,13 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
 	#print allControlVars
 	#print allControlDims
+	print multiWayEntries
+        fileRef = open("%s" %(filename), 'w')
 
+	if multiWayEntries.shape[0] == 0:
+      	    fileRef.close()		
+	    return
+	
 	tazIdsUnique, tazIds_reverse_indices = unique(multiWayEntries[:,0], return_inverse=True)
 	
         binsIndices = array(range(tazIds_reverse_indices.max()+2))
@@ -640,7 +646,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
 
 	#print catIndex
-        fileRef = open("%s" %(filename), 'w')
+
 	# Printing multiway tables
 
 

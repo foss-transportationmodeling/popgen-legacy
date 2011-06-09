@@ -22,7 +22,8 @@ import cPickle
 def configure_and_run(project, geo, varCorrDict):
 
 
-    f = open('%s%sindexMatrix_99999.pkl'%(project.location, os.path.sep), 'rb')
+    f = open('%s%s%s%sindexMatrix_99999.pkl'%(project.location, os.path.sep,
+					      project.name, os.path.sep), 'rb')
     index_matrix = cPickle.load(f)
     f.close()
 
@@ -144,7 +145,9 @@ def configure_and_run(project, geo, varCorrDict):
 
     ti = time.time()
 
-    f = open('%s%spIndexMatrix.pkl'%(project.location, os.path.sep), 'rb')
+    f = open('%s%s%s%spIndexMatrix.pkl'%(project.location, os.path.sep,
+					 project.name, os.path.sep), 'rb')
+
     p_index_matrix = cPickle.load(f)
 
     f.close()

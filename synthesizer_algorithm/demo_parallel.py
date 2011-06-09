@@ -24,14 +24,17 @@ import os
 def configure_and_run(fileLoc, geo, varCorrDict):
 
 
-    f = open('indexMatrix_99999.pkl', 'rb')
-    index_matrix = cPickle.load(f)
-    f.close()
+
 
     f = open(fileLoc, 'rb')
     project = pickle.load(f)
     f.close()
 
+    f = open('%s%s%s%sindexMatrix_99999.pkl'%(project.location, os.path.sep,
+					      project.name, os.path.sep), 'rb')
+
+    index_matrix = cPickle.load(f)
+    f.close()
 
     state, county, pumano, tract, bg = geo.state, geo.county, geo.puma5, geo.tract, geo.bg
     print '------------------------------------------------------------------'
@@ -183,7 +186,9 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 #______________________________________________________________________
 # Sampling Households and choosing the draw with the best match with with the objective distribution
 
-    f = open('pIndexMatrix.pkl', 'rb')
+    f = open('%s%s%s%spIndexMatrix.pkl'%(project.location, os.path.sep,
+					 project.name, os.path.sep), 'rb')
+
     p_index_matrix = cPickle.load(f)
 
     f.close()
