@@ -645,16 +645,23 @@ class PopgenManager(object):
                              db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
         dbc = db.cursor()
 
+	try:
+	    os.mkdir('%s%s%s' %(self.project.location, os.path.sep, self.project.name))
+	except Exception, e:
+	    print ('Warning when creating folder:', e)
+	
 
         dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = asarray(dbc.fetchall())
 
-        f = open('%s%sindexMatrix_99999.pkl' %(self.project.location, os.path.sep), 'wb')
+        f = open('%s%s%s%sindexMatrix_99999.pkl' %(self.project.location, os.path.sep,
+						   self.project.name, os.path.sep), 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
 
         pIndexMatrix = person_index_matrix(db)
-        f = open('%s%spIndexMatrix.pkl' %(self.project.location, os.path.sep), 'wb')
+        f = open('%s%s%s%spIndexMatrix.pkl' %(self.project.location, os.path.sep,
+					      self.project.name, os.path.sep), 'wb')
         pickle.dump(pIndexMatrix, f)
         f.close()
 
