@@ -8,6 +8,7 @@ import copy
 import MySQLdb
 import pp
 import cPickle as pickle
+import os
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -807,12 +808,14 @@ class RunDialog(QDialog):
         dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = numpy.asarray(dbc.fetchall())
 
-        f = open('indexMatrix_99999.pkl', 'wb')
+        f = open('%s%s%s%sindexMatrix_99999.pkl'%(self.project.location, os.path.sep,
+						  self.project.name, os.path.sep), 'wb')
         pickle.dump(indexMatrix, f)
         f.close()
 
         pIndexMatrix = person_index_matrix(db)
-        f = open('pIndexMatrix.pkl', 'wb')
+        f = open('%s%s%s%spIndexMatrix.pkl'%(self.project.location, os.path.sep,
+					     self.project.name, os.path.sep), 'wb')
         pickle.dump(pIndexMatrix, f)
         f.close()
 

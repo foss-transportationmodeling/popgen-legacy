@@ -576,7 +576,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
 	if mwayTable.tableName == 'housing_synthetic':
 	    self.tableFrom = 'temphou_unique'
-	elif mywayTable.tableName == 'person_synthetic':
+	elif mwayTable.tableName == 'person_synthetic':
 	    self.tableFrom = 'tempperson_unique'
 	
 	self.varList = mwayTable.varList
@@ -604,15 +604,24 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	
 	colIndicesVars = range(cols)[1:-1]
 
-	allControlVars = self.project.hhldVars + self.project.gqVars + self.project.personVars
+	allControlVars = self.project.allHhldVars + self.project.allGqVars + self.project.allPersonVars
 	
-	allControlDims = list(self.project.hhldDims) + list(self.project.gqDims) + list(self.project.personDims)
+	allControlDims = list(self.project.allHhldDims) + list(self.project.allGqDims) + list(self.project.allPersonDims)
 
+        #print self.varList
+        #print allControlDims
+        #raw_input()
 	multiWayDims = [allControlDims[allControlVars.index(var)] for var in self.varList]
 
 	#print allControlVars
 	#print allControlDims
+	print multiWayEntries
+        fileRef = open("%s" %(filename), 'w')
 
+	if multiWayEntries.shape[0] == 0:
+      	    fileRef.close()		
+	    return
+	
 	tazIdsUnique, tazIds_reverse_indices = unique(multiWayEntries[:,0], return_inverse=True)
 	
         binsIndices = array(range(tazIds_reverse_indices.max()+2))
@@ -637,7 +646,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 
 
 	#print catIndex
-        fileRef = open("%s" %(filename), 'w')
+
 	# Printing multiway tables
 
 
@@ -659,9 +668,9 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	    	corrMultiWayRows = multiWayEntries[firstRowInd:LastRowInd]
 		
 		
-	        print 'TAZ ID - ', tazId
-	        print 'Corresponding Rows'
-	        print corrMultiWayRows	
+	        #print 'TAZ ID - ', tazId
+	        #print 'Corresponding Rows'
+	        #print corrMultiWayRows	
 
 	        for rec in corrMultiWayRows:
 		    catFrmDb = tuple(rec[1:1+len(self.varList)])
@@ -677,7 +686,7 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 		
 	    strToWrite = strToWrite[:-1] + '\n'
 
-	    print strToWrite
+	    #print strToWrite
 	    
 	    fileRef.write(strToWrite)	
         fileRef.close()
@@ -717,6 +726,8 @@ class ExportMultiwayTables(SaveSyntheticPopFile):
 	varCondStr = varCondStr[:-4]
         self.execute_query("""drop table %s""" %self.name)
 
+        #print ("""select taz, %s, count(*) from %s where %s group by taz, %s""" 
+	#		   	     %(varGrpByStr, self.tableFrom, varCondStr, varGrpByStr))
 	results = self.execute_query("""select taz, %s, count(*) from %s where %s group by taz, %s""" 
 			   	     %(varGrpByStr, self.tableFrom, varCondStr, varGrpByStr))
         #print results
