@@ -70,14 +70,14 @@ class ResolutionPage(QWizardPage):
         self.setLayout(vLayout)
 
         self.connect(self.geocorrAutoRadio, SIGNAL("clicked()"), self.geocorrAutoAction)
-        self.connect(self.geocorrUserProvRadio, SIGNAL("clicked()"), self.geocorrUserProvAction)
+        self.connect(self.geocorrUserProvRadio, SIGNAL("clicked(bool)"), self.geocorrUserProvAction)
         self.connect(self.geocorrLocationComboBox, SIGNAL("activated(int)"), self.fileCheck)
         self.connect(self.resolutionComboBox, SIGNAL("activated(int)"), self.resolutionAction)
 
     def resolutionAction(self):
         if self.resolutionComboBox.currentText() == 'Traffic Analysis Zone (TAZ)':
             self.geocorrUserProvRadio.setChecked(True)
-            self.geocorrUserProvRadio.emit(SIGNAL("clicked()"))
+            self.geocorrUserProvRadio.emit(SIGNAL("clicked(bool)"), True)
             self.geocorrAutoRadio.setEnabled(False)
         else:
             self.geocorrAutoRadio.setEnabled(True)
@@ -88,7 +88,7 @@ class ResolutionPage(QWizardPage):
         self.geocorrLocationDummy = True
         self.emit(SIGNAL("completeChanged()"))
 
-    def geocorrUserProvAction(self):
+    def geocorrUserProvAction(self, index):
         self.geocorrUserProvGroupBox.setEnabled(True)
         self.geocorrLocationDummy = False
         self.emit(SIGNAL("completeChanged()"))
