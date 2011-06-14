@@ -42,7 +42,7 @@ class UserImportSampleData():
             #print 'hhld index'
             if not self.query.exec_("""alter table hhld_sample add index(serialno)"""):
                 #raise FileError, self.query.lastError().text()
-                print "Warning: %s" %self.query.lastError.text()
+                print "Warning: %s" %self.query.lastError().text()
 
 
 
@@ -65,7 +65,7 @@ class UserImportSampleData():
                 #print 'gq index'
                 if not self.query.exec_("""alter table gq_sample add index(serialno)"""):
                     #raise FileError, self.query.lastError().text()
-                    print "Warning: %s" %self.query.lastError.text()
+                    print "Warning: %s" %self.query.lastError().text()
 
 
     def createPersonTable(self):
@@ -83,7 +83,7 @@ class UserImportSampleData():
             #print 'person index'
             if not self.query.exec_("""alter table person_sample add index(serialno, pnum)"""):
                 #raise FileError, self.query.lastError().text()
-                print "Warning: %s" %self.query.lastError.text()
+                print "Warning: %s" %self.query.lastError().text()
 
     def mysqlQueries(self, name, filePath):
         fileProp = FileProperties(filePath)

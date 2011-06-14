@@ -86,7 +86,7 @@ class ControlDataPage(QWizardPage):
         self.connect(self.sourceComboBox, SIGNAL("activated(int)"), self.sourceCheck)
 
         self.connect(self.controlAutoRadio, SIGNAL("clicked()"), self.controlAutoAction)
-        self.connect(self.controlUserProvRadio, SIGNAL("clicked()"), self.controlUserProvAction)
+        self.connect(self.controlUserProvRadio, SIGNAL("clicked(bool)"), self.controlUserProvAction)
         self.connect(self, SIGNAL("resolutionChanged"), self.resolutionAction)
 
     def resolutionAction(self, resolution):
@@ -104,7 +104,7 @@ class ControlDataPage(QWizardPage):
 
         if resolution == 'TAZ':
             self.controlUserProvRadio.setChecked(True)
-            self.controlUserProvRadio.emit(SIGNAL("clicked()"))
+            self.controlUserProvRadio.emit(SIGNAL("clicked(bool)"), True)
             self.controlAutoRadio.setEnabled(False)
         else:
             self.controlAutoRadio.setEnabled(True)
@@ -122,7 +122,7 @@ class ControlDataPage(QWizardPage):
         self.sourceDummy = False
         self.emit(SIGNAL("completeChanged()"))
 
-    def controlUserProvAction(self):
+    def controlUserProvAction(self, index):
         self.controlUserProvGroupBox.setEnabled(True)
         if self.controlHHLocationComboBox.currentIndex() == 0:
             self.controlHHLocationDummy = False

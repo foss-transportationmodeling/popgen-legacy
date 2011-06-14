@@ -93,7 +93,7 @@ class SampleDataPage(QWizardPage):
         self.connect(self.sourceComboBox, SIGNAL("activated(int)"), self.sourceCheck)
 
         self.connect(self.sampleAutoRadio, SIGNAL("clicked()"), self.sampleAutoAction)
-        self.connect(self.sampleUserProvRadio, SIGNAL("clicked()"), self.sampleUserProvAction)
+        self.connect(self.sampleUserProvRadio, SIGNAL("clicked(bool)"), self.sampleUserProvAction)
         self.connect(self, SIGNAL("resolutionChanged"), self.resolutionAction)
 
 
@@ -101,7 +101,7 @@ class SampleDataPage(QWizardPage):
     def resolutionAction(self, resolution):
         if resolution == 'TAZ':
             self.sampleUserProvRadio.setChecked(True)
-            self.sampleUserProvRadio.emit(SIGNAL("clicked()"))
+            self.sampleUserProvRadio.emit(SIGNAL("clicked(bool)"), True)
             self.sampleAutoRadio.setEnabled(False)
         else:
             self.sampleAutoRadio.setEnabled(True)
@@ -120,7 +120,7 @@ class SampleDataPage(QWizardPage):
         self.emit(SIGNAL("completeChanged()"))
 
 
-    def sampleUserProvAction(self):
+    def sampleUserProvAction(self, index):
         self.sampleUserProvGroupBox.setEnabled(True)
         if self.sampleHHLocationComboBox.currentIndex() == 0:
             self.sampleHHLocationDummy = False
