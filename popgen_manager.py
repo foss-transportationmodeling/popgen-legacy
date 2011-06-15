@@ -61,6 +61,12 @@ class PopgenManager(object):
         print 'COMPLETED PARSING CONFIG FILE'
         print '________________________________________________________________'
 
+	try:
+	    os.mkdir('%s%s%s' %(self.project.location, os.path.sep, self.project.name))
+	except Exception, e:
+	    print ('Warning when creating folder:', e)
+
+
 
     def setup_database(self, name=None):
 	#Create Database
@@ -644,12 +650,6 @@ class PopgenManager(object):
                              passwd = '%s' %self.project.db.password,
                              db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
         dbc = db.cursor()
-
-	try:
-	    os.mkdir('%s%s%s' %(self.project.location, os.path.sep, self.project.name))
-	except Exception, e:
-	    print ('Warning when creating folder:', e)
-	
 
         dbc.execute("""select * from index_matrix_%s""" %(99999))
         indexMatrix = asarray(dbc.fetchall())
