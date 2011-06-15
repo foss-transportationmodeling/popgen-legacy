@@ -81,13 +81,15 @@ def populate_master_matrix(db, pumano, hhld_units, gq_units, hhld_dimensions, gq
     return matrix
 
 
-def psuedo_sparse_matrix(db, matrix, pumano):
+def psuedo_sparse_matrix(db, matrix, pumano, project):
 # Sprase representation of the psuedo matrix
     sparse_matrix = []
     dummy = []
     rows = 0
     cols = 4
-    temp_file = open('dummy.txt', 'w')
+    
+    temp_file = open('%s%s%s%sdummy.txt'%(project.location, os.path.sep,
+					      project.name, os.path.sep), 'w')
 
     for i in matrix.rows:
         if i:
@@ -105,7 +107,8 @@ def psuedo_sparse_matrix(db, matrix, pumano):
         rows = rows + 1
     temp_file.close()
 
-    path =  os.getcwd()+'\dummy.txt'
+    path =  '%s%s%s%sdummy.txt'%(project.location, os.path.sep,
+					      project.name, os.path.sep)
     path = os.path.normcase(path)
     path = path.replace('\\', '/')
 
@@ -117,7 +120,7 @@ def psuedo_sparse_matrix(db, matrix, pumano):
         dbc.execute('drop table sparse_matrix_%s'%(pumano))
         dbc.execute('create table sparse_matrix_%s(hhpumsid bigint, rowno mediumint, colno mediumint, freq mediumint);'%(pumano))
         dbc.execute("load data local infile '%s' into table sparse_matrix_%s" %(path, pumano))
-    os.remove('dummy.txt')
+    os.remove(path)
     dbc.close()
     db.commit()
     return arr(sparse_matrix)
