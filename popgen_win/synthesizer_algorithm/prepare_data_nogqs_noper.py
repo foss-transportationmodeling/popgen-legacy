@@ -94,7 +94,7 @@ def prepare_data_nogqs_noper(db, project, state=None):
     ti = time.clock()
 
 # Sparse representation of the Master Matrix
-    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 99999)
+    ps_sp_matrix = psuedo_sparse_matrix.psuedo_sparse_matrix(db, populated_matrix, 99999, project)
     print 'Psuedo Sparse Matrix in %.4fs' %(time.clock()-ti)
     ti = time.clock()
 #______________________________________________________________________
