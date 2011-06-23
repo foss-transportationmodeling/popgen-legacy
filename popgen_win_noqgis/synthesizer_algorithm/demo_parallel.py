@@ -24,8 +24,6 @@ import os
 def configure_and_run(fileLoc, geo, varCorrDict):
 
 
-
-
     f = open(fileLoc, 'rb')
     project = pickle.load(f)
     f.close()
@@ -53,15 +51,15 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 
 # Identifying the number of housing units in the disaggregate sample
 # Make Sure that the file is sorted by hhid
-    dbc.execute('select hhid, serialno from gq_sample')
+    dbc.execute('select hhid, serialno from gq_sample order by hhid')
     gq_sample = numpy.asarray(dbc.fetchall(), int)
     gq_units = dbc.rowcount
 
-    dbc.execute('select hhid, serialno from hhld_sample')
+    dbc.execute('select hhid, serialno from hhld_sample order by hhid')
     hhld_sample = numpy.asarray(dbc.fetchall(), int)
     hhld_units = dbc.rowcount
 
-    dbc.execute('select hhid, serialno, pnum, personuniqueid from person_sample')
+    dbc.execute('select hhid, serialno, pnum, personuniqueid from person_sample order by hhid, pnum')
     person_sample = numpy.asarray(dbc.fetchall(), int)
 
     housing_sample = numpy.vstack((hhld_sample, gq_sample))
@@ -278,7 +276,7 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 
     print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
 
-def run_parallel(job_server, project, geoIds, varCorrDict):
+def run_parallel(job_server, project, geoIds, varCorrDict, coreVersion=False):
 
     fileLoc = "%s/%s/%s.pop" %(project.location, project.name, project.filename)
 
@@ -300,9 +298,15 @@ def run_parallel(job_server, project, geoIds, varCorrDict):
     #print 'Using %d cores on the processor' %(job_server.get_ncpus())
 
     geoIds = [Geography(geo[0], geo[1], geo[3], geo[4], geo[2]) for geo in geoIds]
+    
+    if coreVersion:
+    	project.save()
+    
     jobs = [(geo, job_server.submit(configure_and_run, (fileLoc,
-                                                        geo,
-                                                        varCorrDict), (), modules)) for geo in geoIds]
+        	                                        geo,
+        	                                        varCorrDict), (), modules)) for geo in geoIds]
+    
+    
     for geo, job in jobs:
         job()
     #job_server.print_stats()
