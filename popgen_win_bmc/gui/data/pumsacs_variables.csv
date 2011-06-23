@@ -4,7 +4,7 @@ ACR,Lot size,H,0
 ADJUST,Adjustment factor for dollar amounts (6 implied decimal places),H,0
 AGS,Sales of Agriculture Product,H,0
 BDS,Bedrooms,H,0
-BLD,Units in structure,H,0
+BLD,Units in structure,H,1
 BUS,Business or medical office on property,H,0
 CONP,Condo fee (monthly amount),H,0
 DIVISION,Division code,H,0
@@ -29,7 +29,7 @@ FMRGIP,Payment include fire hazard flood insurance allocation,H,0
 FMRGP,Regular mortgage payment allocation,H,0
 FMRGTP,Payment include real estate taxes allocation,H,0
 FMRGXP,Mortgage status allocation,H,0
-FMVYP,When moved into this house or apartment allocation,H,0
+FMVYP,When moved into this house or apartment allocation,H,1
 FPLMP,Complete plumbing facilities allocation,H,0
 FRMSP,Rooms allocation,H,0
 FRNTMP,Meals included in rent allocation,H,0
@@ -48,7 +48,7 @@ FVEHP,Vehicles available by household allocation,H,0
 FWATP,Water (yearly cost) allocation,H,0
 FYBLP,When structure first built allocation,H,0
 GASP,Gas (monthly cost),H,0
-GRNTP,Gross rent,H,0
+GRNTP,Gross rent,H,1
 GRPIP3,Gross rent as a percentage of household income past 12 months,H,0
 HFL,House heating fuel,H,0
 HHL,Household language,H,0
@@ -67,7 +67,7 @@ MRGP,Mortgage payment (monthly amount),H,0
 MRGT, Payment include real estate taxes,H,0
 MRGX,Mortgage status,H,0
 MV,When moved into this house or apartment,H,0
-NOC,Number of own children in household (unweighted),H,0
+NOC,Number of own children in household (unweighted),H,1
 NP,Number of person records following this H record,H,1
 NPF,Number of persons in family (unweighted),H,0
 NPP,Grandparent headed household with no parent present,H,0
@@ -96,11 +96,11 @@ ST,State code,H,1
 SVAL,Specified value unit,H,0
 TAXP,Property taxes (yearly amount),H,0
 TEL,Telephone in Unit,H,0
-TEN,Tenure,H,0
+TEN,Tenure,H,1
 TYPE,Type of unit,H,1
 VACS,Vacancy status,H,0
-VAL,Property value,H,0
-VEH,Vehicles (1 ton or less) available,H,0
+VAL,Property value,H,1
+VEH,Vehicles (1 ton or less) available,H,1
 WATP,Water (yearly cost),H,0
 WGTP,H Weight,H,0
 WGTP1,H Weight replicate 1,H,0
@@ -183,17 +183,17 @@ WGTP79,H Weight replicate 79,H,0
 WGTP8,H Weight replicate 8,H,0
 WGTP80,H Weight replicate 80,H,0
 WGTP9,H Weight replicate 9,H,0
-WIF,Workers in family during the past 12 months,H,0
+WIF,Workers in family during the past 12 months,H,1
 WKEXREL,Work experience of householder and spouse,H,0
 WORKSTAT, Work status of householder or spouse in family households,H,0
-YBL,When structure first built,H,0
+YBL,When structure first built,H,1
 ADJUST,Adjustment factor for dollar amounts (6 implied decimal places),P,0
 AGEP,Age,P,1
 ANC,Ancestry recode,P,0
 ANC1P,Recoded Detailed Ancestry- first entry,P,0
 ANC2P,Recoded Detailed Ancestry- second entry,P,0
 CIT,Citizenship status,P,0
-COW,Class of worker,P,0
+COW,Class of worker,P,1
 DDRS,Difficulty dressing,P,0
 DECADE,Decade of entry,P,0
 DEYE,Vision or hearing difficulty,P,0
@@ -224,7 +224,7 @@ FGCLP,Grandchildren living in house allocation flag,P,0
 FGCMP,Months responsible for grandchildren allocation flag,P,0
 FGCRP,Responsible for grandchildren allocation flag,P,0
 FHISP,Detailed Hispanic origin allocation flag,P,0
-FINDP,Industry allocation flag,P,0
+FINDP,Industry allocation flag,P,1
 FINTP,Interest dividend and net rental income allocation flag,P,0
 FJWDP,Time of departure to work allocation flag,P,0
 FJWMNP,Travel time to work allocation flag,P,0
@@ -262,13 +262,13 @@ GCL,Grandchildren living in this house,P,0
 GCM,Months responsible for grandchildren,P,0
 GCR,Responsible for grandchildren,P,0
 HISP,Recoded detailed Hispanic origin,P,0
-INDP,Industry recode,P,0
+INDP,Industry recode,P,1
 INTP,Interest dividends and net rental income past 12 months (signed),P,0
 JWAP,Time of arrival at work- hour and minute,P,0
 JWDP,Time of departure for work- hour and minute,P,0
 JWMNP,Travel time to work,P,0
 JWRIP,Vehicle occupancy,P,0
-JWTR,Means of transportation to work,P,0
+JWTR,Means of transportation to work,P,1
 LANP,Language spoken at home,P,0
 LANX,Language other than English at home,P,0
 MAR,Marital Status,P,0
@@ -298,11 +298,11 @@ NWLA,On layoff from work,P,0
 NWLK,Looking for work,P,0
 NWRE,Informed of recall,P,0
 OC,Own Child,P,0
-OCCP,Occupation recode,P,0
+OCCP,Occupation recode,P,1
 OIP,All other income past 12 months,P,0
 PAOC,Presence and age of own children,P,0
 PAP,Public assistance income past 12 months,P,0
-PERNP,Total person's earnings,P,0
+PERNP,Total person's earnings,P,1
 PINCP,Total person's income (signed),P,0
 POBP,Place of birth (Recode),P,0
 POVPIP,Person poverty status recode,P,0
@@ -405,9 +405,9 @@ RC,Related child,P,0
 REL,Relationship,P,1
 RETP,Retirement income past 12 months,P,0
 RT,Record Type,P,0
-SCH,School enrollment,P,0
+SCH,School enrollment,P,1
 SCHG,Grade level attending,P,0
-SCHL,Educational attainment,P,0
+SCHL,Educational attainment,P,1
 SEMP,Self-employment income past 12 months (signed),P,0
 SERIALNO,H unit/GQ person serial number,P,1
 SEX,Sex,P,1
