@@ -4,9 +4,11 @@ import cPickle as pickle
 import traceback
 import sys
 import os
+import pp
 
 from lxml import etree
 from numpy import asarray
+from math import floor
 
 from import_data import FileProperties, ImportUserProvData
 from configuration.config_parser import ConfigParser
@@ -19,6 +21,10 @@ from synthesizer_algorithm import demo
 from synthesizer_algorithm import demo_nogqs
 from synthesizer_algorithm import demo_nogqs_noper
 from synthesizer_algorithm import demo_noper
+from synthesizer_algorithm import demo_parallel
+from synthesizer_algorithm import demo_parallel_nogqs
+from synthesizer_algorithm import demo_parallel_nogqs_noper
+from synthesizer_algorithm import demo_parallel_noper
 
 from synthesizer_algorithm.export_results import SaveSyntheticPopFile, ExportSummaryFile, ExportMultiwayTables
 
@@ -65,6 +71,11 @@ class PopgenManager(object):
 	    os.mkdir('%s%s%s' %(self.project.location, os.path.sep, self.project.name))
 	except Exception, e:
 	    print ('Warning when creating folder:', e)
+
+
+
+        ppservers = ()
+        self.job_server = pp.Server(ppservers=ppservers, restart = True)
 
 
 
@@ -712,6 +723,87 @@ class PopgenManager(object):
 
 
     def synthesize_population(self, scenario, state=None):
+        if self.job_server.get_ncpus() > 1:
+            print ("There are multiple cores - %s, running the synthesizer in parallel" %self.job_server.get_ncpus())
+            self.run_synthesizer_in_parallel(scenario, state)
+        else:
+            print ("There are no multiple cores - %s running the synthesizer in serial" %self.job_server.get_ncpus())	
+            self.run_synthesizer_in_serial(scenario, state)
+
+    def run_synthesizer_in_parallel(self, scenario, state=None):
+        varCorrDict = {}
+
+        hhldDict = copy.deepcopy(scenario.selVariableDicts.hhld)
+        if scenario.selVariableDicts.hhldMargsModify:
+            for i in hhldDict.keys():
+                for j in hhldDict[i].keys():
+                    hhldDict[i][j] = 'mod' + hhldDict[i][j]
+
+        varCorrDict.update(self.variable_control_corr_dict(hhldDict))
+        if self.gqAnalyzed:
+            varCorrDict.update(self.variable_control_corr_dict(scenario.selVariableDicts.gq))
+        varCorrDict.update(self.variable_control_corr_dict(scenario.selVariableDicts.person))
+
+	# Run the first synthesis in serial to make sure all the tables/data structures
+	# are created correctly
+	
+	geo = self.getPUMA5(scenario.synthesizeGeoIds[0])
+	try:
+	    if self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+		demo.configure_and_run(scenario, geo, varCorrDict)
+	    if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		print '  - GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+		demo_noper.configure_and_run(scenario, geo, varCorrDict)
+	    if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		print '  - NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+		demo_nogqs.configure_and_run(scenario, geo, varCorrDict)
+	    if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+		demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
+
+	    runGeoIds = []
+	    for geo in scenario.synthesizeGeoIds[1:]:
+	        geo = self.getPUMA5(geo)
+	    	runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+	    	print geo
+            geoCount = len(runGeoIds)
+            binsize = 50
+
+            bins = int(floor(geoCount/binsize))
+	    index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
+                
+            if bins > 0:
+                index.append((1, binsize))
+            	index.append((bins*binsize, geoCount))
+
+            else:
+                if geoCount > 1:
+                    index.append((1, geoCount))
+
+	    for i in index:
+                if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                    #print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                    demo_parallel.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
+                    				varCorrDict, coreVersion=True)
+                if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                    #print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                    demo_parallel_noper.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
+                    					varCorrDict, coreVersion=True)
+                if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                    #print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                    demo_parallel_nogqs.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
+                    					varCorrDict, coreVersion=True)
+                if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                     #print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                     demo_parallel_nogqs_noper.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
+                     						varCorrDict, coreVersion=True)
+	except Exception, e:
+	    print ("\tError in the Synthesis for geography: %s" %e)
+            traceback.print_exc(file=sys.stdout)
+	    	
+
+    def run_synthesizer_in_serial(self, scenario, state=None):
         varCorrDict = {}
 
         hhldDict = copy.deepcopy(scenario.selVariableDicts.hhld)
