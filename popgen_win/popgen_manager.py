@@ -25,6 +25,7 @@ from synthesizer_algorithm import demo_parallel
 from synthesizer_algorithm import demo_parallel_nogqs
 from synthesizer_algorithm import demo_parallel_nogqs_noper
 from synthesizer_algorithm import demo_parallel_noper
+from newproject import TableNameLoc
 
 from synthesizer_algorithm.export_results import SaveSyntheticPopFile, ExportSummaryFile, ExportMultiwayTables
 
@@ -42,7 +43,7 @@ class PopgenManager(object):
     be passed.
     """
 
-    def __init__(self, fileLoc):
+    def __init__(self, fileLoc, parallelFlag=1):
         if fileLoc is None:
             raise ConfigurationError, """The configuration input is not valid; a """\
                 """location of the XML configuration file """
@@ -58,6 +59,8 @@ class PopgenManager(object):
             print e
             raise ConfigurationError, """The path for configuration file was """\
                 """invalid or the file is not a valid configuration file."""
+
+	self.parallelFlag = parallelFlag
 
         print '________________________________________________________________'
         print 'PARSING CONFIG FILE'
@@ -305,13 +308,13 @@ class PopgenManager(object):
                 prepare_data(db, scenario, state=state)
             if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
 		print 'NO PERSON and GQ CONTROLELD'
-                prepare_data_noper(db, scenario)
+                prepare_data_noper(db, scenario, state=state)
             if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
 		print 'PERSON AND NO GQ'
-                prepare_data_nogqs(db, scenario)
+                prepare_data_nogqs(db, scenario, state=state)
             if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
 		print 'NO PERSON AND NO GQ'
-                prepare_data_nogqs_noper(db, scenario)
+                prepare_data_nogqs_noper(db, scenario, state=state)
         except KeyError, e:
             print ("""Check the <b>hhid, serialno</b> columns in the """\
                    """data. If you wish not to synthesize groupquarters, make"""\
@@ -723,7 +726,11 @@ class PopgenManager(object):
 
 
     def synthesize_population(self, scenario, state=None):
-        if self.job_server.get_ncpus() > 1:
+
+	if self.parallelFlag == "0":
+	    print ("Running the synthesizer in serial")	
+            self.run_synthesizer_in_serial(scenario, state)
+        elif self.job_server.get_ncpus() > 1:
             print ("There are multiple cores - %s, running the synthesizer in parallel" %self.job_server.get_ncpus())
             self.run_synthesizer_in_parallel(scenario, state)
         else:
@@ -747,7 +754,14 @@ class PopgenManager(object):
 	# Run the first synthesis in serial to make sure all the tables/data structures
 	# are created correctly
 	
-	geo = self.getPUMA5(scenario.synthesizeGeoIds[0])
+	stateGeos = []
+	
+	for geo in scenario.synthesizeGeoIds:
+	    geo = self.getPUMA5(geo)
+	    if geo.state == state:
+	    	stateGeos.append(geo)
+	
+	geo = stateGeos[0]
 	try:
 	    if self.gqAnalyzed and scenario.selVariableDicts.persControl:
 		print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
@@ -763,10 +777,8 @@ class PopgenManager(object):
 		demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
 
 	    runGeoIds = []
-	    for geo in scenario.synthesizeGeoIds[1:]:
-	        geo = self.getPUMA5(geo)
+	    for geo in stateGeos[1:]:
 	    	runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
-	    	print geo
             geoCount = len(runGeoIds)
             binsize = 50
 
@@ -782,19 +794,19 @@ class PopgenManager(object):
                     index.append((1, geoCount))
 
 	    for i in index:
-                if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                if self.gqAnalyzed and scenario.selVariableDicts.persControl:
                     #print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                     demo_parallel.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                     				varCorrDict, coreVersion=True)
-                if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
                     #print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                     demo_parallel_noper.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                     					varCorrDict, coreVersion=True)
-                if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
                     #print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                     demo_parallel_nogqs.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                     					varCorrDict, coreVersion=True)
-                if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
                      #print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                      demo_parallel_nogqs_noper.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                      						varCorrDict, coreVersion=True)
@@ -823,7 +835,7 @@ class PopgenManager(object):
 	    geo = self.getPUMA5(geo)
             print '\t State for geography - %s and state synthesized - %s' %(geo.state, state)
 
-            if state <> None and geo.state <> state:
+            if geo.state <> state:
                 continue
             else:
                 try:
@@ -879,7 +891,14 @@ class PopgenManager(object):
       
         print '\t\tExporting multiway table results ... --'
         print '\t\t\tCreating the synthetic files with variables appended'
-        popFileDlg = SaveSyntheticPopFile(scenario)
+        defHousingLoc = '%s%s%s' %(self.project.location, os.path.sep,
+				   self.project.name)
+        defPersonLoc = '%s%s%s' %(self.project.location, os.path.sep,
+				  self.project.name)
+	
+	defHousingTableNameLoc = TableNameLoc('housing_synthetic', defHousingLoc)
+	defPersonTableNameLoc = TableNameLoc('person_synthetic', defPersonLoc)	
+        popFileDlg = SaveSyntheticPopFile(scenario, defHousingTableNameLoc, defPersonTableNameLoc)
         popFileDlg.save()
       
 	if len(scenario.multiwayTableList) > 0:
