@@ -786,12 +786,12 @@ class PopgenManager(object):
 	    index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
                 
             if bins > 0:
-                index.append((1, binsize))
+                index.append((0, binsize))
             	index.append((bins*binsize, geoCount))
 
             else:
                 if geoCount > 1:
-                    index.append((1, geoCount))
+                    index.append((0, geoCount))
 
 	    for i in index:
                 if self.gqAnalyzed and scenario.selVariableDicts.persControl:
