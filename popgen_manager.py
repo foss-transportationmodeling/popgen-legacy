@@ -753,6 +753,9 @@ class PopgenManager(object):
 
 	# Run the first synthesis in serial to make sure all the tables/data structures
 	# are created correctly
+
+        print 'Total number of geographies', len(scenario.synthesizeGeoIds)
+        #raw_input()
 	
 	stateGeos = []
 	
@@ -760,9 +763,34 @@ class PopgenManager(object):
 	    geo = self.getPUMA5(geo)
 	    if geo.state == state:
 	    	stateGeos.append(geo)
+
+        # Sort by PUMA ID's for parallelizing
+        geoPUMADict = {}
+        for geo in stateGeos:
+            #print geoPUMADict.keys(), geo.puma5
+            #raw_input('break here')
+            if geo.puma5 in geoPUMADict.keys():
+                #print geo.puma5, type(geo.puma5)
+                #print geoPUMADict[geo.puma5]
+                geoPUMADict[geo.puma5].append(geo)
+            else:
+                geoPUMADict[geo.puma5] = [geo]
+
+        for puma in geoPUMADict.keys():
+            geoList = geoPUMADict[puma]
+
+            print 'Running synthesizer in parallel for PUMA - %s and number of geos for this is - %d' %(puma, len(geoList))
+            #raw_input('Press any key to continue --- ')
+            self.run_synthesizer_in_parallel_for_geoList(scenario, geoList, varCorrDict)
+            #raw_input('Processing complete for PUMA press any key to continue --- ')
+
+    def run_synthesizer_in_parallel_for_geoList(self, scenario, geoList, varCorrDict):
+
 	
-	geo = stateGeos[0]
+	geo = geoList[0]
+	print geo
 	try:
+	    
 	    if self.gqAnalyzed and scenario.selVariableDicts.persControl:
 		print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
 		demo.configure_and_run(scenario, geo, varCorrDict)
@@ -775,9 +803,9 @@ class PopgenManager(object):
 	    if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
 		print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
 		demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
-
+            
 	    runGeoIds = []
-	    for geo in stateGeos[1:]:
+	    for geo in geoList[1:]:
 	    	runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
             geoCount = len(runGeoIds)
             binsize = 50
@@ -793,8 +821,16 @@ class PopgenManager(object):
                 if geoCount > 1:
                     index.append((0, geoCount))
 
+	    print 'len of geoList - ', len(geoList)
+	    print 'len of runGeoIds - ', len(runGeoIds)
 	    for i in index:
-                if self.gqAnalyzed and scenario.selVariableDicts.persControl:
+	    	print '\t individual batch len - %s and anchors are %s and %s' %(len (runGeoIds[i[0]:i[1]]),
+	    									  i[0],
+	    									  i[1])
+        	for g in runGeoIds[i[0]:i[1]]:
+        	    print g
+        	
+        	if self.gqAnalyzed and scenario.selVariableDicts.persControl:
                     #print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
                     demo_parallel.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                     				varCorrDict, coreVersion=True)
@@ -810,6 +846,8 @@ class PopgenManager(object):
                      #print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
                      demo_parallel_nogqs_noper.run_parallel(self.job_server, scenario, runGeoIds[i[0]:i[1]], 
                      						varCorrDict, coreVersion=True)
+		
+	    	#raw_input("waiting")
 	except Exception, e:
 	    print ("\tError in the Synthesis for geography: %s" %e)
             traceback.print_exc(file=sys.stdout)
@@ -867,7 +905,7 @@ class PopgenManager(object):
                                    %(geo.state, geo.county, geo.tract, geo.bg))
 		results = asarray(dbc.fetchall())
   	        geo.puma5 = results[0][0]
-		print geo
+		#print geo
             except Exception, e:
 	       print ("\tError occurred when identifying the puma number for the geography: %s" %e)
 
