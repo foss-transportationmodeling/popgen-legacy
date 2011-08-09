@@ -9,6 +9,7 @@ import MySQLdb
 import pp
 import cPickle as pickle
 import os
+from math import floor
 
 from PyQt4.QtGui import *
 from PyQt4.QtCore import *
@@ -235,82 +236,19 @@ class RunDialog(QDialog):
 
                 from math import floor
 
-                geoCount = len(self.runGeoIds)
-                binsize = 50
+                geoPUMADict = {}
+                for geo in self.runGeoIds:
+                    geoWitPUMA = self.getPUMA5(Geography(geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    if geoWitPUMA.puma5 in geoPUMADict.keys():
+                        geoPUMADict[geoWitPUMA.puma5].append(geo)
+                    else:
+                        geoPUMADict[geoWitPUMA.puma5] = [geo]
 
-                bins = int(floor(geoCount/binsize))
+                for puma in geoPUMADict.keys():
+                    geoList = geoPUMADict[puma]
 
-
-
-            
-                index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
-                
-                if bins > 0:
-                    index.append((1, binsize))
-                    index.append((bins*binsize, geoCount))
-
-                else:
-                    if geoCount > 1:
-                        index.append((1, geoCount))
-
-                geo = self.runGeoIds[0]
-
-                geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
-            
-                #print 'unsorted', index
-
-                index.sort()
-
-                #print 'sorted', index
-
-                # Synthesizing the first geography in serial to create the necessary tables
-                
-                try:
-                    self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
-                                             %(geo.state, geo.county, geo.tract, geo.bg))
-                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo.configure_and_run(self.project, geo, varCorrDict)
-                    if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_noper.configure_and_run(self.project, geo, varCorrDict)
-                    if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
-                    if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
-                    self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
-                except Exception, e:
-                    self.outputWindow.append("\t- Error in the Synthesis for geography")
-                    print ('Exception: %s' %e)
-
-                # Synthesizing the population for all geographies in parallel after the first one is done in serial
-
-                for i in index:
-                    
-                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        #print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
-                    if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        #print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
-                    if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                        #print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_nogqs.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
-                    if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                        #print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                        demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, self.runGeoIds[i[0]:i[1]], varCorrDict)
-
-                self.selGeographiesButton.setEnabled(False)
-                for geo in self.runGeoIds[1:]:
-                    self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
-
-                    self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
-                                             %(geo[0], geo[1], geo[3], geo[4]))
-
-                print 'Completed generating synthetic population'
-                print '------------------------------------------------------------------'
+                    print 'Running synthesizer in parallel for PUMA - %s and number of geos for this is - %d' %(puma, len(geoList))
+                    self.run_synthesizer_in_parallel_for_geoList(geoList, varCorrDict)
 
             elif reply == QMessageBox.No:
                 print '------------------------------------------------------------------'
@@ -348,6 +286,71 @@ class RunDialog(QDialog):
 
                 print 'Completed generating synthetic population'
                 print '------------------------------------------------------------------'
+
+
+    def run_synthesizer_in_parallel_for_geoList(self, geoList, varCorrDict):
+        geoCount = len(geoList)
+        binsize = 50
+        bins = int(floor(geoCount/binsize))
+        index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
+                
+        if bins > 0:
+            index.append((1, binsize))
+            index.append((bins*binsize, geoCount))
+
+        else:
+            if geoCount > 1:
+                index.append((1, geoCount))
+
+        geo = geoList[0]
+        geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
+
+        index.sort()
+
+        try:
+            self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
+                                     %(geo.state, geo.county, geo.tract, geo.bg))
+            if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                demo.configure_and_run(self.project, geo, varCorrDict)
+            if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                demo_noper.configure_and_run(self.project, geo, varCorrDict)
+            if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+            if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
+            self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
+        except Exception, e:
+            self.outputWindow.append("\t- Error in the Synthesis for geography")
+            print ('Exception: %s' %e)
+
+            # Synthesizing the population for all geographies in parallel after the first one is done in serial
+
+        for i in index:
+            if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                demo_parallel.run_parallel(self.job_server, self.project, geoList[i[0]:i[1]], varCorrDict)
+            if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                demo_parallel_noper.run_parallel(self.job_server, self.project, geoList[i[0]:i[1]], varCorrDict)
+            if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                demo_parallel_nogqs.run_parallel(self.job_server, self.project, geoList[i[0]:i[1]], varCorrDict)
+            if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                demo_parallel_nogqs_noper.run_parallel(self.job_server, self.project, geoList[i[0]:i[1]], varCorrDict)
+
+        self.selGeographiesButton.setEnabled(False)
+        for geo in geoList[1:]:
+            self.project.synGeoIds[(geo[0], geo[1], geo[2], geo[3], geo[4])] = True
+
+            self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
+                                     %(geo[0], geo[1], geo[3], geo[4]))
+
+        print 'Completed generating synthetic population'
+        print '------------------------------------------------------------------'
+
+
+
 
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
