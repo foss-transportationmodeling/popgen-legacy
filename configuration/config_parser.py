@@ -373,10 +373,12 @@ class ConfigParser(object):
         roundingProcElement = parameterElement.find('RoundingProcedure')
         roundingProc = roundingProcElement.get('name')
 
-        parameterObj = Parameters(ipfTol, ipfIters,
-                                  ipuTol, ipuIters,
-                                  synDrawsIters, synDrawsTol,
-                                  roundingProc)
+        parameterObj = Parameters(ipfTol=ipfTol, ipfIter=ipfIters,
+                                  ipuProcedure="ProportionalUpdating", 
+				  ipuTol=ipuTol, ipuIter=ipuIters,
+                                  synPopDraws=synDrawsIters, synPopPTol=synDrawsTol,
+                                  roundingProcedure=roundingProc)
+
         print parameterObj
         return parameterObj
 
