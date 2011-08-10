@@ -37,6 +37,24 @@ class ParametersDialog(QDialog):
         self.ipfMaxIterEdit.setValue(self.project.parameters.ipfIter)
         #ipfMaxIterEdit.setValue(IPF_MAX_ITERATIONS)
 
+
+        ipuProcedureGroupBox = QGroupBox("Iterative Procedure for Reallocating Weights")
+        self.propUpdatingRadio = QRadioButton("Iterative Proportional Updating")
+        self.entropyUpdatingRadio = QRadioButton("Iterative Entropy-based Updating")
+
+        if self.project.parameters.ipuProcedure == 'ProportionalUpdating':
+            self.propUpdatingRadio.setChecked(True)
+        if self.project.parameters.ipuProcedure == 'EntropyUpdating':
+            self.entropyUpdatingRadio.setChecked(True)
+
+        ipuProcLayout = QVBoxLayout()
+        ipuProcLayout.addWidget(self.propUpdatingRadio)
+        ipuProcLayout.addWidget(self.entropyUpdatingRadio)
+
+        ipuProcedureGroupBox.setLayout(ipuProcLayout)
+
+
+
         ipuTolLabel = QLabel("Tolerance level for convergence in the IPU procedure")
         self.ipuTolEdit = QLineEdit()
         ipuTolLabel.setBuddy(self.ipfTolEdit)
@@ -63,7 +81,7 @@ class ParametersDialog(QDialog):
         self.synPopPValTolEdit.setText('%s' %self.project.parameters.synPopPTol)
         #synPopPValTolEdit.setText('%s' %SYNTHETIC_POP_PVALUE_TOLERANCE)
 
-        roundingGroupBox = QGroupBox("d. Rounding Procedure")
+        roundingGroupBox = QGroupBox("Rounding Procedure")
         self.arithmeticRadio = QRadioButton("Arithmetic Rounding")
         self.bucketRadio = QRadioButton("Bucket Rounding")
         self.stochasticRadio = QRadioButton("Stochastic Rounding")
@@ -109,12 +127,14 @@ class ParametersDialog(QDialog):
         vLayout.addWidget(ipfLabel)
         vLayout.addLayout(hLayout1)
         vLayout.addWidget(Separator())
+
         vLayout.addWidget(ipuLabel)
         vLayout.addLayout(hLayout2)
+	vLayout.addWidget(ipuProcedureGroupBox)
         vLayout.addWidget(Separator())
+
         vLayout.addWidget(synLabel)
         vLayout.addLayout(hLayout3)
-        vLayout.addWidget(Separator())
         vLayout.addWidget(roundingGroupBox)
 
         vLayout.addWidget(dialogButtonBox)
@@ -133,6 +153,13 @@ class ParametersDialog(QDialog):
     def accept(self):
         self.project.parameters.ipfTol = QVariant(self.ipfTolEdit.text()).toDouble()[0]
         self.project.parameters.ipfIter = self.ipfMaxIterEdit.value()
+
+	if self.propUpdatingRadio.isChecked():
+	    self.project.parameters.ipuProcedure = 'ProportionalUpdating'
+	if self.entropyUpdatingRadio.isChecked():
+	    self.project.parameters.ipuProcedure = 'EntropyUpdating'
+
+
         self.project.parameters.ipuTol = QVariant(self.ipuTolEdit.text()).toDouble()[0]
         self.project.parameters.ipuIter = self.ipuMaxIterEdit.value()
         self.project.parameters.synPopDraws = self.synPopDrawsEdit.value()

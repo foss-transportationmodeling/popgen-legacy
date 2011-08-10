@@ -13,6 +13,10 @@ else:
 HACS_VARCOUNT = 189
 PACS_VARCOUNT = 238
 
+HACS5yr_VARCOUNT = 189
+PACS5yr_VARCOUNT = 222
+
+
 IPF_TOLERANCE = 0.0001
 IPF_MAX_ITERATIONS = 250
 IPU_TOLERANCE = 0.0001
@@ -39,6 +43,17 @@ RAW_SUMMARYACS_FILES = ['g20073%s.txt',
 RAW_SUMMARYACS_FILES_NOEXT = ['geo', '0011', '0013', '0014', '0015', 
                               '0046','0048', '0082', '0103', '0109',
                               '0130','0133', '0140']
+
+
+RAW_SUMMARYACS5yr_FILES_NOEXT = ['geo', '0010', '0011', '0012', '0033', 
+                              '0053','0069', '0096', '0104']
+
+
+RAW_SUMMARYACS5yr_FILES = ['g20095%s.txt', '20095%s0010000.txt',
+                        '20095%s0011000.txt', '20095%s0012000.txt', '20095%s0033000.txt', 
+                        '20095%s0053000.txt', '20095%s0069000.txt',
+                        '20095%s0096000.txt', 
+                        '20095%s0104000.txt']
 
 
 
