@@ -495,7 +495,6 @@ class AutoImportPUMS2000Data():
         string = string[:-1] + '\n'
         return string
 
-
 class AutoImportPUMSACSData(AutoImportPUMS2000Data):
     def __init__(self, project):
         AutoImportPUMS2000Data.__init__(self, project)
@@ -707,6 +706,111 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
             self.personDefaultVariables = []
             while (self.query.next()):
                 self.personDefaultVariables.append(self.query.value(0).toString())
+
+
+class AutoImportPUMS5yrACSData(AutoImportPUMSACSData):
+    def __init__(self, project):
+        AutoImportPUMSACSData.__init__(self, project)
+	
+	self.loc = os.path.join(DATA_DOWNLOAD_LOCATION, '%s' %self.state, 'PUMSACS5yr')
+
+    def pumsVariableTable(self):
+        check = self.checkIfTableExists('pumsacsvariablelist')
+        if check:
+            PUMSVariableDefTable = ImportUserProvData("pumsacsvariablelist",
+                                                      "./data/pumsacs5yr_variables.csv",
+                                                      [], [],True, True)
+            if not self.query.exec_(PUMSVariableDefTable.query1):
+                raise FileError, self.query.lastError().text()
+            if not self.query.exec_(PUMSVariableDefTable.query2):
+                raise FileError, self.query.lastError().text()
+
+
+    def retrieveAndStorePUMS(self, filetype):
+        web_stabb = self.project.stateAbb[self.state]
+        
+        if filetype == 'H':
+            h_download_location = self.loc + os.path.sep + 'csv_h%s.zip' %(web_stabb)
+            urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/pums/csv_h%s.zip""" %(web_stabb),
+                               h_download_location)
+        else:
+            p_download_location = self.loc + os.path.sep + 'csv_p%s.zip' %(web_stabb)
+            urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/pums/csv_p%s.zip""" %(web_stabb),
+                               p_download_location)
+
+    def createHousingPUMSTable(self):
+        web_stabb = self.project.stateAbb[self.state]
+        hMasterFile = self.loc + os.path.sep + 'ss09h%s.csv' %web_stabb
+
+        hMasterVariablesTypes = ['bigint'] * HACS5yr_VARCOUNT
+        
+        hMasterPUMSTableQuery = ImportUserProvData("housing_raw", hMasterFile, 
+                                                   varTypes=hMasterVariablesTypes, 
+                                                   varNamesFileDummy=True, 
+                                                   varTypesFileDummy=False)
+
+        if self.checkIfTableExists('housing_raw'):
+
+            if not self.query.exec_(hMasterPUMSTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(hMasterPUMSTableQuery.query2):
+                raise FileError, self.query.lastError().text()
+
+
+        dummyString = ''
+        for i in self.housingVariablesSelected:
+            dummyString = dummyString + i + ','
+            
+        dummyString = dummyString[:-1]
+        #print dummyString
+        
+        
+
+        if not self.query.exec_("""create table housing_pums select %s from housing_raw"""
+                                %(dummyString)):
+            raise FileError, self.query.lastError().text()
+
+
+    def createPersonPUMSTable(self):
+        web_stabb = self.project.stateAbb[self.state]
+        pMasterFile = self.loc + os.path.sep + 'ss09p%s.csv' %web_stabb
+
+        pMasterVariablesTypes = ['bigint'] * PACS5yr_VARCOUNT
+        
+        pMasterPUMSTableQuery = ImportUserProvData("person_raw", pMasterFile, 
+                                                   varTypes=pMasterVariablesTypes, 
+                                                   varNamesFileDummy=True, 
+                                                   varTypesFileDummy=False)
+
+        import time
+        ti = time.time()
+        if self.checkIfTableExists('person_raw'):
+
+            if not self.query.exec_(pMasterPUMSTableQuery.query1):
+                raise FileError, self.query.lastError().text()
+
+            if not self.query.exec_(pMasterPUMSTableQuery.query2):
+                raise FileError, self.query.lastError().text()
+
+
+        dummyString = ''
+        for i in self.personVariablesSelected:
+            dummyString = dummyString + i + ','
+            
+        dummyString = dummyString[:-1]
+        #print dummyString
+
+        #print 'time for creating the raw person table - ', time.time()-ti
+
+        ti = time.time()
+
+
+        if not self.query.exec_("""create table person_pums select %s from person_raw"""
+                                %(dummyString)):
+            raise FileError, self.query.lastError().text()
+
+        #print 'time for creating the small person table - ', time.time()-ti
 
 
 if __name__ == "__main__":

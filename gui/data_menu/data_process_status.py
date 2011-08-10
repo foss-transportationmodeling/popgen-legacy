@@ -6,8 +6,8 @@
 from __future__ import with_statement
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from pums_data import AutoImportPUMS2000Data, AutoImportPUMSACSData, UserImportSampleData
-from sf_data import AutoImportSF2000Data, AutoImportSFACSData, UserImportControlData
+from pums_data import AutoImportPUMS2000Data, AutoImportPUMSACSData, AutoImportPUMS5yrACSData, UserImportSampleData
+from sf_data import AutoImportSF2000Data, AutoImportSFACSData, AutoImportSF5yrACSData, UserImportControlData
 from geocorr_data import AutoImportGeocorrData, UserImportGeocorrData
 from shape_data import Shapes
 from misc.errors import FileError
@@ -177,9 +177,13 @@ class DataDialog(QDialog):
             if self.project.sampleUserProv.defSource == "Census 2000":
                 # IMPORTING FILES AUTOMATICALLY
                 self.importPUMSInstance = AutoImportPUMS2000Data(self.project)
-            else:
+            elif self.project.sampleUserProv.defSource == "ACS 2005-2007":
                 self.importPUMSInstance = AutoImportPUMSACSData(self.project)
                 # Housing PUMS
+	    elif self.project.sampleUserProv.defSource == "ACS 2005-2009":
+		self.importPUMSInstance = AutoImportPUMS5yrACSData(self.project)
+	    else:
+		print 'Invalid source - %s for sample data' %(self.project.sampleUserProv.defSource)
             try:
                 self.importPUMSInstance.checkHousingPUMSTable()
                 self.SampleHousingLayout.changeStatus(True)
@@ -223,8 +227,13 @@ class DataDialog(QDialog):
             if self.project.controlUserProv.defSource == "Census 2000":
                 # IMPORTING FILES AUTOMATICALLY
                 self.importSFInstance = AutoImportSF2000Data(self.project)
-            else:
+            elif self.project.controlUserProv.defSource == "ACS 2005-2007":
                 self.importSFInstance = AutoImportSFACSData(self.project)
+	    elif self.project.controlUserProv.defSource == "ACS 2005-2009":
+		self.importSFInstance = AutoImportSF5yrACSData(self.project)
+	    else:
+		print 'Invalid source - %s for summary file data' %(self.project.controlUserProv.defSource)
+
                 # Housing/Person Controls/Marginals
             self.importSFInstance.downloadSFData()
             self.importSFInstance.createRawSFTable()
