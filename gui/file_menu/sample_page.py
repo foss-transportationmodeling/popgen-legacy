@@ -57,7 +57,8 @@ class SampleDataPage(QWizardPage):
         self.sourceComboBox = QComboBox()
         self.sourceComboBox.addItems([QString(""), 
                                       QString("Census 2000"), 
-                                      QString("ACS 2005-2007")])
+                                      QString("ACS 2005-2007"),
+				      QString("ACS 2005-2009")])
 
 
         sourceLayout = QHBoxLayout()
