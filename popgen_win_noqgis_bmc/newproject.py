@@ -119,14 +119,17 @@ class Parameters(object):
     def __init__(self,
                  ipfTol=IPF_TOLERANCE,
                  ipfIter=IPF_MAX_ITERATIONS,
+		 ipuProcedure="ProportionalUpdating",
                  ipuTol=IPU_TOLERANCE,
                  ipuIter=IPU_MAX_ITERATIONS,
                  synPopDraws=SYNTHETIC_POP_MAX_DRAWS,
                  synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE,
                  roundingProcedure=ROUNDING_PROCEDURE):
 
+	
         self.ipfTol = ipfTol
         self.ipfIter = ipfIter
+	self.ipuProcedure = ipuProcedure
         self.ipuTol = ipuTol
         self.ipuIter = ipuIter
         self.synPopDraws = synPopDraws
@@ -136,10 +139,12 @@ class Parameters(object):
     def __repr__(self):
         return ("""PARAMETER OBJECT:\n"""\
                     """\tIPF Tolerance - %s, IPF Iterators - %s \n"""\
+		    """\tIPU Procedure - %s\n"""\
                     """\tIPU Tolerance - %s, IPU Iterators - %s \n"""\
                     """\tSynthetic Draws Tolerance - %s, SyntheticDraws Iterators - %s \n"""\
                     """\tRounding Procedure - %s\n""" 
                 %(self.ipfTol, self.ipfIter,
+		  self.ipuProcedure,
                   self.ipuTol, self.ipuIter,
                   self.synPopPTol, self.synPopDraws,
                   self.roundingProcedure))
