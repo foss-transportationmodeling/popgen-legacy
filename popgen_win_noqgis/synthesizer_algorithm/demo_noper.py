@@ -115,8 +115,6 @@ def configure_and_run(project, geo, varCorrDict):
     print 'Step 3: Running IPU procedure for obtaining weights that satisfy Household constraints... '
     dbc.execute('select rowno from sparse_matrix1_%s group by rowno'%(99999))
     result = numpy.asarray(dbc.fetchall())[:,0]
-    weights = numpy.ones((1,housing_units), dtype = float)[0] * -99
-    weights[result]=1
 
     print 'Number of housing units - %s' %housing_units
 #______________________________________________________________________
@@ -131,7 +129,16 @@ def configure_and_run(project, geo, varCorrDict):
 
 #______________________________________________________________________
 # Running the heuristic algorithm for the required geography
-    iteration, weights, conv_crit_array, wts_array = heuristic_algorithm_noper.heuristic_adjustment(db, 0, index_matrix, weights, total_constraint, sp_matrix, parameters)
+
+    weightsDef = numpy.ones((1,housing_units), dtype = float)[0] * -99
+    weightsDef[result]=1
+    if project.parameters.ipuProcedure == "ProportionalUpdating":
+	print 'Employing the proportional updating procedure for reallocating sample weights', project.parameters.ipuProcedure
+    	iteration, weights, conv_crit_array, wts_array = heuristic_algorithm_noper.heuristic_adjustment(db, 0, index_matrix, weightsDef, total_constraint, sp_matrix, parameters)
+    elif project.parameters.ipuProcedure == 'EntropyUpdating':
+	print 'Employing the entropy-based updating procedure for reallocating sample weights', project.parameters.ipuProcedure
+    	iteration, weights, conv_crit_array, wts_array = heuristic_algorithm_noper.ipu_entropy(db, 0, index_matrix, weightsDef, total_constraint, sp_matrix, parameters)
+
 
     print 'IPU procedure was completed in %.2f sec\n'%(time.clock()-ti)
     ti = time.clock()
