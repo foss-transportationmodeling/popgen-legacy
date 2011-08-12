@@ -10,7 +10,7 @@ import time
 import MySQLdb
 from math import exp, log
 from numpy import asarray as arr
-from numpy import ones, zeros
+from numpy import ones, zeros, power
 from scipy.optimize import fsolve
 
 def ipu(db, pumano, index_matrix, weights, control, sp_matrix, parameters):
