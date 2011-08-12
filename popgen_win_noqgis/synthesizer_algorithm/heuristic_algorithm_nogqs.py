@@ -11,6 +11,7 @@ import MySQLdb
 from math import exp, log
 from numpy import asarray as arr
 from numpy import ones, zeros
+from scipy.optimize import fsolve
 
 def ipu(db, pumano, index_matrix, weights, control, sp_matrix, parameters):
     pass
