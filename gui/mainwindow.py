@@ -9,8 +9,6 @@ from __future__ import with_statement
 import os, sys, pickle, re
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 from database.createDBConnection import createDBC
 from file_menu.wizard_window_validate import Wizard
 from file_menu.filemanager import QTreeWidgetCMenu
@@ -24,18 +22,29 @@ from synthesizer_menu.sample_control_corr import SetCorrDialog
 from synthesizer_menu.parameters import ParametersDialog
 from synthesizer_menu.run import RunDialog
 from misc.errors import FileError
-from misc.widgets import DisplayMapsDlg, ChangeMargsDlg
+from misc.widgets import ChangeMargsDlg
 
 from results_menu.view_aard import *
 from results_menu.view_pval import *
 from results_menu.view_hhdist import *
 from results_menu.view_ppdist import *
-from results_menu.view_indgeo import *
-from results_menu.view_hhmap import *
-from results_menu.view_thmap import *
-from results_menu.coreplot import *
+
 
 from help_menu.helpform import *
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    from misc.widgets import DisplayMapsDlg
+    from results_menu.view_indgeo import *
+    from results_menu.view_hhmap import *
+    from results_menu.view_thmap import *
+    from results_menu.coreplot import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+    print 'Error occurred importing qgis; no mapping support will be provided. Error message- %s' %e
+
 
 if sys.platform.startswith('win'):
     qgis_prefix = "C:/qgis"
@@ -288,11 +297,11 @@ class MainWindow(QMainWindow):
         self.regionwideSubMenu = self.resultsMenu.addMenu(QIcon("images/region.png"),"Regional Statistics")
         self.addActions(self.regionwideSubMenu, (resultsRegionalAARDAction, resultsRegionalPValueAction,
                                                  resultsRegionalHousDistAction, resultsRegionalPersDistAction))
-        
-        self.addActions(self.resultsMenu, (resultsIndividualAction, ))
+        if QGIS_flag:
+            self.addActions(self.resultsMenu, (resultsIndividualAction, ))
 
-        self.thematicMapsSubMenu = self.resultsMenu.addMenu(QIcon("images/thematic.png"), "&Thematic Maps")
-        self.addActions(self.thematicMapsSubMenu, (thematicMapsHhldAction,thematicMapsGQAction, thematicMapsPersonAction))
+            self.thematicMapsSubMenu = self.resultsMenu.addMenu(QIcon("images/thematic.png"), "&Thematic Maps")
+            self.addActions(self.thematicMapsSubMenu, (thematicMapsHhldAction,thematicMapsGQAction, thematicMapsPersonAction))
 
         self.addActions(self.resultsMenu, (None, ))
 
@@ -1048,8 +1057,10 @@ def main():
     if splash.exec_():
 
         app.processEvents()
-        QgsApplication.setPrefixPath(qgis_prefix, True)
-        QgsApplication.initQgis()
+	if QGIS_flag:
+	    QgsApplication.setPrefixPath(qgis_prefix, True)
+            QgsApplication.initQgis()
+
         app.setApplicationName("Population Generator (PopGen)")
         form = MainWindow()
         form.show()

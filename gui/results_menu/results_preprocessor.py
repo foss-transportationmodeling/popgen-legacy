@@ -5,13 +5,19 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 import os, sys
 
 from global_vars import *
-
 from gui.misc.dbf import *
+
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
 
 if sys.platform.startswith('win'):
     qgis_prefix = "C:/qgis"

@@ -6,9 +6,7 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyQt4.QtSql import *
-from qgis.core import *
-from qgis.gui import *
-from misc.map_toolbar import *
+
 import re, math, copy
 from gui.misc.errors import *
 from gui.results_menu.results_preprocessor import *
@@ -17,6 +15,16 @@ from numpy.random import randint
 from database.createDBConnection import createDBC
 from collections import defaultdict
 from math import ceil
+
+try:
+    from misc.map_toolbar import *
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
+
 
 class QWizardValidatePage(QWizardPage):
     def __init__(self, complete=False, parent=None):
@@ -1051,11 +1059,11 @@ class DisplayMapsDlg(QDialog):
             layerProvider = "ogr"
             self.layer = QgsVectorLayer(self.resultfileloc, layerName, layerProvider)
 
-            renderer = self.layer.renderer()
-            renderer.setSelectionColor(QColor(255,255,0))
+            #renderer = self.layer.renderer()
+            #renderer.setSelectionColor(QColor(255,255,0))
 
-            symbol = renderer.symbols()[0]
-            symbol.setFillColor(QColor(153,204,0))
+            #symbol = renderer.symbols()[0]
+            #symbol.setFillColor(QColor(153,204,0))
 
             if not self.layer.isValid():
                 return

@@ -6,11 +6,18 @@
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from misc.widgets import *
-from qgis.core import *
-from qgis.gui import *
-from misc.map_toolbar import *
+
 import countydata
 from numpy.random import randint
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    from misc.map_toolbar import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
 
 
 class IntroPage(QWizardPage):
@@ -69,62 +76,60 @@ class IntroPage(QWizardPage):
         countyVLayout.addWidget(countySelectWarningLabel)
 
 
-        # Displaying counties and selecting counties using the map
-        self.canvas = QgsMapCanvas()
-        self.canvas.setCanvasColor(QColor(255,255,255))
-        self.canvas.enableAntiAliasing(True)
-        self.canvas.useImageToRender(False)
-        layerPath = "./data/county.shp"
-        layerName = "county"
-        layerProvider = "ogr"
-        self.layer = QgsVectorLayer(layerPath, layerName, layerProvider)
+	if QGIS_flag:
+	    # Displaying counties and selecting counties using the map
+            self.canvas = QgsMapCanvas()
+            self.canvas.setCanvasColor(QColor(255,255,255))
+            self.canvas.enableAntiAliasing(True)
+            self.canvas.useImageToRender(False)
+            layerPath = "./data/county.shp"
+            layerName = "county"
+            layerProvider = "ogr"
+            self.layer = QgsVectorLayer(layerPath, layerName, layerProvider)
 
-        print self.layer.isValid()
+            print 'Is layer valid - ', self.layer.isValid()
+	
+	    #print dir(self.layer)
+	
+	
 
+            #self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
+            renderer = self.layer.renderer()
+            provider = self.layer.dataProvider()
 
-        #self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
-        renderer = self.layer.renderer()
+            print 'PROVIDER TYPPPPPPPPPPPEEEEEEEEEE', provider, type(self.layer)
+            print self.layer
         
-        provider = self.layer.dataProvider()
-
-        print 'PROVIDER TYPPPPPPPPPPPEEEEEEEEEE', provider, type(self.layer)
-        print self.layer
+            idx = provider.fieldNameIndex('STATE')
         
-        idx = provider.fieldNameIndex('STATE')
+            allAttrs = provider.attributeIndexes()
+            provider.select(allAttrs,QgsRectangle())
+            feat = QgsFeature()
         
-        allAttrs = provider.attributeIndexes()
-        provider.select(allAttrs,QgsRectangle())
-        feat = QgsFeature()
-        
-        renderer.setSelectionColor(QColor(255,255,0))
-
-        symbol = renderer.symbols()[0]
-        symbol.setFillColor(QColor(153,204,0))
-
-
-        if not self.layer.isValid():
-            return
-        QgsMapLayerRegistry.instance().addMapLayer(self.layer)
-        self.canvas.setExtent(self.layer.extent())
-        cl = QgsMapCanvasLayer(self.layer)
-        layers = [cl]
-        self.canvas.setLayerSet(layers)
-        self.canvas.refresh()
+            if not self.layer.isValid():
+                return
+            QgsMapLayerRegistry.instance().addMapLayer(self.layer)
+            self.canvas.setExtent(self.layer.extent())
+            cl = QgsMapCanvasLayer(self.layer)
+            layers = [cl]
+            self.canvas.setLayerSet(layers)
+            self.canvas.refresh()
 
 
         # Vertical layout of project description elements
         vLayout1 = QVBoxLayout()
         vLayout1.addLayout(projectVLayout)
         vLayout1.addLayout(countyVLayout)
-        # Vertical layout of map elements
         self.vLayout2 = QVBoxLayout()
-        self.toolbar = Toolbar(self.canvas, self.layer)
-        self.toolbar.hideDragTool()
-        self.toolbar.hideSelectTool()
-        self.vLayout2.addWidget(self.toolbar)
-        self.vLayout2.addWidget(self.canvas)
-        self.toolbar.setHidden(True)
-        self.canvas.setHidden(True)
+	if QGIS_flag:
+            # Vertical layout of map elements
+            self.toolbar = Toolbar(self.canvas, self.layer)
+            self.toolbar.hideDragTool()
+            self.toolbar.hideSelectTool()
+            self.vLayout2.addWidget(self.toolbar)
+            self.vLayout2.addWidget(self.canvas)
+            self.toolbar.setHidden(True)
+            self.canvas.setHidden(True)
         self.mapwidget = QLabel()
         pixmap = QPixmap()
         pixmap.load("./images/Globe.png")

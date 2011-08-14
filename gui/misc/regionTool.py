@@ -3,11 +3,16 @@
 # Copyright (C) 2009, Arizona State University
 # See PopGen/License
 
-from qgis.core import *
-from qgis.gui import *
-
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
 
 class regionTool(QgsMapTool):
     def __init__(self, canvas):

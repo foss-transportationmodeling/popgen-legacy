@@ -5,12 +5,18 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 import sys, os
 
 from regionTool import *
 from pointSelectTool import *
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
 
 
 qgis_prefix = "C:\qgis"

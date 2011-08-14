@@ -297,13 +297,13 @@ class Indgeo(Matplot):
         self.mapcanvas.useImageToRender(False)
         print 'RESULTS FILE LOCATION', self.resultfileloc
         self.layer = QgsVectorLayer(self.resultfileloc, "Selgeogs", "ogr")
-        renderer = self.layer.renderer()
-        renderer.setSelectionColor(QColor(255,255,0))
-        symbol = renderer.symbols()[0]
-        symbol.setFillColor(QColor(153,204,0))
         print self.layer.isValid, "LAYER VALID "
         if not self.layer.isValid():
             return
+        renderer = self.layer.renderer()
+        #renderer.setSelectionColor(QColor(255,255,0))
+        #symbol = renderer.symbols()[0]
+        #symbol.setFillColor(QColor(153,204,0))
         QgsMapLayerRegistry.instance().addMapLayer(self.layer)
         self.mapcanvas.setExtent(self.layer.extent())
         cl = QgsMapCanvasLayer(self.layer)
