@@ -200,7 +200,7 @@ class AutoImportSF2000Data():
 
         if self.checkIfTableExists(tablename):
 
-            if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid float, """
+            if not self.query.exec_("""create table %s (raw text, sumlev float, geocomp float, sfgeoid text, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
                 raise FileError, self.query.lastError().text()
@@ -412,7 +412,7 @@ class AutoImportSFACSData(AutoImportSF2000Data):
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
-            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid float, """
+            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid text, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
                 raise FileError, self.query.lastError().text()
@@ -594,7 +594,7 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
         tablename = '%sgeo' %(self.stateAbb[self.state])
 
         if self.checkIfTableExists(tablename):
-            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid float, """
+            if not self.query.exec_("""create table %s (raw text, sumlev float, sfgeoid text, """
                                     """state float, county float, tract  float, bg float, logrecno float)"""
                                     %tablename):
                 raise FileError, self.query.lastError().text()

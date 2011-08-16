@@ -81,7 +81,7 @@ class IntroPage(QWizardPage):
             self.canvas = QgsMapCanvas()
             self.canvas.setCanvasColor(QColor(255,255,255))
             self.canvas.enableAntiAliasing(True)
-            self.canvas.useImageToRender(False)
+            self.canvas.useQImageToRender(False)
             layerPath = "./data/county.shp"
             layerName = "county"
             layerProvider = "ogr"
@@ -95,15 +95,15 @@ class IntroPage(QWizardPage):
 
             #self.layer.setRenderer(QgsUniqueValueRenderer(self.layer.vectorType()))
             renderer = self.layer.renderer()
-            provider = self.layer.dataProvider()
+            provider = self.layer.getDataProvider()
 
             print 'PROVIDER TYPPPPPPPPPPPEEEEEEEEEE', provider, type(self.layer)
             print self.layer
         
-            idx = provider.fieldNameIndex('STATE')
+            idx = provider.indexFromFieldName('STATE')
         
-            allAttrs = provider.attributeIndexes()
-            provider.select(allAttrs,QgsRectangle())
+            allAttrs = provider.allAttributesList()
+            provider.select(allAttrs,QgsRect())
             feat = QgsFeature()
         
             if not self.layer.isValid():
@@ -185,13 +185,14 @@ class IntroPage(QWizardPage):
             self.regionDummy = True
         else:
             self.regionDummy = False
-
-        if self.canvas.isHidden():
-            self.mapwidget.clear()
-            self.mapwidget.setHidden(True)
-            self.toolbar.setHidden(False)
-            self.canvas.setHidden(False)
-        self.highlightSelectedCounties()        
+        
+        if QGIS_flag:
+            if self.canvas.isHidden():
+                self.mapwidget.clear()
+                self.mapwidget.setHidden(True)
+                self.toolbar.setHidden(False)
+                self.canvas.setHidden(False)
+            self.highlightSelectedCounties()        
 
         self.emit(SIGNAL("completeChanged()"))
 

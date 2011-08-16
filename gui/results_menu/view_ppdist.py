@@ -5,8 +5,6 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 from gui.misc.errors import *
 import numpy as np
 

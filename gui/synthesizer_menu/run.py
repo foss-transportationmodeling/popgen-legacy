@@ -261,7 +261,20 @@ class RunDialog(QDialog):
 
                     self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
                                              %(geo.state, geo.county, geo.tract, geo.bg))
-
+                    """
+                    if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo.configure_and_run(self.project, geo, varCorrDict)
+                    if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_noper.configure_and_run(self.project, geo, varCorrDict)
+                    if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+                    if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                        print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                        demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
+                    """
                     try:
                         if self.gqAnalyzed and self.project.selVariableDicts.persControl:
                             print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'

@@ -297,7 +297,6 @@ class Indgeo(Matplot):
         self.mapcanvas.useImageToRender(False)
         print 'RESULTS FILE LOCATION', self.resultfileloc
         self.layer = QgsVectorLayer(self.resultfileloc, "Selgeogs", "ogr")
-        print self.layer.isValid, "LAYER VALID "
         if not self.layer.isValid():
             return
         renderer = self.layer.renderer()

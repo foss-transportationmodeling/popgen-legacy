@@ -12,6 +12,12 @@ from geocorr_data import AutoImportGeocorrData, UserImportGeocorrData
 from shape_data import Shapes
 from misc.errors import FileError
 
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
 
 class DataDialog(QDialog):
     def __init__(self, project, parent = None):
@@ -77,7 +83,7 @@ class DataDialog(QDialog):
         layout.addWidget(self.controlGroupBox)
 
 
-        if self.project.resolution <> 'TAZ':
+        if self.project.resolution <> 'TAZ' and QGIS_flag == True:
             self.RegionShapeLayout = CheckLabel("f. Processing regional shape files", "incomplete")
             layout4 = QVBoxLayout()
             layout4.addLayout(self.RegionShapeLayout)
