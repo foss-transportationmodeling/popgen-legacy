@@ -5,15 +5,24 @@
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
-from qgis.core import *
-from qgis.gui import *
 import os, sys
 
 from global_vars import *
-
 from gui.misc.dbf import *
 
-qgis_prefix = "C:/qgis"
+
+try:
+    from qgis.core import *
+    from qgis.gui import *
+    QGIS_flag = True
+except Exception, e:
+    QGIS_flag = False
+
+
+if sys.platform.startswith('win'):
+    qgis_prefix = "C:/qgis"
+else:
+    qgis_prefix = "/usr"
 
 # This class generates the follwing results after a population synthesizer run
 # A point layer where each point is a synthesized household
