@@ -10,7 +10,7 @@ import time
 import MySQLdb
 from math import exp, log
 from numpy import asarray as arr
-from numpy import ones, zeros
+from numpy import ones, zeros, power
 from scipy.optimize import fsolve
 
 def ipu(db, pumano, index_matrix, weights, control, sp_matrix, parameters):
@@ -66,15 +66,15 @@ def ipu_entropy(db, pumano, index_matrix, weights, control, sp_matrix, parameter
 	    weights[sp_matrix[i[1]-1:i[2], 2]] = weights[sp_matrix[i[1]-1:i[2], 2]] * power(optRoot, sp_matrix[i[1]-1:i[2], 4])
 
 
-    # Creating the evaluation statistic
-        for i in index_matrix[hh_colno:,:]:
+# Creating the evaluation statistic
+        for i in index_matrix[:hh_colno,:]:
             dummy = ((weights[sp_matrix[i[1]-1:i[2], 2]] * sp_matrix[i[1]-1:i[2], 4]).sum() - control[i[0]-4]) / control[i[0]-4]
             conv_criterion = conv_criterion + abs(dummy)
 
 
     # CHECK FOR THE STATIONARY VALUES FOR THE INDEX ERROR THAT IS BEING PROMPTED
 
-        conv_criterion = conv_criterion / ( tot_colno - hh_colno)
+        conv_criterion = conv_criterion / (hh_colno)
         conv_criterion_array.append(conv_criterion)
         if iteration >=2:
             convergence = abs(conv_criterion_array[-1] - conv_criterion_array[-2])
@@ -84,7 +84,7 @@ def ipu_entropy(db, pumano, index_matrix, weights, control, sp_matrix, parameter
                 convergence = 0
         conv_criterion = 0
 	print '%d, %.4f, %d, %.4f'%(iteration, (weights).sum(), tot_colno, conv_criterion_array[-1])
-    conv_criterion = conv_criterion / ( tot_colno - hh_colno)
+    conv_criterion = conv_criterion / (hh_colno)
     print '%d, %.4f, %d, %.4f, %d'%(iteration, (weights).sum(), tot_colno, conv_criterion_array[-1], convergence)
     return iteration, weights, conv_criterion_array, wts_personadj
 
