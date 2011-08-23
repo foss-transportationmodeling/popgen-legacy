@@ -10,7 +10,7 @@ import time
 import os
 import math
 from numpy import asarray as arr
-from numpy import random, histogram, zeros, arange
+from numpy import random, histogram, zeros, arange, argsort
 
 def person_index_matrix(db, pumano = 0):
     dbc = db.cursor()
@@ -151,8 +151,56 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
     return arr(synthetic_population, int)
 
 
-def drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+def drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0, drawingProcedure="With Replacement"):
+    if drawingProcedure == 'With Replacement':
+	synthetic_population = drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)
+    elif drawingProcedure == 'Without Replacement':
+	synthetic_population = drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)	
+    return synthetic_population
 
+def drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+    print 'The drawing procedure -  without replacement'
+    dbc = db.cursor()
+    dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
+    hhld_colno = dbc.rowcount
+
+    hh_colno = hhld_colno
+    synthetic_population=[]
+    j = 0
+    for i in index_matrix[:hh_colno,:]:
+
+    	if frequencies[j] > (i[2]-i[1]):
+	    print 'freq - %s, start - %s, end - %s , count - %s' %(frequencies[j], i[1], i[2] , i[2]-i[1]-1)
+	    raise Exception, 'Cannot sample so many households without replacement; correct the procedure for drawing - '
+
+	totalHhldOfType = i[2] - i[1] - 1
+	hhIds = sp_matrix[i[1]-1:i[2],2]
+	#print hhIds[:5]
+	#random.shuffle(hhIds)
+	
+	sortIndexes = argsort(weights[sp_matrix[i[1]-1:i[2],2]])
+	#print 'Unsorted Hids', hhIds[:5]
+	#print 'Weights', weights[sp_matrix[i[1]-1:i[2],2]][:5]
+	#print 'Sorted indexes', sortIndexes[:5].shape
+	selectedHhIds = hhIds[sortIndexes[:int(frequencies[j])]]
+	#print 'Selected Hids', selectedHhIds[:5]
+	#print hhIds[:int(frequencies[j])][:5]
+
+	#print sp_matrix[i[1]-1:i[2],2][:5]
+
+	for hId in selectedHhIds:
+	    synthetic_population.append([hId, 1, i[0]])
+
+        j = j + 1
+    dbc.close()
+    db.commit()
+    return arr(synthetic_population, int)
+
+
+
+
+def drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+    print 'The drawing procedure -  with replacement'
     dbc = db.cursor()
     dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
     hhld_colno = dbc.rowcount
