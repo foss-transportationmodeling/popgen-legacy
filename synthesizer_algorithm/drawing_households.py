@@ -113,6 +113,14 @@ def create_whole_frequencies(db, synthesis_type, order_string, pumano = 0, tract
     db.commit()
     return marginals
 
+def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0, drawingProcedure="With Replacement"):
+    if drawingProcedure == 'With Replacement':
+	synthetic_population = drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)
+    elif drawingProcedure == 'Without Replacement':
+	synthetic_population = drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)	
+    return synthetic_population
+
+
 
 def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
 
@@ -151,14 +159,94 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
     return arr(synthetic_population, int)
 
 
+def drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+    print 'The drawing procedure -  without replacement'
+    dbc = db.cursor()
+
+    dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
+    hhld_colno = dbc.rowcount
+    dbc.execute('select gquniqueid from gq_sample group by gquniqueid')
+    gq_colno = dbc.rowcount
+
+    hh_colno = hhld_colno + gq_colno
+    synthetic_population=[]
+    j = 0
+    for i in index_matrix[:hh_colno,:]:
+
+    	if frequencies[j] > (i[2]-i[1]):
+	    print 'freq - %s, start - %s, end - %s , count - %s' %(frequencies[j], i[1], i[2] , i[2]-i[1]-1)
+	    raise Exception, 'Cannot sample so many households without replacement; correct the procedure for drawing - '
+
+	totalHhldOfType = i[2] - i[1] - 1
+	hhIds = sp_matrix[i[1]-1:i[2],2]
+	#print hhIds[:5]
+	#random.shuffle(hhIds)
+	
+	sortIndexes = argsort(weights[sp_matrix[i[1]-1:i[2],2]])
+	#print 'Unsorted Hids', hhIds[:5]
+	#print 'Weights', weights[sp_matrix[i[1]-1:i[2],2]][:5]
+	#print 'Sorted indexes', sortIndexes[:5].shape
+	selectedHhIds = hhIds[sortIndexes[:int(frequencies[j])]]
+	#print 'Selected Hids', selectedHhIds[:5]
+	#print hhIds[:int(frequencies[j])][:5]
+
+	#print sp_matrix[i[1]-1:i[2],2][:5]
+
+	for hId in selectedHhIds:
+	    synthetic_population.append([hId, 1, i[0]])
+
+        j = j + 1
+    dbc.close()
+    db.commit()
+    return arr(synthetic_population, int)
+
+
+
+
+def drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+    dbc = db.cursor()
+
+    dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
+    hhld_colno = dbc.rowcount
+    dbc.execute('select gquniqueid from gq_sample group by gquniqueid')
+    gq_colno = dbc.rowcount
+
+    hh_colno = hhld_colno + gq_colno
+    synthetic_population=[]
+    j = 0
+    for i in index_matrix[:hh_colno,:]:
+        if i[1] == i[2] and frequencies[j]>0:
+            synthetic_population.append([sp_matrix[i[1]-1, 2] , frequencies[j], i[0]])
+        else:
+            cumulative_weights = weights[sp_matrix[i[1]-1:i[2], 2]].cumsum()
+            probability_distribution = cumulative_weights / cumulative_weights[-1]
+            probability_lower_limit = probability_distribution.tolist()
+            probability_lower_limit.insert(0,0)
+            probability_lower_limit = arr(probability_lower_limit)
+            random_numbers = random.rand(frequencies[j])
+            freq, probability_lower_limit = histogram(random_numbers, probability_lower_limit)
+
+            hhldid_by_type = sp_matrix[i[1]-1:i[2],2]
+
+            for k in range(len(freq)):
+                if freq[k]<>0:
+                    #hhid = hhidRowDict[hhldid_by_type[k]]
+                    # storing the matrix row no, freq, type
+                    synthetic_population.append([hhldid_by_type[k], freq[k], i[0]])
+        j = j + 1
+
+    dbc.close()
+    db.commit()
+    return arr(synthetic_population, int)
+
 def drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0, drawingProcedure="With Replacement"):
     if drawingProcedure == 'With Replacement':
-	synthetic_population = drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)
+	synthetic_population = drawing_with_replacement_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)
     elif drawingProcedure == 'Without Replacement':
-	synthetic_population = drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)	
+	synthetic_population = drawing_without_replacement_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0)	
     return synthetic_population
 
-def drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+def drawing_without_replacement_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
     print 'The drawing procedure -  without replacement'
     dbc = db.cursor()
     dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
@@ -199,7 +287,7 @@ def drawing_without_replacement(db, frequencies, weights, index_matrix, sp_matri
 
 
 
-def drawing_with_replacement(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+def drawing_with_replacement_nogqs(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
     print 'The drawing procedure -  with replacement'
     dbc = db.cursor()
     dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
