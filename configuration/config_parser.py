@@ -12,10 +12,13 @@ from numpy import array, asarray
 from collections import defaultdict
 from newproject import *
 
+class ConfigurationError(Exception):
+    pass
+
 
 class ConfigParser(object):
     def __init__(self, configObject):
-        if not isinstance(configObject, etree._ElementTree):
+        if not (isinstance(configObject, etree._ElementTree) or isinstance(configObject, etree._Element)):
             print ConfigurationError, """The configuration object input is not a valid """\
                 """etree.Element object. Trying to load the object from the configuration"""\
                 """ file."""
@@ -279,6 +282,9 @@ class ConfigParser(object):
         variables = []
         variableDims = []
         controlTypeElement = controlVarsElement.find(controlType)
+	if controlTypeElement is None:
+	    return variables, array(variableDims)
+
         varsIterator = controlTypeElement.getiterator('Variable')
         for varElement in varsIterator:
             name = varElement.get('name')
@@ -289,6 +295,8 @@ class ConfigParser(object):
 
     def parse_control_variables(self, controlVarsElement, controlType):
         controlTypeElement = controlVarsElement.find(controlType)
+	if controlTypeElement is None:
+	    return [], array([])
 
 	variables = []
         variableDict = {}
@@ -334,6 +342,8 @@ class ConfigParser(object):
         varMapTypeElement = varMapElement.find(controlType)
 
         varMapDict = defaultdict(dict)
+	if varMapTypeElement is None:
+	    return varMapDict
         
         varMapIterator = varMapTypeElement.getiterator('ControlVariableMap')
         for varMap in varMapIterator:
@@ -357,6 +367,12 @@ class ConfigParser(object):
         ipfItersElement = parameterElement.find('IPFIterations')
         ipfIters = int(ipfItersElement.get('value'))
 
+	ipuProcElement = parameterElement.find('IPUProcedure')
+	if ipuProcElement is not None:
+	    ipuProc = ipuProcElement.get('name')
+	else:
+	    ipuProc = "ProportionalUpdating"
+
         ipuTolElement = parameterElement.find('IPUTolerance')
         ipuTol = float(ipuTolElement.get('value'))
 
@@ -373,11 +389,15 @@ class ConfigParser(object):
         roundingProcElement = parameterElement.find('RoundingProcedure')
         roundingProc = roundingProcElement.get('name')
 
+	drawingProcElement = parameterElement.find('DrawingProcedure')
+	drawingProc = drawingProcElement.get('name')
+	
         parameterObj = Parameters(ipfTol=ipfTol, ipfIter=ipfIters,
-                                  ipuProcedure="ProportionalUpdating", 
+                                  ipuProcedure=ipuProc, 
 				  ipuTol=ipuTol, ipuIter=ipuIters,
                                   synPopDraws=synDrawsIters, synPopPTol=synDrawsTol,
-                                  roundingProcedure=roundingProc)
+                                  roundingProcedure=roundingProc,
+				  drawingProcedure=drawingProc)
 
         print parameterObj
         return parameterObj
