@@ -43,28 +43,28 @@ class PopgenManager(object):
     be passed.
     """
 
-    def __init__(self, fileLoc, parallelFlag=1):
-        if fileLoc is None:
+    def __init__(self, fileLoc=None, configObject =None, parallelFlag=1):
+        if configObject is None and fileLoc is None:
             raise ConfigurationError, """The configuration input is not valid; a """\
-                """location of the XML configuration file """
+                """location of the XML configuration file or a valid etree """\
+                """object must be passed"""
 
-        try:
-            fileLoc = fileLoc.lower()
-            self.fileLoc = fileLoc
-            configObject = etree.parse(fileLoc)
-        except AttributeError, e:
-	    print e
-            raise ConfigurationError, """The file location is not a valid."""
-        except IOError, e:
-            print e
-            raise ConfigurationError, """The path for configuration file was """\
-                """invalid or the file is not a valid configuration file."""
+        if not ((isinstance(configObject, etree._ElementTree) or isinstance(configObject, etree._Element))
+		and configObject is not None):
+            print ConfigurationError, """The configuration object input is not a valid """\
+                """etree.Element object. Trying to load the object from the configuration"""\
+                """ file."""
+
+	self.fileLoc = fileLoc
+	self.configObject = configObject
 
 	self.parallelFlag = parallelFlag
 
+
+
         print '________________________________________________________________'
         print 'PARSING CONFIG FILE'
-        self.configParser = ConfigParser(configObject) #creates the model configuration parser
+        self.configParser = ConfigParser(self.configObject) #creates the model configuration parser
 	self.configParser.parse_project()
 	self.project = self.configParser.project
         print 'COMPLETED PARSING CONFIG FILE'
@@ -927,19 +927,20 @@ class PopgenManager(object):
             summaryFileDlg = ExportSummaryFile(scenario, scenario.summaryTableNameLoc)
 	    summaryFileDlg.save()
       
-        print '\t\tExporting multiway table results ... --'
-        print '\t\t\tCreating the synthetic files with variables appended'
-        defHousingLoc = '%s%s%s' %(self.project.location, os.path.sep,
-				   self.project.name)
-        defPersonLoc = '%s%s%s' %(self.project.location, os.path.sep,
-				  self.project.name)
-	
-	defHousingTableNameLoc = TableNameLoc('housing_synthetic', defHousingLoc)
-	defPersonTableNameLoc = TableNameLoc('person_synthetic', defPersonLoc)	
-        popFileDlg = SaveSyntheticPopFile(scenario, defHousingTableNameLoc, defPersonTableNameLoc)
-        popFileDlg.save()
-      
+     
 	if len(scenario.multiwayTableList) > 0:
+            print '\t\tExporting multiway table results ... --'
+            print '\t\t\tCreating the synthetic files with variables appended'
+            defHousingLoc = '%s%s%s' %(self.project.location, os.path.sep,
+				       self.project.name)
+            defPersonLoc = '%s%s%s' %(self.project.location, os.path.sep,
+				      self.project.name)
+	
+	    defHousingTableNameLoc = TableNameLoc('housing_synthetic', defHousingLoc)
+	    defPersonTableNameLoc = TableNameLoc('person_synthetic', defPersonLoc)	
+            popFileDlg = SaveSyntheticPopFile(scenario, defHousingTableNameLoc, defPersonTableNameLoc)
+            popFileDlg.save()
+
 	    for mwayTable in scenario.multiwayTableList:
             	mwayFileDlg = ExportMultiwayTables(scenario, mwayTable)
 		mwayFileDlg.saveMultiwayTables()

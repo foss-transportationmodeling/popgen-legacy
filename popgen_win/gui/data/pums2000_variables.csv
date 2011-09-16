@@ -141,14 +141,14 @@ RACE1,Race Recode 1,P,A,1,38,38,1
 RACE2,Race Recode 2,P,A,0,39,40,2
 RACE3,Race Recode 3,P,A,0,41,42,2
 RACEA,Race Allocation Flag,P,A,0,43,43,1
-MARSTAT,Marital Status,P,A,0,44,44,1
+MARSTAT,Marital Status,P,A,1,44,44,1
 MARSTATA,Marital Status Allocation Flag,P,A,0,45,45,1
 MSP,Married Spouse Present Recode,P,A,0,46,46,1
 SFN,Subfamily Number for this person,P,A,0,47,47,1
 SFREL,Subfamily Relationship,P,A,0,48,48,1
 ENROLL,School Enrollment; Attended since February 1 2000,P,A,1,49,49,1
 ENROLLA,School Enrollment: Attended since February 1 2000 Allocation Flag,P,A,0,50,50,1
-GRADE,School Enrollment: Grade Level Attending,P,A,0,51,51,1
+GRADE,School Enrollment: Grade Level Attending,P,A,1,51,51,1
 GRADEA,School Enrollment: Grade Level Attending Allocation Flag,P,A,0,52,52,1
 EDUC,Educational Attainment,P,A,1,53,54,2
 EDUCA,Educational Attainment Allocation Flag,P,A,0,55,55,1
