@@ -22,6 +22,7 @@ class SetCorrDialog(QDialog):
     def __init__(self, project, parent=None):
         super(SetCorrDialog, self).__init__(parent)
 
+        self.setMinimumSize(800,500)
         self.setWindowTitle("Corresponding Sample Categories with Marginal Variables")
         self.setWindowIcon(QIcon("./images/varcorr.png"))
         import copy

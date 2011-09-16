@@ -172,10 +172,9 @@ def configure_and_run(project, geo, varCorrDict):
     draw_count = 0
     while(p_value < parameters.synPopPTol and draw_count < parameters.synPopDraws):
         draw_count = draw_count + 1
-        synthetic_housing_units = drawing_households.drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, 0)
+        synthetic_housing_units = drawing_households.drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, 0, drawingProcedure=project.parameters.drawingProcedure)
 
 # Creating synthetic hhld, and person attribute tables
-
         synthetic_housing_attributes, synthetic_person_attributes = drawing_households.synthetic_population_properties(db, geo, synthetic_housing_units, p_index_matrix,
                                                                                                                        housing_sample, person_sample, hhidRowDict,
                                                                                                                        rowHhidDict)

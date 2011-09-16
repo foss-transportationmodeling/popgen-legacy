@@ -78,6 +78,7 @@ class SaveSyntheticPopFile():
 	
 	try:
             results = []
+	    #print '\tRunning query - ', query
 	    dbc.execute(query)
             for i in dbc:
                 #print i
@@ -375,6 +376,7 @@ class SaveSyntheticPopFile():
 
 
     def storeMetaData(self, varNames, location, tablename):
+	print 'Storing data for table - %s at location - %s' %(tablename, location)
         f = open('%s/%s_meta.txt' %(location, tablename), 'w')
         col = 1
         for i in varNames:

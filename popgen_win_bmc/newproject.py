@@ -124,7 +124,8 @@ class Parameters(object):
                  ipuIter=IPU_MAX_ITERATIONS,
                  synPopDraws=SYNTHETIC_POP_MAX_DRAWS,
                  synPopPTol=SYNTHETIC_POP_PVALUE_TOLERANCE,
-                 roundingProcedure=ROUNDING_PROCEDURE):
+                 roundingProcedure=ROUNDING_PROCEDURE,
+		 drawingProcedure="With Replacement"):
 
 	
         self.ipfTol = ipfTol
@@ -135,6 +136,7 @@ class Parameters(object):
         self.synPopDraws = synPopDraws
         self.synPopPTol = synPopPTol
         self.roundingProcedure = roundingProcedure
+	self.drawingProcedure = drawingProcedure
 
     def __repr__(self):
         return ("""PARAMETER OBJECT:\n"""\
@@ -142,12 +144,14 @@ class Parameters(object):
 		    """\tIPU Procedure - %s\n"""\
                     """\tIPU Tolerance - %s, IPU Iterators - %s \n"""\
                     """\tSynthetic Draws Tolerance - %s, SyntheticDraws Iterators - %s \n"""\
-                    """\tRounding Procedure - %s\n""" 
+                    """\tRounding Procedure - %s\n"""
+		    """\tDrawing Procedure - %s""" 
                 %(self.ipfTol, self.ipfIter,
 		  self.ipuProcedure,
                   self.ipuTol, self.ipuIter,
                   self.synPopPTol, self.synPopDraws,
-                  self.roundingProcedure))
+                  self.roundingProcedure,
+		  self.drawingProcedure))
                 
                 
 
