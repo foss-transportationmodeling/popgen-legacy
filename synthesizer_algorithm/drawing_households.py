@@ -122,7 +122,7 @@ def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pum
 
 
 
-def drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
+def drawing_housing_units1(db, frequencies, weights, index_matrix, sp_matrix, pumano = 0):
 
     dbc = db.cursor()
     dbc.execute('select hhlduniqueid from hhld_sample group by hhlduniqueid')
