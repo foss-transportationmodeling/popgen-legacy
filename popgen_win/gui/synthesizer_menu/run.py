@@ -561,6 +561,10 @@ class RunDialog(QDialog):
         if not query.exec_("update %s set %s = %s" %(tablename, varname, varString)):
             raise FileError, query.lastError().text()        
 
+        if not query.exec_("update %s set %s = 0 where %s is NULL" %(tablename, varname, varname)):
+            raise FileError, query.lastError().text()        
+
+
     def createModHhldTable(self):
         databaseName = self.project.name
         self.projectDBC.dbc.setDatabaseName(databaseName)
@@ -720,7 +724,7 @@ class RunDialog(QDialog):
                 #    if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j)):
                 #        raise FileError, query.lastError().text()        
 
-                #print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j))
+                print ("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j))
                 if not query.exec_("""update hhld_marginals_modpgq set mod%s = %s + p%s * hhldeqdef""" %(j, j, j)):
                     raise FileError, query.lastError().text()        
 
