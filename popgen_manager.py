@@ -67,7 +67,8 @@ class PopgenManager(object):
         self.configParser = ConfigParser(self.configObject) #creates the model configuration parser
 	self.configParser.parse_project()
 	self.project = self.configParser.project
-        print 'COMPLETED PARSING CONFIG FILE'
+	self.create_database()
+        print 'COMPLETED PARSING CONFIG FILE AND CREATED THE MASTER DATABASE'
         print '________________________________________________________________'
 
 	try:
@@ -79,6 +80,14 @@ class PopgenManager(object):
 
         ppservers = ()
         self.job_server = pp.Server(ppservers=ppservers, restart = True)
+
+
+
+    def create_database(self):
+	if self.project.createTables:
+	    self.drop_main_database()
+	    self.setup_database()
+            self.create_tables()
 
 
 
@@ -953,10 +962,6 @@ class PopgenManager(object):
         if skipFlag:
             print 'Skipping PopGen run ---'
             return
-	if self.project.createTables:
-	    self.drop_main_database()
-	    self.setup_database()
-            self.create_tables()
 
 	self.configParser.parse_scenarios()
 	self.scenarioList = self.configParser.scenarioList
