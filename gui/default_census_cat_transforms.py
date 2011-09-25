@@ -1026,7 +1026,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
 
                          "update %s set employment1 = gender1 + gender2 - employment2 - employment3 - employment4",
 
-                         "update %s set groupquarter1 = B26001000001",
+                         #"update %s set groupquarter1 = B26001000001",
                          "update %s set hhldinc1 = B19001000002 + B19001000003",
                          "update %s set hhldinc2 = B19001000004 + B19001000005",
                          "update %s set hhldinc3 = B19001000006 + B19001000007",
@@ -1042,6 +1042,15 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set hhldsize5 = B25009000007+B25009000015",
                          "update %s set hhldsize6 = B25009000008+B25009000016",
                          "update %s set hhldsize7 = B25009000009+B25009000017",
+
+                         "alter table %s add column persontot bigint",
+                         "alter table %s add column persontoteq bigint",
+			 "update %s set persontot = gender1 + gender2",
+			 "update %s set persontoteq = hhldsize1*1+hhldsize2*2+hhldsize3*3+hhldsize4*4+hhldsize5*5+hhldsize6*6+hhldsize7*7.98",
+			 "update %s set groupquarter1 = persontot - persontoteq",
+			 "update %s set groupquarter1 = 0 where groupquarter1 <= 0",
+			
+
                          "update %s set hhldtype1 = B11001000003",
                          "update %s set hhldtype2 = B11001000005",
                          "update %s set hhldtype3 = B11001000006",
