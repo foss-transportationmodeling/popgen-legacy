@@ -44,6 +44,10 @@ class PopgenManager(object):
     """
 
     def __init__(self, fileLoc=None, configObject =None, parallelFlag=1):
+	if fileLoc == None and configObject == None:
+	    fileLoc = os.path.realpath('./configuration/config.xml')
+	    print 'file location is now assigned to default - ', fileLoc
+
         if configObject is None and fileLoc is None:
             raise ConfigurationError, """The configuration input is not valid; a """\
                 """location of the XML configuration file or a valid etree """\
@@ -56,6 +60,9 @@ class PopgenManager(object):
                 """ file."""
 
 	self.fileLoc = fileLoc
+
+	if configObject is None:
+	    configObject = etree.parse(fileLoc)		
 	self.configObject = configObject
 
 	self.parallelFlag = parallelFlag
@@ -998,5 +1005,7 @@ class PopgenManager(object):
             self.export_results(scenario)
 	    
 if __name__ == '__main__':
-    pass
+    p = PopgenManager()
+    
+
 
