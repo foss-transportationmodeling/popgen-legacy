@@ -390,7 +390,10 @@ class ConfigParser(object):
         roundingProc = roundingProcElement.get('name')
 
 	drawingProcElement = parameterElement.find('DrawingProcedure')
-	drawingProc = drawingProcElement.get('name')
+	if drawingProcElement is None:
+	    drawingProc = 'With Replacement'
+	else:
+	    drawingProc = drawingProcElement.get('name')
 	
         parameterObj = Parameters(ipfTol=ipfTol, ipfIter=ipfIters,
                                   ipuProcedure=ipuProc, 
