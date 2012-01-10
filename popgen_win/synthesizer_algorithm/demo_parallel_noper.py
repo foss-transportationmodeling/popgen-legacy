@@ -201,7 +201,11 @@ def configure_and_run(fileLoc, geo, varCorrDict):
         stat = synth_housing_stat
         dof = count_housing - 1
 
-        p_value = scipy.stats.chisqprob(stat, dof)
+	if dof == 0:
+	    p_value = 1
+	else:
+	    p_value = scipy.stats.chisqprob(stat, dof)
+
         if p_value > max_p or stat < min_chi:
             max_p = p_value
             max_p_housing_attributes = synthetic_housing_attributes
