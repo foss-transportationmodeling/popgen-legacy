@@ -180,7 +180,7 @@ class SaveSyntheticPopFile():
 
                     self.execute_query("""delete from temphou_unique""")
 
-                    results = self.execute_query("""select * from temphou2""")
+                    #results = self.execute_query("""select * from temphou2""")
 
 		    indexOfFrequency = housingSynTableVars.index('frequency')
 		
