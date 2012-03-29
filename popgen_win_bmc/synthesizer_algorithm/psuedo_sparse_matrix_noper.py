@@ -11,7 +11,7 @@ import operator
 import os
 from math import exp
 from numpy import asarray as arr
-from numpy import ones, zeros
+from numpy import ones, zeros, int64
 from numpy import histogram
 from scipy import sparse
 from scipy import poly1d
@@ -48,7 +48,7 @@ def populate_master_matrix(db, pumano, hhld_units, gq_units, hhld_dimensions, gq
             dbc.execute('Select state, pumano, hhid, serialno, %suniqueid from %s_sample where pumano = %s order by hhid'
                         %(control_type, control_type, pumano))
 
-        result = arr(dbc.fetchall(), int)
+        result = arr(dbc.fetchall(), int64)
 
 
 # Master Matrix is populated here

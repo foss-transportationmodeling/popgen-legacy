@@ -11,7 +11,7 @@ import operator
 import os
 from math import exp
 from numpy import asarray as arr
-from numpy import ones, zeros
+from numpy import ones, zeros, int64
 from numpy import histogram
 from scipy import sparse
 from scipy import poly1d
@@ -47,7 +47,7 @@ def populate_master_matrix(db, pumano, hhld_units, hhld_dimensions):
 
 
 
-        result = arr(dbc.fetchall(), int)
+        result = arr(dbc.fetchall(), int64)
 
 
 # Master Matrix is populated here
