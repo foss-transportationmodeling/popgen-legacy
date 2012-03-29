@@ -290,6 +290,8 @@ class RunDialog(QDialog):
                             demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
                     except Exception, e:
                         self.outputWindow.append("\t- Error in the Synthesis for geography")
+                        import traceback, sys
+                        traceback.print_exc(file=sys.stdout)
                         print ('Exception: %s' %e)
 
                 self.selGeographiesButton.setEnabled(False)
@@ -338,6 +340,8 @@ class RunDialog(QDialog):
             self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
         except Exception, e:
             self.outputWindow.append("\t- Error in the Synthesis for geography")
+            import traceback, sys
+            traceback.print_exc(file=sys.stdout)
             print ('Exception: %s' %e)
 
             # Synthesizing the population for all geographies in parallel after the first one is done in serial
