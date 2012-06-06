@@ -238,12 +238,14 @@ class RunDialog(QDialog):
 
                 geoPUMADict = {}
                 for geo in self.runGeoIds:
-                    geoWitPUMA = self.getPUMA5(Geography(geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    geoWitPUMA = self.getPUMA5(Geography(geo[0], geo[1], geo[3], geo[4], geo[2]))
                     if geoWitPUMA.puma5 in geoPUMADict.keys():
                         geoPUMADict[geoWitPUMA.puma5].append(geo)
                     else:
                         geoPUMADict[geoWitPUMA.puma5] = [geo]
 
+
+                #print len(geoPUMADict), 'puma count - ', geoPUMADict 
                 for puma in geoPUMADict.keys():
                     geoList = geoPUMADict[puma]
 
@@ -372,6 +374,7 @@ class RunDialog(QDialog):
     def getPUMA5(self, geo):
         query = QSqlQuery(self.projectDBC.dbc)
 
+
         if not geo.puma5:
             if self.project.resolution == 'County':
                 geo.puma5 = int('99999' + str(geo.county).rjust(3, '0'))
@@ -388,6 +391,7 @@ class RunDialog(QDialog):
                     raise FileError, query.lastError().text()
                 while query.next():
                     geo.puma5 = query.value(0).toInt()[0]
+
 
         return geo
 
@@ -675,7 +679,7 @@ class RunDialog(QDialog):
         if not query.exec_("""alter table hhld_marginals_modpgq add column hhldeqdef float(27)"""):
             print "FileError: %s" %query.lastError().text()
 
-        if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = perstotdef/(%s)""" %hhldsizePEQPString):
+        if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = round(perstotdef/(%s))""" %hhldsizePEQPString):
             raise FileError, query.lastError().text()
 
         #print 'PEQ string', hhldsizePEQString            
