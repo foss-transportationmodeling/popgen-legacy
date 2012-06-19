@@ -124,6 +124,10 @@ class DataDialog(QDialog):
 
 
     def shapes(self):
+        if self.project.resolution <> 'TAZ' and QGIS_flag == True:
+	    pass
+	else:
+	    return
         shapesDataInstance = Shapes(self.project)
         try:
             shapesDataInstance.downloadShapes()
