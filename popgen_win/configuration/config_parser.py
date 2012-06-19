@@ -507,7 +507,7 @@ class ConfigParser(object):
     def retrieve_geoIds_for_all_counties(self):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = self.project.name)
+                             db = self.project.name, local_infile=1)
         dbc = db.cursor()     
         geoObjList = []
         try:
@@ -527,7 +527,7 @@ class ConfigParser(object):
     def retrieve_geoIds_for_counties(self, countyGeoList):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = self.project.name)
+                             db = self.project.name, local_infile=1)
         dbc = db.cursor()
 	geoObjList = []
 	for countyGeo in countyGeoList:

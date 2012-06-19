@@ -9,7 +9,7 @@ import synthesizer_algorithm.heuristic_algorithm_nogqs_noper
 import synthesizer_algorithm.psuedo_sparse_matrix
 import synthesizer_algorithm.drawing_households
 import synthesizer_algorithm.adjusting_sample_joint_distribution
-import synthesizer_algorithm.ipf
+import synthesizer_algorithm.ipf_nosql
 from newproject import Geography
 import scipy
 import scipy.stats
@@ -42,12 +42,12 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 
     db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username,
                          passwd = '%s' %project.db.password, db = '%s%s%s' 
-                         %(project.name, 'scenario', project.scenario))
+                         %(project.name, 'scenario', project.scenario), local_infile=1)
 
     dbc = db.cursor()
 
-    tii = time.clock()
-    ti = time.clock()
+    tii = time.time()
+    ti = time.time()
 
 # Identifying the number of housing units in the disaggregate sample
 # Make Sure that the file is sorted by hhid
@@ -87,13 +87,13 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 #______________________________________________________________________
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
-    hhld_objective_frequency, hhld_estimated_constraint = synthesizer_algorithm.ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
+    hhld_objective_frequency, hhld_estimated_constraint = synthesizer_algorithm.ipf_nosql.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
                                                                              project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
                                                                              parameters)
-    print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPF procedure for Households completed in %.2f sec \n'%(time.time()-ti)
+    ti = time.time()
 
 #______________________________________________________________________
 # Creating the weights array
@@ -123,8 +123,8 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 	print 'Employing the entropy-based updating procedure for reallocating sample weights', project.parameters.ipuProcedure
     	iteration, weights, conv_crit_array, wts_array = synthesizer_algorithm.heuristic_algorithm_nogqs_noper.ipu_entropy(db, 0, index_matrix, weightsDef, total_constraint, sp_matrix, parameters)
 
-    print 'IPU procedure was completed in %.2f sec\n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPU procedure was completed in %.2f sec\n'%(time.time()-ti)
+    ti = time.time()
 #_________________________________________________________________
     print 'Step 4: Creating the synthetic households and individuals...'
 # creating whole marginal values
@@ -159,7 +159,11 @@ def configure_and_run(fileLoc, geo, varCorrDict):
     draw_count = 0
     while(p_value < parameters.synPopPTol and draw_count < parameters.synPopDraws):
         draw_count = draw_count + 1
-        synthetic_housing_units = synthesizer_algorithm.drawing_households.drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, 0, drawingProcedure=project.parameters.drawingProcedure)
+        #synthetic_housing_units = synthesizer_algorithm.drawing_households.drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, sp_matrix, 0, drawingProcedure=project.parameters.drawingProcedure)
+        synthetic_housing_units = synthesizer_algorithm.drawing_households.drawing_housing_units_nogqs(db, frequencies, weights, index_matrix, 
+									   sp_matrix, 0, 
+									   drawingProcedure=project.parameters.drawingProcedure,
+									   iteration=draw_count+1)
 
 # Creating synthetic hhld, and person attribute tables
 
@@ -199,7 +203,7 @@ def configure_and_run(fileLoc, geo, varCorrDict):
 
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
-
+    print 'draw_count - %s, pvalue - %s, chi value - %s' %(draw_count, max_p, min_chi)
     if max_p_housing_attributes.shape[0] < 2500:
         synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'housing', max_p_housing_attributes, county, tract, bg)
         synthesizer_algorithm.drawing_households.storing_synthetic_attributes1(db, 'person', max_p_person_attributes, county, tract, bg)
@@ -219,7 +223,7 @@ def configure_and_run(fileLoc, geo, varCorrDict):
     dbc.close()
     db.close()
 
-    print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
+    print 'Blockgroup synthesized in %.4f s' %(time.time()-tii)
 
 def run_parallel(job_server, project, geoIds, varCorrDict, coreVersion=False):
 
@@ -230,7 +234,7 @@ def run_parallel(job_server, project, geoIds, varCorrDict, coreVersion=False):
     modules = ('synthesizer_algorithm.heuristic_algorithm_nogqs_noper',
                'synthesizer_algorithm.drawing_households',
                'synthesizer_algorithm.adjusting_sample_joint_distribution',
-               'synthesizer_algorithm.ipf',
+               'synthesizer_algorithm.ipf_nosql',
                'synthesizer_algorithm',
                'cPickle',
                'scipy',

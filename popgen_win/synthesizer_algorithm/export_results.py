@@ -73,7 +73,7 @@ class SaveSyntheticPopFile():
     def execute_query(self, query):
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password, 
-			     db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
+			     db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario), local_infile=1)
 	dbc = db.cursor()
 	
 	try:

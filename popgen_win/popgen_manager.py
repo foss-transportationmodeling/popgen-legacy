@@ -101,7 +101,7 @@ class PopgenManager(object):
     def setup_database(self, name=None):
 	#Create Database
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
-                             passwd = '%s' %self.project.db.password)
+                             passwd = '%s' %self.project.db.password, local_infile=1)
 	dbc = db.cursor()
 	
 	if name is None:
@@ -118,7 +118,7 @@ class PopgenManager(object):
 
     def drop_main_database(self):
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
-                             passwd = '%s' %self.project.db.password)
+                             passwd = '%s' %self.project.db.password, local_infile=1)
 	dbc = db.cursor()
 	
 	dbList = [self.project.name]
@@ -133,7 +133,7 @@ class PopgenManager(object):
 	
     def drop_scenario_database(self):
 	db = MySQLdb.connect(user= '%s' %self.project.db.username,
-                             passwd = '%s' %self.project.db.password)
+                             passwd = '%s' %self.project.db.password, local_infile=1)
 	dbc = db.cursor()
 	
 	dbList = []
@@ -153,7 +153,7 @@ class PopgenManager(object):
 	# Connect to the actual project database
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %(self.project.name))
+                             db = '%s' %(self.project.name), local_infile=1)
 
 
 	#Create Geographic Correspondence Table
@@ -207,7 +207,7 @@ class PopgenManager(object):
     def add_old_geo_id_columns(self, tableName):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %(self.project.name))
+                             db = '%s' %(self.project.name), local_infile=1)
 	dbc = db.cursor()
         try:
             print ("""create table %s_temp select geocorr.state, geocorr.county, """\
@@ -230,7 +230,7 @@ class PopgenManager(object):
     def add_legacy_columns(self, tableName, sample=False, marginals=False, geocorr=False):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %(self.project.name))
+                             db = '%s' %(self.project.name), local_infile=1)
 	dbc = db.cursor()
 	if sample:
 	    try:
@@ -316,7 +316,7 @@ class PopgenManager(object):
         
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+                             db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario), local_infile=1)
 
         try:
             if self.gqAnalyzed and scenario.selVariableDicts.persControl:
@@ -351,7 +351,7 @@ class PopgenManager(object):
 	try:
 	    db = MySQLdb.connect(user = '%s' %self.project.db.username,
                                  passwd = '%s' %self.project.db.password,
-                                 db = dbName)
+                                 db = dbName, local_infile=1)
 	    dbc = db.cursor()
             dbc.execute("""Drop table if exists hhld_sample""")
             dbc.execute("""Drop table if exists person_sample""")
@@ -372,7 +372,7 @@ class PopgenManager(object):
 	try:
 	    db = MySQLdb.connect(user = '%s' %self.project.db.username,
                                  passwd = '%s' %self.project.db.password,
-                                 db = scenarioDatabase)
+                                 db = scenarioDatabase, local_infile=1)
 
 	    dbc = db.cursor()
 
@@ -447,7 +447,7 @@ class PopgenManager(object):
 
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s' %self.project.name, local_infile=1)
         dbc = db.cursor()
 
         try:
@@ -471,7 +471,7 @@ class PopgenManager(object):
     def create_mod_hhld_table(self):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s' %self.project.name, local_infile=1)
         dbc = db.cursor()
 
 
@@ -517,7 +517,7 @@ class PopgenManager(object):
     def create_hhld_var_proportions(self, scenario):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s' %self.project.name, local_infile=1)
         dbc = db.cursor()
 
 
@@ -552,7 +552,7 @@ class PopgenManager(object):
     def calc_extra_hhlds_to_syn(self, scenario):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s' %self.project.name, local_infile=1)
         dbc = db.cursor()
 
 
@@ -631,7 +631,7 @@ class PopgenManager(object):
     def calc_modified_marginals(self, scenario):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s' %self.project.name)
+                             db = '%s' %self.project.name, local_infile=1)
         dbc = db.cursor()
 
         #calculating the proportions
@@ -678,7 +678,7 @@ class PopgenManager(object):
     def read_data(self, scenario):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario))
+                             db = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario), local_infile=1)
         dbc = db.cursor()
 
         dbc.execute("""select * from index_matrix_%s""" %(99999))
@@ -702,7 +702,7 @@ class PopgenManager(object):
 	dbName = '%s%s%s' %(scenario.name, 'scenario', scenario.scenario)
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = dbName)
+                             db = dbName, local_infile=1)
         dbc = db.cursor()
 
         if state == None:
@@ -912,7 +912,7 @@ class PopgenManager(object):
     def getPUMA5(self, geo):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = self.project.name)
+                             db = self.project.name, local_infile=1)
         dbc = db.cursor()
 
         if geo.puma5 is None:

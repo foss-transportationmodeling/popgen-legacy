@@ -515,7 +515,7 @@ class RunDialog(QDialog):
         
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario), local_infile=1)
 
         try:
             if self.gqAnalyzed and self.project.selVariableDicts.persControl:
@@ -822,7 +822,7 @@ class RunDialog(QDialog):
     def readData(self):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario), local_infile=1)
         dbc = db.cursor()
 
         #dbc.execute("""select * from index_matrix_%s""" %(0))

@@ -1,0 +1,467 @@
+# PopGen 1.1 is A Synthetic Population Generator for Advanced
+# Microsimulation Models of Travel Demand
+# Copyright (C) 2009, Arizona State University
+# See PopGen/License
+
+
+# This file contains a MySQL class that helps manipulate data. The instance of
+# the class also stores the results of the query as a list.
+
+import time
+import MySQLdb
+import os
+from re import match
+from numpy import asarray as arr
+from numpy import fix as quo
+from numpy import zeros
+from defining_a_database import *
+
+def create_update_string(db, control_variables, dimensions):
+    update_string = ''
+    for i in range(len(control_variables)):
+        if i == 0:
+	    if len(control_variables) ==1:
+		update_string = '%s' %(control_variables[i])
+	    else:
+                update_string = '(%s - 1)* %s' %(control_variables[i], dimensions[i+1:].prod())
+        elif i == len(control_variables)-1:
+            update_string = update_string + ' + ' + '(%s) * %s' %(control_variables[i], dimensions[i+1:].prod())
+        else:
+            update_string = update_string + ' + ' + '(%s - 1) * %s' %(control_variables[i], dimensions[i+1:].prod())
+    return(update_string)
+
+def add_unique_id(db, tablename, synthesis_type, update_string):
+    dbc = db.cursor()
+
+    if len(update_string) >0:
+        try:
+            dbc.execute('alter table %s ADD %suniqueid bigint'%(tablename, synthesis_type))
+        except Exception, e:
+            pass
+        dbc.execute('update %s set %suniqueid = %s' %(tablename, synthesis_type, update_string))
+    dbc.close()
+    db.commit()
+
+def create_joint_dist(db, synthesis_type, control_variables, dimensions, pumano = 0, tract = 0, bg = 0):
+
+    dbc = db.cursor()
+    pums = database(db, '%s_sample'%synthesis_type)
+    dummy = create_aggregation_string(control_variables)
+
+    table_rows = dimensions.cumprod()[-1]
+    table_cols = len(dimensions) + 4
+    dummy_table = zeros((table_rows, table_cols), float)
+    index_array = num_breakdown(dimensions)
+
+
+    try:
+        dbc.execute('create table %s_%s_joint_dist select %s from %s_sample where 0 '%(synthesis_type, pumano, dummy, synthesis_type))
+        dbc.execute('alter table %s_%s_joint_dist add pumano bigint first'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add tract bigint after pumano'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add bg bigint after tract'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add frequency float(27)'%(synthesis_type, pumano))
+        dbc.execute('alter table %s_%s_joint_dist add index(tract, bg)'%(synthesis_type, pumano))
+    except Exception, e:
+        #print e
+        #print 'Table %s_%s_joint_dist present' %(synthesis_type, pumano)
+        pass
+
+    variable_list = 'pumano, tract, bg, '
+    for i in control_variables:
+        variable_list = variable_list + i + ', '
+    variable_list = variable_list + 'frequency'
+
+    data_variable_list = ['pumano', 'tract', 'bg'] + control_variables + ['frequency']
+
+    if pumano >= 99999000 or pumano == 0:
+        dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+        #print ('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+        result = arr(dbc.fetchall(), int)
+        dummy_table[:,:3] = [pumano, tract, bg]
+        dummy_table[:,3:-1] = index_array
+        dummy_table[result[:,-1]-1,-1] = result[:,-2]
+	print '\tUsing seed from the entire region'
+    else:
+        dbc.execute('select %s, count(*), %suniqueid from %s_sample where pumano = %s group by %s '%(dummy, synthesis_type, synthesis_type, pumano, dummy))
+        if dbc.rowcount == 0:
+            dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+        result = arr(dbc.fetchall(), int)
+        if result.shape[0] == 0:
+            print "The PUMS sample for the corresponding PUMA is empty. Therefore sample from the entire region is considered for the geography."
+            dbc.execute('select %s, count(*), %suniqueid from %s_sample group by %s '%(dummy, synthesis_type, synthesis_type, dummy))
+            result = arr(dbc.fetchall(), int)
+        dummy_table[:,:3] = [pumano, tract, bg]
+        dummy_table[:,3:-1] = index_array
+        dummy_table[result[:,-1]-1,-1] = result[:,-2]
+	print '\tUsing seed from the PUMA'
+
+
+    dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
+    #dummy_table = str([tuple(i) for i in dummy_table])
+    dummy_table1 = str([tuple(i) for i in dummy_table])
+
+    #try:
+    #    dbc.execute('alter table %s_%s_joint_dist drop column %suniqueid' %(synthesis_type, pumano, synthesis_type))
+    #except:
+    #    pass
+
+    dbc.execute('insert into %s_%s_joint_dist (%s) values %s' %(synthesis_type, pumano, variable_list, dummy_table1[1:-1]))
+    dbc.close()
+
+    update_string = create_update_string(db, control_variables, dimensions)
+    add_unique_id(db, '%s_%s_joint_dist' %(synthesis_type, pumano), synthesis_type, update_string)
+
+    db.commit()
+    return dummy_table, data_variable_list
+
+def num_breakdown(dimensions):
+    """This method breaksdown the cell number 'n' into its index wrt to the
+    categories defined by 'm' """
+    index_array = []
+    index = []
+    table_size = dimensions.cumprod()[-1]
+    composite_index = range(table_size)
+
+    for j in composite_index:
+        n = j
+        for i in reversed(dimensions):
+            quotient = quo(n/i)
+            remainder = n - quotient * i
+            n = quotient
+            index.append(remainder+1)
+        index.reverse()
+        index_array.append(index)
+        index = []
+    return index_array
+
+def create_aggregation_string(control_variables):
+    string = ''
+    for dummy in control_variables:
+        if len(string) == 0:
+            string = string + dummy
+        else:
+            string = string + ',' + dummy
+    return string
+
+
+def adjust_weights_nosql(db, data, variable_names, synthesis_type, control_variables, dimensions, varCorrDict, controlAdjDict,
+                    state, county, pumano=0, tract=0, bg=0, parameters=0, hhldsizeMargsMod=False):
+
+    ti = time.time()
+    control_marginals = prepare_control_marginals (db, synthesis_type, control_variables, varCorrDict, 
+                                                   controlAdjDict, state, county, tract, bg, hhldsizeMargsMod)
+
+    tol = 1
+    iteration = 0
+    adjustment_old = []
+
+    target_adjustment = []
+
+    while (tol):
+        iteration = iteration +1
+        adjustment_all = []
+        for i in range(len(control_variables)):
+	    variable_name_index = variable_names.index(control_variables[i])
+	    variable_dimension = dimensions[i]
+            adjusted_marginals = marginals_nosql(data, variable_name_index, variable_dimension)
+            for j in range(len(adjusted_marginals)):
+                if adjusted_marginals[j] == 0:
+                    adjusted_marginals[j] = 1
+
+            adjustment = arr(control_marginals[i]) / arr(adjusted_marginals)
+
+            data = update_weights_nosql(data, variable_name_index, variable_dimension, adjustment)
+
+            for k in adjustment:
+                adjustment_all.append(k)
+                if iteration == 1:
+                    if k == 0:
+                        adjustment_old.append(0)
+                    else:
+                        adjustment_old.append(k/k)
+                    target_adjustment = [adjustment_old]
+
+        tol = tolerance(adjustment_all, adjustment_old, iteration, parameters)
+        adjustment_old = adjustment_all
+        adjustment_characteristic = abs(arr(adjustment_all) - arr(target_adjustment)).sum() / len(adjustment_all)
+	if not tol:
+            print control_variables[i], control_marginals[i], adjusted_marginals
+
+    dbc = db.cursor()
+    dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
+    dummy_table = str([tuple(i) for i in data])
+
+    dummy_variable_names_string = ''
+    for i in variable_names:
+	dummy_variable_names_string += "%s," %i
+    dummy_variable_names_string = dummy_variable_names_string[:-1]
+    dbc.execute('insert into %s_%s_joint_dist (%s) values %s' %(synthesis_type, pumano, 
+								dummy_variable_names_string, dummy_table[1:-1]))
+
+    dbc.close()
+
+    #print 'IPF Completed using NO SQL procedure in - %.4f in iterations - %d' %(time.time() - ti, iteration)
+    #print data[:,-1], 'Sum is - ', data[:,-1].sum()
+
+
+def marginals_nosql(data, variable_name_index, variable_dimension):
+    ti = time.time()
+    marginal =[]
+
+    for i in range(variable_dimension):
+	indexVarCategory = data[:,variable_name_index] == i + 1
+	marginal.append(data[:,-1][indexVarCategory].sum())
+    #print 'New Way of Retrieving Marginals - ', marginal, ' , Time taken to retrieve - %.4f'  %(time.time()-ti)
+    return marginal
+
+
+def update_weights_nosql(data, variable_name_index, variable_dimension, adjustment):
+    ti = time.time()
+
+    for i in range(variable_dimension):
+	indexVarCategory = data[:, variable_name_index] == i + 1
+	data[:,-1][indexVarCategory] *= adjustment[i]
+    return data
+
+def tolerance (adjustment_all, adjustment_old, iteration, parameters):
+    adjustment_all = arr(adjustment_all)
+    adjustment_old = arr(adjustment_old)
+    adjustment_difference = abs(adjustment_all - adjustment_old)
+    adjustment_convergence_characteristic = adjustment_difference.cumsum()[-1]
+    if adjustment_convergence_characteristic > parameters.ipfTol:
+        return 1
+    else:
+#        print "Convergence Criterion - %s" %adjustment_convergence_characteristic
+        return 0
+
+def prepare_control_marginals(db, synthesis_type, control_variables, varCorrDict, controlAdjDict,
+                              state, county, tract, bg, hhldsizeMargsMod=False):
+
+    dbc = db.cursor()
+    marginals = database(db, '%s_marginals'%synthesis_type)
+    variable_names = marginals.variables()
+    control_marginals = []
+    #control_marginals_sum = []
+    for dummy in control_variables:
+        dbc.execute('select %s from %s_sample group by %s' %(dummy, synthesis_type, dummy))
+        cats = arr(dbc.fetchall(), float)
+        #print dummy, cats
+
+        selVar = dummy
+        selGeography = "%s,%s,%s,%s" %(state, county, tract, bg)
+        
+        variable_marginals1=[]
+        try:
+            #print hhldsizeMargsMod
+            if (not hhldsizeMargsMod and synthesis_type == 'hhld') or synthesis_type <> 'hhld':
+                #print 'household not modified in correspondence'
+                variable_marginals_adj = controlAdjDict[selGeography][selVar]
+            #print 'adjustment', variable_marginals_adj[0], variable_marginals_adj[1]
+                for i in variable_marginals_adj[1]:
+                    if i>0:
+                        variable_marginals1.append(i)
+                    else:
+                        #variable_marginals1.append(0.00001)
+                        variable_marginals1.append(0)
+                        
+            #check_marginal_sum = sum(variable_marginals1)
+            else:
+                raise Exception, 'Household marginal distributions modified to account for person total inconsistency'
+        except Exception ,e:
+            #print 'Exception: %s' %e
+
+            #check_marginal_sum = 0
+            for i in cats:
+                corrVar = varCorrDict['%s%s' %(dummy, int(i[0]))]
+                dbc.execute('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
+                #print('select %s from %s_marginals where county = %s and tract = %s and bg = %s' %(corrVar, synthesis_type, county, tract, bg))
+                result = arr(dbc.fetchall(), float)
+                #check_marginal_sum = result[0][0] + check_marginal_sum
+
+                if result[0][0] > 0:
+                    variable_marginals1.append(result[0][0])
+                else:
+                    #variable_marginals1.append(0.00001)
+                    variable_marginals1.append(0)
+
+        #exceptionStatus = False
+
+        #if check_marginal_sum == 0 and (synthesis_type == 'hhld'):
+        #    exceptionStatus = True
+        #if check_marginal_sum == 0 and (synthesis_type == 'person'):
+        #    exceptionStatus = True
+        variable_marginals1 = zero_marginal_adjustment(variable_marginals1)
+            
+
+        #if check_marginal_sum == 0 and (synthesis_type == 'hhld' or synthesis_type == 'person'):
+        #    print 'Exception: The given marginal distribution for a control variable sums to zero.'
+            #raise Exception, 'The given marginal distribution for a control variable sums to zero.'
+        control_marginals.append(variable_marginals1)
+        #control_marginals_sum.append(check_marginal_sum)
+   # if synthesis_type == 'hhld' or synthesis_type == 'person':
+   #     for i in control_marginals_sum[0:]:
+   #         if i <> control_marginals_sum[0]:
+   #             print """Warning: The totals from the marginal distributions for the control variables are not the same. The program """
+   #             """will proceed but the results will depend on the the last control variable's distribution. The last control variable """
+   #             """is last variable obtained by alphabetically sorting the variable names.""" 
+                #raise Exception, 'The marginal distributions for the control variables are not the same.'
+
+    #if exceptionStatus:
+    #    print 'Warning: The marginal distribution for the control variable sums to zero.'
+
+    dbc.close()
+    db.commit()
+    print 'marginals used', control_marginals
+    return control_marginals
+
+
+def zero_marginal_adjustment(marginals):
+    c = 0
+    # identifying number of zeros
+    for i in marginals:
+        if i == 0:
+            c += 1
+    
+    # if no zero marginals send back original
+    if c == 0:
+        return marginals
+
+    # zero marginal adjustment
+    adj = 0.1/c
+
+    # replacing zeros with adjustment
+
+    #print 'old marginals', marginals
+    for i in range(len(marginals)):
+        if marginals[i] == 0:
+            marginals[i] = adj
+    #print 'zero marginal adjusted ', marginals
+    return marginals
+        
+            
+
+def check_marginals(marginals, control_variables):
+    check_for_zero_marginaltotals(marginals, control_variables)
+    check_for_unequal_marginaltotals(marginals, control_variables)
+    
+
+
+def check_for_zero_marginaltotals(marginals, control_variables):
+    for i in range(len(marginals)):
+        j = marginals[i]
+        #try:
+        #    while(1):
+        #        j.remove(0.00001)
+        #except:
+        #    pass
+        if (sum(j) - .1) == 0:
+            print ("Warning: The marginals distribution sum of the %s control variable is zero."
+                   %control_variables[i])
+            
+def check_for_unequal_marginaltotals(marginals, control_variables):
+    i = marginals[0]
+    #try:
+    #    while(1):
+    #        i.remove(0.00001)
+    #except:
+    #    pass
+    ref_sum = sum(i) - .1
+    for i in range(len(marginals[1:])):
+        j = marginals[1+i]
+        #try:
+        #    while(1):
+        #        j.remove(0.00001)
+        #except:
+        #    pass
+
+        if (ref_sum - (sum(j) - .1)) >= 1:
+            print ("Warning: The marginals distribution sum of %s (%s) and %s (%s) variables are not the same."
+                   %(control_variables[0], ref_sum,
+                     control_variables[1+i], (sum(j) - .1)))
+                      
+        
+def check_for_zero_housing_totals(hhld_marginals, gq_marginals=None):
+    checkHhld = 0
+    checkGq = 0
+    for i in hhld_marginals:
+        #try:
+        #    while(1):
+        #        i.remove(0.00001)
+        #except:
+        #    pass
+        if ((sum(i) - .1) > 0.5):
+            checkHhld = checkHhld + 1
+    if not gq_marginals is None:
+        for i in gq_marginals:
+            #try:
+            #    while(1):
+            #        i.remove(0.00001)
+            #except:
+            #    pass
+            if ((sum(i) - .1) > 0.5):
+                checkGq = checkGq + 1
+
+    if checkHhld == 0 and checkGq == 0:
+        raise Exception, "There are no households/groupquarters in the geography to synthesize data"
+
+
+def check_for_zero_person_totals(person_marginals):
+    checkPers = 0
+    for i in person_marginals:
+        #try:
+        #    while(1):
+        #        i.remove(0.00001)
+        #except:
+        #    pass
+        if ((sum(i) - .1) > 0.5):
+            checkPers = checkPers + 1
+    if checkPers == 0:
+        raise Exception, "There are no persons in the geography to synthesize data"
+
+
+
+
+def create_matching_string(table_name1, table_name2, control_variables):
+    string = ''
+    for dummy in control_variables:
+        if len(string) == 0:
+            string = string + table_name1 + '.' + dummy + '=' + table_name2 + '.' + dummy
+        else:
+            string = string + ' '+'and' + ' ' + table_name1 + '.' + dummy + '=' + table_name2 + '.' + dummy
+    return string
+
+def create_adjusted_frequencies_nosql(db, data, synthesis_type, control_variables, pumano, tract= 0, bg= 0):
+    ti = time.time()
+    dbc = db.cursor()
+    dummy_order_string = create_aggregation_string(control_variables)    	
+
+    pums_table = ('%s_%s_joint_dist'%(synthesis_type, 0))
+    dbc.execute('select * from %s order by %s' %(pums_table, dummy_order_string))
+    pums_joint = arr(dbc.fetchall(), float)
+    pums_prob = pums_joint[:,-2] / pums_joint[:,-2].sum()
+
+
+    puma_prob = data[:,-1]/data[:,-1].sum()
+    upper_prob_bound = 0.5 / data[:,-1].sum()
+
+    puma_adjustment = (pums_prob <= upper_prob_bound) * pums_prob + (pums_prob > upper_prob_bound) * upper_prob_bound
+
+    #print 'WITH NO SQL SHAPE OF PUMA - ', data.shape
+    #print 'NO SQL - ', puma_prob, data[:,-1].sum()
+    #print 'NO SQL - shapes for correction', (puma_prob == 0).shape, puma_adjustment.shape
+
+    correction = 1 - sum((puma_prob == 0) * puma_adjustment)
+    puma_prob = ((puma_prob <> 0) * correction * puma_prob +
+                 (puma_prob == 0) * puma_adjustment)
+    data[:,-1] = data[:,-1].sum() * puma_prob
+
+    #print "\tResults of adjusted frequencies from the nosql approach - ", data[:,-1], " and time taken - %.4f" %(time.time()-ti)
+
+    return data
+    
+if __name__ == '__main__':
+    pass
+
+
+
+
