@@ -206,10 +206,9 @@ class AutoImportSF2000Data():
                 raise FileError, self.query.lastError().text()
 
             geo_loc = os.path.join(self.loc, '%s.uf3'%tablename)
-            geo_loc = geo_loc.replace("\\", "/")
+	    geo_loc = os.path.realpath(geo_loc)	
 
-
-            if not self.query.exec_("""load data local infile '%s'"""
+            if not self.query.exec_("""load data infile '%s'"""
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
             if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
@@ -316,18 +315,18 @@ class AutoImportSF2000Data():
                 tablename = '%s%s' %(self.stateAbb[self.state], j)
 
 		var2string = var1string.replace("temp1.logrecno", "logrecno")
-		print 'filename', j
-		print var1string
-		print var2string
+		#print 'filename', j
+		#print var1string
+		#print var2string
 
-		print ("""create table temp2 select %s from (select %s"""
-                                        """ from temp1 left join %s on (temp1.logrecno = %s.logrecno)) a""" %(var2string, var1string, tablename, tablename))
+		#print ("""create table temp2 select %s from (select %s"""
+                #                        """ from temp1 left join %s on (temp1.logrecno = %s.logrecno)) a""" %(var2string, var1string, tablename, tablename))
 
                 if not self.query.exec_("""create table temp2 select %s from (select %s"""
                                         """ from temp1 left join %s on (temp1.logrecno = %s.logrecno)) a""" %(var2string, var1string, tablename, tablename)):
                     raise FileError, self.query.lastError().text()
-		print ("""drop table temp1""")
-		print ("""alter table temp2 rename to temp1""")
+		#print ("""drop table temp1""")
+		#print ("""alter table temp2 rename to temp1""")
                 if not self.query.exec_("""drop table temp1"""):
                     raise FileError, self.query.lastError().text()
                 if not self.query.exec_("""alter table temp2 rename to temp1"""):
@@ -418,10 +417,10 @@ class AutoImportSFACSData(AutoImportSF2000Data):
                 raise FileError, self.query.lastError().text()
 
             geo_loc = self.loc + os.path.sep + self.rawSF[0] %(self.stateAbb[self.state])
-            geo_loc = geo_loc.replace("\\", "/")
+	    geo_loc = os.path.realpath(geo_loc)	
 
 
-            if not self.query.exec_("""load data local infile '%s'"""
+            if not self.query.exec_("""load data infile '%s'"""
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
             if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
@@ -491,7 +490,7 @@ class AutoImportSFACSData(AutoImportSF2000Data):
         if filenumber is None and tablenumber is None:
             raise FileError, "Insufficient parameters supplied"
 
-	print filenumber, tablenumber
+	#print filenumber, tablenumber
 
         while self.query.next():
             tablenumber = str(self.query.value(0).toString()).ljust(9, '0')
@@ -503,7 +502,7 @@ class AutoImportSFACSData(AutoImportSF2000Data):
                 variabletypes.append('bigint')
                 #print colname
 
-	print variables
+	#print variables
 
         return variables, variabletypes
 
@@ -522,9 +521,9 @@ class AutoImportSFACSData(AutoImportSF2000Data):
 	    if self.project.resolution == 'Tract':
 		sumlev = 140
 
-	    print ("""create table mastersftable%s """
-                                    """select * from mastersftable where sumlev = %s """
-                                    %(self.project.resolution, sumlev))                                
+	    #print ("""create table mastersftable%s """
+            #                        """select * from mastersftable where sumlev = %s """
+            #                        %(self.project.resolution, sumlev))                                
             if not self.query.exec_("""create table mastersftable%s """
                                     """select * from mastersftable where sumlev = %s """
                                     %(self.project.resolution, sumlev)):
@@ -546,12 +545,12 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
 
 
 	if self.project.resolution == 'County':
-	    print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(self.state)
+	    #print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(self.state)
 	    sf_loc = self.loc + os.path.sep + "%s_All_Geographies_Not_Tracts_Block_Groups.zip"%self.state
             urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""
                                	   %(self.state), sf_loc)
 	elif self.project.resolution == 'Blockgroup' or self.project.resolution == 'Tract':
-	    print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(self.state)
+	    #print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(self.state)
 	    sf_loc = self.loc + os.path.sep + "%s_Tracts_Block_Groups_Only.zip"%self.state
             urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip"""
                              	   %(self.state), sf_loc)
@@ -565,10 +564,10 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
 
     def extractSF(self, state):
 	if self.project.resolution == 'County':
-	    print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(self.state)
+	    #print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(self.state)
 	    sf_file = "%s_All_Geographies_Not_Tracts_Block_Groups.zip"%self.state
 	elif self.project.resolution == 'Blockgroup' or self.project.resolution == 'Tract':
-	    print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(self.state)
+	    #print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(self.state)
 	    sf_file = "%s_Tracts_Block_Groups_Only.zip"%self.state
 	
    	file = UnzipFile(self.loc, sf_file)
@@ -600,10 +599,10 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
                 raise FileError, self.query.lastError().text()
 
             geo_loc = self.loc + os.path.sep + self.rawSF[0] %(self.stateAbb[self.state])
-            geo_loc = geo_loc.replace("\\", "/")
+	    geo_loc = os.path.realpath(geo_loc)	
 
 
-            if not self.query.exec_("""load data local infile '%s'"""
+            if not self.query.exec_("""load data infile '%s'"""
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
             if not self.query.exec_("""update %sgeo set sumlev = mid(raw, 9, 3)""" %self.stateAbb[self.state]):
@@ -633,7 +632,7 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
             filenumber = self.rawSFNamesNoExt[j + 1]
             variables, variabletypes = self.variableNames(filenumber)
             tablename = "%s%s" %(self.stateAbb[self.state], filenumber)
-	    print self.rawSF[j+1], 'filename -- '
+	    #print self.rawSF[j+1], 'filename -- '
             filename = ('e' + (self.rawSF[j+1]) %(self.stateAbb[self.state])).replace('zip', 'txt')
             
             sf_loc = (self.loc + os.path.sep + filename)
