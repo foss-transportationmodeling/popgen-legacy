@@ -11,7 +11,7 @@ import heuristic_algorithm
 import psuedo_sparse_matrix
 import drawing_households
 import adjusting_sample_joint_distribution
-import ipf
+import ipf_nosql
 import scipy
 import scipy.stats
 import numpy
@@ -35,11 +35,11 @@ def configure_and_run(project, geo, varCorrDict):
 
     db = MySQLdb.connect(host = '%s' %project.db.hostname, user = '%s' %project.db.username,
                          passwd = '%s' %project.db.password, db = '%s%s%s' 
-                         %(project.name, 'scenario', project.scenario))
+                         %(project.name, 'scenario', project.scenario), local_infile=1)
     dbc = db.cursor()
 
-    tii = time.clock()
-    ti = time.clock()
+    tii = time.time()
+    ti = time.time()
 
 # Identifying the number of housing units in the disaggregate sample
 # Make Sure that the file is sorted by hhid
@@ -95,34 +95,34 @@ def configure_and_run(project, geo, varCorrDict):
 #______________________________________________________________________
 # Running IPF for Households
     print 'Step 2A: Running IPF procedure for Households... '
-    hhld_objective_frequency, hhld_estimated_constraint = ipf.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
+    hhld_objective_frequency, hhld_estimated_constraint = ipf_nosql.ipf_config_run(db, 'hhld', hhld_control_variables, varCorrDict, 
                                                                              project.adjControlsDicts.hhld,
                                                                              hhld_dimensions, 
                                                                              state, county, pumano, tract, bg, 
                                                                              parameters, project.selVariableDicts.hhldMargsModify)
-    print 'IPF procedure for Households completed in %.2f sec \n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPF procedure for Households completed in %.2f sec \n'%(time.time()-ti)
+    ti = time.time()
 
 # Running IPF for GQ
     print 'Step 2B: Running IPF procedure for Gqs... '
-    gq_objective_frequency, gq_estimated_constraint = ipf.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, 
+    gq_objective_frequency, gq_estimated_constraint = ipf_nosql.ipf_config_run(db, 'gq', gq_control_variables, varCorrDict, 
                                                                          project.adjControlsDicts.gq,
                                                                          gq_dimensions, 
                                                                          state, county, pumano, tract, bg, 
                                                                          parameters)
-    print 'IPF procedure for GQ was completed in %.2f sec \n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPF procedure for GQ was completed in %.2f sec \n'%(time.time()-ti)
+    ti = time.time()
 
 # Running IPF for Persons
     print 'Step 2C: Running IPF procedure for Persons... '
-    person_objective_frequency, person_estimated_constraint = ipf.ipf_config_run(db, 'person', person_control_variables, 
+    person_objective_frequency, person_estimated_constraint = ipf_nosql.ipf_config_run(db, 'person', person_control_variables, 
                                                                                  varCorrDict, 
                                                                                  project.adjControlsDicts.person,
                                                                                  person_dimensions, 
                                                                                  state, county, 
                                                                                  pumano, tract, bg, parameters)
-    print 'IPF procedure for Persons completed in %.2f sec \n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPF procedure for Persons completed in %.2f sec \n'%(time.time()-ti)
+    ti = time.time()
 #______________________________________________________________________
 # Creating the weights array
     print 'Step 3: Running IPU procedure for obtaining weights that satisfy Household and Person type constraints... '
@@ -162,8 +162,8 @@ def configure_and_run(project, geo, varCorrDict):
 	f.write('%s,%s,%s\n' %(weights[i], weights1[i], diff[i]))
     f.close()
     """
-    print 'IPU procedure was completed in %.2f sec\n'%(time.clock()-ti)
-    ti = time.clock()
+    print 'IPU procedure was completed in %.2f sec\n'%(time.time()-ti)
+    ti = time.time()
 #_________________________________________________________________
     print 'Step 4: Creating the synthetic households and individuals...'
 # creating whole marginal values
@@ -196,7 +196,10 @@ def configure_and_run(project, geo, varCorrDict):
     draw_count = 0
     while(p_value < parameters.synPopPTol and draw_count < parameters.synPopDraws):
         draw_count = draw_count + 1
-        synthetic_housing_units = drawing_households.drawing_housing_units(db, frequencies, weights, index_matrix, sp_matrix, 0, drawingProcedure=project.parameters.drawingProcedure)
+        synthetic_housing_units = drawing_households.drawing_housing_units(db, frequencies, weights, index_matrix, 
+									   sp_matrix, 0, 
+									   drawingProcedure=project.parameters.drawingProcedure,
+									   iteration=draw_count+1)
 
 
 # Creating synthetic hhld, and person attribute tables
@@ -205,23 +208,6 @@ def configure_and_run(project, geo, varCorrDict):
                                                                                                                        housing_sample, person_sample, hhidRowDict,
                                                                                                                        rowHhidDict)
 
-	"""
-	objective_frequency = numpy.hstack((hhld_objective_frequency[:,0], gq_objective_frequency[:,0], person_objective_frequency[:,0]))
-	
-	print synthetic_housing_attributes[:,-2:].shape, synthetic_person_attributes[:,-2:].shape
-
-	print 'before', synthetic_person_attributes[:,-1]
-	persAttrs = synthetic_person_attributes[:,-2:]
-	persAttrs[:,-1] += hhld_dimensions.prod() + gq_dimensions.prod()
-	synthetic_attributes = numpy.vstack((synthetic_housing_attributes[:,-2:], persAttrs))
-	print 'after', synthetic_person_attributes[:,-1]
-	print objective_frequency.shape, synthetic_housing_attributes[:,-2:].shape
-	
-        stat, dof, person_estimated_frequency = drawing_households.checking_against_joint_distribution(objective_frequency, synthetic_attributes,
-												       hhld_dimensions.prod() + gq_dimensions.prod() + person_dimensions.prod(),
-                                                                                                       pumano, tract, bg)
-
-	"""
         synth_person_stat, count_person, person_estimated_frequency = drawing_households.checking_against_joint_distribution(person_objective_frequency,
                                                                                                                              synthetic_person_attributes, person_dimensions.prod(),
                                                                                                                              pumano, tract, bg)
@@ -249,11 +235,10 @@ def configure_and_run(project, geo, varCorrDict):
             max_p_housing_attributes = synthetic_housing_attributes
             max_p_person_attributes = synthetic_person_attributes
             min_chi = stat
-
-        print 'draw_count - %s, pvalue - %s, chi value - %s' %(draw_count, p_value, stat)
     else:
         print 'Population with desirable p-value of %.4f was obtained in %d iterations' %(max_p, draw_count)
 
+    print 'draw_count - %s, pvalue - %s, chi value - %s' %(draw_count, max_p, min_chi)
     #drawing_households.storing_synthetic_attributes('housing', max_p_housing_attributes, county, tract, bg, project.location, project.name)
     #drawing_households.storing_synthetic_attributes('person', max_p_person_attributes, county, tract, bg, project.location, project.name)
 
@@ -286,12 +271,12 @@ def configure_and_run(project, geo, varCorrDict):
     db.commit()
     dbc.close()
     db.close()
-    print 'Blockgroup synthesized in %.4f s' %(time.clock()-tii)
+    print 'Blockgroup synthesized in %.4f s' %(time.time()-tii)
 
 if __name__ == '__main__':
 
-    start = time.clock()
-    ti = time.clock()
+    start = time.time()
+    ti = time.time()
     db = MySQLdb.connect(host = 'localhost', user = 'root', passwd = '1234', db = 'aacog')
     dbc = db.cursor()
 #______________________________________________________________________
@@ -307,7 +292,7 @@ if __name__ == '__main__':
 
     geography = (5601, 170401, 3)
     configure_and_run(index_matrix, p_index_matrix, geography)
-    print 'Synthesis for the geography was completed in %.2f' %(time.clock()-ti)
+    print 'Synthesis for the geography was completed in %.2f' %(time.time()-ti)
 
     dbc.close()
     db.commit()
