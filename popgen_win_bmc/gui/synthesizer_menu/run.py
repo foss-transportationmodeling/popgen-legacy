@@ -238,7 +238,7 @@ class RunDialog(QDialog):
 
                 geoPUMADict = {}
                 for geo in self.runGeoIds:
-                    geoWitPUMA = self.getPUMA5(Geography(geo[0], geo[1], geo[2], geo[3], geo[4]))
+                    geoWitPUMA = self.getPUMA5(Geography(geo[0], geo[1], geo[3], geo[4], geo[2]))
                     if geoWitPUMA.puma5 in geoPUMADict.keys():
                         geoPUMADict[geoWitPUMA.puma5].append(geo)
                     else:
@@ -511,7 +511,7 @@ class RunDialog(QDialog):
         
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario), local_infile=1)
 
         try:
             if self.gqAnalyzed and self.project.selVariableDicts.persControl:
@@ -675,7 +675,7 @@ class RunDialog(QDialog):
         if not query.exec_("""alter table hhld_marginals_modpgq add column hhldeqdef float(27)"""):
             print "FileError: %s" %query.lastError().text()
 
-        if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = perstotdef/(%s)""" %hhldsizePEQPString):
+        if not query.exec_("""update hhld_marginals_modpgq set hhldeqdef = round(perstotdef/(%s))""" %hhldsizePEQPString):
             raise FileError, query.lastError().text()
 
         #print 'PEQ string', hhldsizePEQString            
@@ -818,7 +818,7 @@ class RunDialog(QDialog):
     def readData(self):
         db = MySQLdb.connect(user = '%s' %self.project.db.username,
                              passwd = '%s' %self.project.db.password,
-                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario))
+                             db = '%s%s%s' %(self.project.name, 'scenario', self.project.scenario), local_infile=1)
         dbc = db.cursor()
 
         #dbc.execute("""select * from index_matrix_%s""" %(0))
