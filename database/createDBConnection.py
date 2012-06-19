@@ -32,7 +32,7 @@ def main():
     app = QApplication(sys.argv)
 
     db = DBInfo("localhost", "root", "1234")
-    a = createDBC(db, "fayken1")
+    a = createDBC(db, "test_al")
 
     
     try:
@@ -43,17 +43,25 @@ def main():
             query = QSqlQuery()
             if not query.exec_("""show tables"""):
                 raise Exception, query.lastError().text()
-
+	   
             sys.exit(1)
             a.dbc.close()
         else:
+	    a.dbc.open()
+
+	    print dir(a.dbc)
+            print a.dbc.setConnectOptions.__doc__
+		
+
+            query = QSqlQuery(a.dbc)
+            if not query.exec_("""load data infile "/home/karthik/simtravel/populationsynthesis/gui/data/pums2000_variables.csv" into table pums2000variablelist fields terminated by "," lines terminated by "\n" ignore 2 lines"""): 
+                raise Exception, query.lastError().text()
+
             QMessageBox.warning(None, "oisdf", 
                                 QString("Found"))
 
-            b = createDBC(db, "fayken1")
-            b.dbc.open()
-            print 'duplicatewqeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
-            b.dbc.close()
+
+
             a.dbc.close()
     except Exception, e:
         print "Error: %s" %e
