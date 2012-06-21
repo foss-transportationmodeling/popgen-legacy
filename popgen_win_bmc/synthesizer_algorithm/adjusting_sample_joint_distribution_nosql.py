@@ -13,7 +13,7 @@ import os
 from re import match
 from numpy import asarray as arr
 from numpy import fix as quo
-from numpy import zeros
+from numpy import zeros, logical_and
 from defining_a_database import *
 
 def create_update_string(db, control_variables, dimensions):
@@ -159,6 +159,7 @@ def adjust_weights_nosql(db, data, variable_names, synthesis_type, control_varia
 
     while (tol):
         iteration = iteration +1
+	#print 'ITERATION - ', iteration
         adjustment_all = []
         for i in range(len(control_variables)):
 	    variable_name_index = variable_names.index(control_variables[i])
@@ -189,6 +190,11 @@ def adjust_weights_nosql(db, data, variable_names, synthesis_type, control_varia
 
     dbc = db.cursor()
     dbc.execute('delete from %s_%s_joint_dist where tract = %s and bg = %s' %(synthesis_type, pumano, tract, bg))
+
+    dataLessThres = data[:,-1] < 1e-5
+    if dataLessThres.sum() > 0:
+	data[dataLessThres, -1] = 1e-5
+
     dummy_table = str([tuple(i) for i in data])
 
     dummy_variable_names_string = ''
@@ -221,6 +227,36 @@ def update_weights_nosql(data, variable_name_index, variable_dimension, adjustme
     for i in range(variable_dimension):
 	indexVarCategory = data[:, variable_name_index] == i + 1
 	data[:,-1][indexVarCategory] *= adjustment[i]
+    return data
+
+
+def update_weights_nosql(data, variable_name_index, variable_dimension, adjustment):
+    ti = time.time()
+    dataNotZero = data[:,-1] <> 0
+    oldCount = dataNotZero.sum()
+
+    for i in range(variable_dimension):
+	indexVarCategory = data[:, variable_name_index] == i + 1
+	data[:,-1][indexVarCategory] *= adjustment[i]
+
+	dataAdjustedToZero = data[:,-1] <> 0
+
+	dataToCorrect = logical_and(dataNotZero, ~dataAdjustedToZero)
+
+	if dataToCorrect.sum() > 0:
+	    #print '\tdata not zero - ', dataNotZero.sum(), ', after adjusted not zero - ',dataAdjustedToZero.sum()
+	    data[dataToCorrect,-1] = data[dataAdjustedToZero, -1].min()
+
+	    dataCorrectedZero = data[:,-1] <> 0
+	    #print '\tdata to correct', dataToCorrect.sum(), ', corrected non zeros', dataCorrectedZero.sum()
+
+    	dataNotZero = data[:,-1] <> 0
+    	newCount = dataNotZero.sum()
+
+    	if oldCount <> newCount:
+	    print 'not zero - ', oldCount, ',after not zero - ', newCount
+	    print 'data to correct', dataToCorrect.sum()
+	    raise Exception, "The IPF procedure is altering valid non-zero frequency cells to zero due to precision error"
     return data
 
 def tolerance (adjustment_all, adjustment_old, iteration, parameters):
