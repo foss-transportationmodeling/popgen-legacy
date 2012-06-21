@@ -95,9 +95,9 @@ class ParametersDialog(QDialog):
 
 
         roundingLayout = QVBoxLayout()
-        roundingLayout.addWidget(self.arithmeticRadio)
         roundingLayout.addWidget(self.bucketRadio)
         roundingLayout.addWidget(self.stochasticRadio)
+        roundingLayout.addWidget(self.arithmeticRadio)
 
         roundingGroupBox.setLayout(roundingLayout)
 
