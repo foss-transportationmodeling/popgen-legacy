@@ -8,6 +8,7 @@ from __future__ import with_statement
 import urllib
 import os
 import copy
+import re
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -467,8 +468,11 @@ class AutoImportPUMS2000Data():
             start = int(self.housingVarBegDict['%s'%i])-1
             end = start + int(self.housingVarLenDict['%s'%i])
             value = record[start:end]
+            if value.isspace():
+                value = '-99'
             string = string + value + ','
-
+        #print 'housing rec', self.housingVariablesSelected 
+        #print string
         string = string[:-1] + '\n'
         return string
 
@@ -480,7 +484,11 @@ class AutoImportPUMS2000Data():
             start = int(self.personVarBegDict['%s'%i])-1
             end = start + int(self.personVarLenDict['%s'%i])
             value = record[start:end]
+            if value.isspace():
+                value = '-99'
             string = string + value + ','
+        #print 'person rec', self.personVariablesSelected 
+        #print string
 
         string = string[:-1] + '\n'
         return string
@@ -732,7 +740,11 @@ class AutoImportPUMS5yrACSData(AutoImportPUMSACSData):
         hMasterFile = self.loc + os.path.sep + 'ss09h%s.csv' %web_stabb
 
         hMasterVariablesTypes = ['bigint'] * HACS5yr_VARCOUNT
-        
+        #print hMasterFile
+        fileProp = FileProperties(hMasterFile)
+        hMasterVariablesTypes = fileProp.varTypes        
+        self.processTable(hMasterFile, self.loc)
+
         hMasterPUMSTableQuery = ImportUserProvData("housing_raw", hMasterFile, 
                                                    varTypes=hMasterVariablesTypes, 
                                                    varNamesFileDummy=True, 
@@ -760,12 +772,36 @@ class AutoImportPUMS5yrACSData(AutoImportPUMSACSData):
                                 %(dummyString)):
             raise FileError, self.query.lastError().text()
 
+    def processTable(self, filePath, fileLoc):
+        fi = open(filePath, "r")
+        wFileLoc = os.path.join(fileLoc, "temp.txt")
+        fiW = open(wFileLoc, "w")
+        line = fi.readline()
+        while line:
+            line = re.split("[,|\t]", line[:-1])
+            stTemp = ""
+            for i in line:
+                if i == "":
+                    i = "-99"
+                stTemp += "%s,"%i
+            stTemp = stTemp[:-1] + "\n"
+            fiW.write(stTemp)
+            line = fi.readline()
+        fiW.close()
+        fi.close()
+        os.remove(filePath)
+        os.rename(wFileLoc, filePath)
 
     def createPersonPUMSTable(self):
         web_stabb = self.project.stateAbb[self.state]
         pMasterFile = self.loc + os.path.sep + 'ss09p%s.csv' %web_stabb
 
         pMasterVariablesTypes = ['bigint'] * PACS5yr_VARCOUNT
+
+        #print pMasterFile
+        fileProp = FileProperties(pMasterFile)
+        pMasterVariablesTypes = fileProp.varTypes        
+        self.processTable(pMasterFile, self.loc)
         
         pMasterPUMSTableQuery = ImportUserProvData("person_raw", pMasterFile, 
                                                    varTypes=pMasterVariablesTypes, 
