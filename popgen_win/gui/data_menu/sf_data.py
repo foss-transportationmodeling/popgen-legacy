@@ -6,6 +6,7 @@
 import urllib
 import os
 import time
+import re
 
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
@@ -203,7 +204,10 @@ class AutoImportSF2000Data():
                 raise FileError, self.query.lastError().text()
 
             geo_loc = os.path.join(self.loc, '%s.uf3'%tablename)
-	    geo_loc = os.path.realpath(geo_loc)	
+	    geo_loc = os.path.realpath(geo_loc)
+	    #print 'geo loc before - ', geo_loc
+	    geo_loc = geo_loc.replace("\\", "/")
+	    #print 'geo loc after - ', 	
 
             if not self.query.exec_("""load data infile '%s'"""
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
@@ -232,6 +236,7 @@ class AutoImportSF2000Data():
         # Load the other necessary tables
 
         for j in self.rawSFNamesNoExt[1:]:
+	    #print 'Summary file name --->', j
             variables, variabletypes = self.variableNames(j)
             filename = "%s%s" %(self.stateAbb[self.state], j)
             sf_loc = os.path.join(self.loc, '%s.uf3' %(filename))
@@ -414,6 +419,10 @@ class AutoImportSFACSData(AutoImportSF2000Data):
 
             geo_loc = self.loc + os.path.sep + self.rawSF[0] %(self.stateAbb[self.state])
 	    geo_loc = os.path.realpath(geo_loc)	
+
+	    #print 'geo loc before - ', geo_loc
+	    geo_loc = geo_loc.replace("\\", "/")
+	    #print 'geo loc after - ', 	
 
 
             if not self.query.exec_("""load data infile '%s'"""
@@ -598,6 +607,12 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
 	    geo_loc = os.path.realpath(geo_loc)	
 
 
+	    #print 'geo loc before - ', geo_loc
+	    geo_loc = geo_loc.replace("\\", "/")
+	    #print 'geo loc after - ', 	
+	
+
+
             if not self.query.exec_("""load data infile '%s'"""
                                     """ into table %sgeo (raw)""" %(geo_loc, self.stateAbb[self.state])):
                 raise FileError, self.query.lastError().text()
@@ -633,6 +648,8 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
             
             sf_loc = (self.loc + os.path.sep + filename)
 
+	    self.processTable(sf_loc, self.loc)
+
             sffile = ImportUserProvData(tablename,
                                         sf_loc,
                                         variables, variabletypes, False, False)
@@ -645,4 +662,24 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
                     raise FileError, self.query.lastError().text()
                 if not self.query.exec_("alter table %s add primary key (logrecno)" %tablename):
                     raise FileError, self.query.lastError().text()
+
+    def processTable(self, filePath, fileLoc):
+	fi = open(filePath, "r")
+	wFileLoc = os.path.join(fileLoc, "temp.txt")
+	fiW = open(wFileLoc, "w")
+	line = fi.readline()
+	while line:
+	    line = re.split("[,|\t]", line[:-1])
+	    stTemp = ""
+	    for i in line:
+		if i == ".":
+		    i = "-99"
+		stTemp += "%s,"%i
+	    stTemp = stTemp[:-1] + "\n"
+	    fiW.write(stTemp)
+	    line = fi.readline()
+	fiW.close()
+	fi.close()
+	os.remove(filePath)
+	os.rename(wFileLoc, filePath)
 
