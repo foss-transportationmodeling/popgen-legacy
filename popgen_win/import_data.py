@@ -71,6 +71,10 @@ class FileProperties():
 	
 	varTypes = []
 	for field in line:
+	    print field
+	    if field == "":
+		varTypes.append("bigint")
+		continue
 	    if re.match("[0-9]", field[0]):
 	        numType = True
 		textType = False
@@ -86,6 +90,7 @@ class FileProperties():
 		except ValueError, e:
 		    floatVal = float(field)
 		    varTypes.append('float(27)')
+		
 	#print 'LINE - ', line
 	#print 'Variable Types', varTypes
 	return varTypes	
@@ -135,9 +140,10 @@ class ImportUserProvData():
         self.tableName = name
 
         self.filePath = os.path.realpath('%s' %filePath)
+	#print self.filePath
         if sys.platform.startswith('win'):
             self.filePath = self.filePath.replace("\\", "/")
-
+	#print 'after', self.filePath
         #self.filePath = os.path.realpath('%s' %filePath)
         #self.filePath = self.filePath.replace("\\", "/")
 
@@ -202,6 +208,10 @@ class ImportUserProvData():
 
         #print 'lenght of variable names',len(self.varNames)
         #print 'length of the first row', len(firstrow)
+
+
+        #print 'variable names',(self.varNames)
+        #print 'first row', (firstrow)
 
         if len(self.varNames) <> len(firstrow):
             raise FileError, "Enter the same number of variable names as columns in the data file."
