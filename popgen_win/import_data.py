@@ -71,7 +71,7 @@ class FileProperties():
 	
 	varTypes = []
 	for field in line:
-	    print field
+	    #print field
 	    if field == "":
 		varTypes.append("bigint")
 		continue

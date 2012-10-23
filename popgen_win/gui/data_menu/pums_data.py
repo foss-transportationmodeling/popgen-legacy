@@ -536,6 +536,9 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
         hMasterFile = self.loc + os.path.sep + 'ss07h%s.csv' %web_stabb
 
         hMasterVariablesTypes = ['bigint'] * HACS_VARCOUNT
+        fileProp = FileProperties(hMasterFile)
+        hMasterVariablesTypes = fileProp.varTypes        
+        self.processTable(hMasterFile, self.loc)
         
         hMasterPUMSTableQuery = ImportUserProvData("housing_raw", hMasterFile, 
                                                    varTypes=hMasterVariablesTypes, 
@@ -570,6 +573,9 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
         pMasterFile = self.loc + os.path.sep + 'ss07p%s.csv' %web_stabb
 
         pMasterVariablesTypes = ['bigint'] * PACS_VARCOUNT
+        fileProp = FileProperties(pMasterFile)
+        pMasterVariablesTypes = fileProp.varTypes        
+        self.processTable(pMasterFile, self.loc)
         
         pMasterPUMSTableQuery = ImportUserProvData("person_raw", pMasterFile, 
                                                    varTypes=pMasterVariablesTypes, 
@@ -604,6 +610,26 @@ class AutoImportPUMSACSData(AutoImportPUMS2000Data):
             raise FileError, self.query.lastError().text()
 
         #print 'time for creating the small person table - ', time.time()-ti
+
+    def processTable(self, filePath, fileLoc):
+        fi = open(filePath, "r")
+        wFileLoc = os.path.join(fileLoc, "temp.txt")
+        fiW = open(wFileLoc, "w")
+        line = fi.readline()
+        while line:
+            line = re.split("[,|\t]", line[:-1])
+            stTemp = ""
+            for i in line:
+                if i == "":
+                    i = "-99"
+                stTemp += "%s,"%i
+            stTemp = stTemp[:-1] + "\n"
+            fiW.write(stTemp)
+            line = fi.readline()
+        fiW.close()
+        fi.close()
+        os.remove(filePath)
+        os.rename(wFileLoc, filePath)
 
         
 
@@ -771,26 +797,6 @@ class AutoImportPUMS5yrACSData(AutoImportPUMSACSData):
         if not self.query.exec_("""create table housing_pums select %s from housing_raw"""
                                 %(dummyString)):
             raise FileError, self.query.lastError().text()
-
-    def processTable(self, filePath, fileLoc):
-        fi = open(filePath, "r")
-        wFileLoc = os.path.join(fileLoc, "temp.txt")
-        fiW = open(wFileLoc, "w")
-        line = fi.readline()
-        while line:
-            line = re.split("[,|\t]", line[:-1])
-            stTemp = ""
-            for i in line:
-                if i == "":
-                    i = "-99"
-                stTemp += "%s,"%i
-            stTemp = stTemp[:-1] + "\n"
-            fiW.write(stTemp)
-            line = fi.readline()
-        fiW.close()
-        fi.close()
-        os.remove(filePath)
-        os.rename(wFileLoc, filePath)
 
     def createPersonPUMSTable(self):
         web_stabb = self.project.stateAbb[self.state]
