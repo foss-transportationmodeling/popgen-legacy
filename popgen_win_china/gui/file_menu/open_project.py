@@ -47,6 +47,7 @@ class SaveFile(QFileDialog):
 
         self.uniqueIds = uniqueIds
         if not self.folder.isEmpty():
+            self.folder = self.folder.replace("\\","/")
             if not self.tablename:
                 self.save()
             else:
@@ -604,7 +605,8 @@ class ExportSummaryFile(SaveFile):
         projectDBC.dbc.open()
 
         query = QSqlQuery(projectDBC.dbc)
-
+        
+        self.folder = self.folder.replace("\\","/")
         filename = '%s/summary.%s' %(self.folder, self.fileType)
         check = self.checkIfFileExists(filename)
         if check == 0:
