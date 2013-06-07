@@ -173,7 +173,7 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigin
                                   "update person_pums set race = 5 where race1 = 7",
                                   "update person_pums set race = 6 where race1 = 8",
                                   "update person_pums set race = 7 where race1 = 9",
-                                  "update person_pums set employment = 1 where esr = 0",
+                                  "update person_pums set employment = 1 where esr = 0 or esr = -99",
                                   "update person_pums set employment = 2 where esr = 1 or esr = 2 or esr = 4 or esr = 5",
                                   "update person_pums set employment = 3 where esr = 3",
                                   "update person_pums set employment = 4 where esr = 6",
@@ -1088,7 +1088,8 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          """hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
                          """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
                          "create table gq_marginals select state, county, tract, bg, groupquarter1 from %s",
-                         """create table person_marginals select state, county, tract, bg, agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
+                         """create table person_marginals select state, county, tract, bg, employment1, employment2, employment3, employment4, """
+                         """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
                          """gender1, gender2, race1, race2, race3, race4, race5, race6, race7 from %s"""]
 
 
