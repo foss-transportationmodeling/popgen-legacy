@@ -194,7 +194,26 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigin
                                   "alter table hhld_sample rename to hhld_sample_temp",
                                   "drop table hhld_sample",
                                   "create table hhld_sample select hhld_sample_temp.*, agep as hhldrage from hhld_sample_temp left join person_sample using(serialno) where relate = 0",
+
+                                  "drop table hhld_sample_temp",
+                                  "drop table hhld_sample_temp_workers",
+
+                                  "alter table hhld_sample drop column workers",
+                                  "alter table hhld_sample rename to hhld_sample_temp",
+                                  "drop table hhld_sample",
+                                  "create table hhld_sample_temp_workers select a.* from (select serialno, count(*) workers from person_sample where employment = 2 group by serialno) a",
+                                  "alter table hhld_sample_temp_workers add index(serialno)",
+				
+                                  """create table hhld_sample select hhld_sample_temp.*, hhld_sample_temp_workers.workers from hhld_sample_temp left join hhld_sample_temp_workers """
+					"""using(serialno)""",
                                   "alter table hhld_sample add index(serialno)",
+
+                                  "update hhld_sample set workers = workers + 1",
+                                  "update hhld_sample set workers = 4 where workers >= 4",
+                                  "update hhld_sample set workers = 1 where workers is null",
+
+
+
                                   "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
                                   "update hhld_sample set hhldrage = 2 where hhldrage >7",
                                   "drop table hhld_sample_temp",
@@ -951,6 +970,12 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column hhldfam1 bigint",
                          "alter table %s add column hhldfam2 bigint",
 
+                         "alter table %s add column workers0 bigint",
+                         "alter table %s add column workers1 bigint",
+                         "alter table %s add column workers2 bigint",
+                         "alter table %s add column workers3 bigint",
+
+
                          "alter table %s add column check_gender bigint",
                          "alter table %s add column check_age bigint",
                          "alter table %s add column check_race bigint",
@@ -964,6 +989,8 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column check_hhldrage bigint",
                          "alter table %s add column check_inc bigint",
                          "alter table %s add column check_child bigint",
+                         "alter table %s add column check_workers bigint",
+
                          
 
 
@@ -1042,6 +1069,21 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set hhldsize5 = B25009000007+B25009000015",
                          "update %s set hhldsize6 = B25009000008+B25009000016",
                          "update %s set hhldsize7 = B25009000009+B25009000017",
+
+                         "update %s set workers0 = B08202000002",
+                         "update %s set workers1 = B08202000003",
+                         "update %s set workers2 = B08202000004",
+                         "update %s set workers3 = B08202000005",
+
+
+                         "alter table %s add column persontot bigint",
+                         "alter table %s add column persontoteq bigint",
+			 "update %s set persontot = gender1 + gender2",
+			 "update %s set persontoteq = hhldsize1*1+hhldsize2*2+hhldsize3*3+hhldsize4*4+hhldsize5*5+hhldsize6*6+hhldsize7*7.98",
+			 "update %s set groupquarter1 = persontot - persontoteq",
+			 "update %s set groupquarter1 = 0 where groupquarter1 <= 0",
+			
+
                          "update %s set hhldtype1 = B11001000003",
                          "update %s set hhldtype2 = B11001000005",
                          "update %s set hhldtype3 = B11001000006",
@@ -1062,6 +1104,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set check_race2 = race21+race22+race23+race24+race25+race26+race27",
                          "update %s set check_employment = employment1 + employment2 + employment3 + employment4",
 
+                         "update %s set check_workers = workers0+workers1+workers2+workers3",
                          "update %s set check_type = hhldtype1+hhldtype2+hhldtype3+hhldtype4+hhldtype5",
                          "update %s set check_size = hhldsize1+hhldsize2+hhldsize3+hhldsize4+hhldsize5+hhldsize6+hhldsize7",
                          "update %s set check_hhldrage = hhldrage1+hhldrage2",
@@ -1077,7 +1120,7 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "drop table person_marginals",
                          """create table hhld_marginals select state, county, tract, bg, hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, hhldinc7, hhldinc8,"""
                          """hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
-                         """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2 from %s""",
+                         """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2, workers0, workers1, workers2, workers3 from %s""",
                          "create table gq_marginals select state, county, tract, bg, groupquarter1 from %s",
                          """create table person_marginals select state, county, tract, bg, employment1, employment2, employment3, employment4, """
                          """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
