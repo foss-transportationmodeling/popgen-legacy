@@ -614,6 +614,10 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
 
 
 
+                         "update %s set childpresence1 = B09002000001",
+                         "update %s set childpresence2 = workers0+workers1+workers2+workers3-childpresence1",
+
+
                           "alter table %s add column hhperson_tot_chk bigint",
                           "alter table %s add column hhldrage_tot_chk bigint",
                           #"alter table %s add column bldgsz_tot_chk bigint",                          
