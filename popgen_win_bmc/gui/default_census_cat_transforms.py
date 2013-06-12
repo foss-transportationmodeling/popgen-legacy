@@ -132,6 +132,35 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums add column person_tot
                                   "drop table person_sample",
 
 
+                                  "drop table hhld_sample_temp",
+                                  "alter table hhld_sample drop column hhldrage",
+                                  "alter table hhld_sample rename to hhld_sample_temp",
+                                  "drop table hhld_sample",
+                                  "create table hhld_sample select hhld_sample_temp.*, agep as hhldrage from hhld_sample_temp left join person_sample using(serialno) where relate = 0",
+
+                                  "drop table hhld_sample_temp",
+                                  "drop table hhld_sample_temp_workers",
+
+                                  "alter table hhld_sample drop column workers",
+                                  "alter table hhld_sample rename to hhld_sample_temp",
+                                  "drop table hhld_sample",
+                                  "create table hhld_sample_temp_workers select a.* from (select serialno, count(*) workers from person_sample where employment = 2 group by serialno) a",
+                                  "alter table hhld_sample_temp_workers add index(serialno)",
+				
+                                  """create table hhld_sample select hhld_sample_temp.*, hhld_sample_temp_workers.workers from hhld_sample_temp left join hhld_sample_temp_workers """
+					"""using(serialno)""",
+                                  "alter table hhld_sample add index(serialno)",
+
+                                  "update hhld_sample set workers = workers + 1",
+                                  "update hhld_sample set workers = 4 where workers >= 4",
+                                  "update hhld_sample set workers = 1 where workers is null",
+
+
+
+                                  "update hhld_sample set hhldrage = 1 where hhldrage <=7 ",
+                                  "update hhld_sample set hhldrage = 2 where hhldrage >7",
+                                  "drop table hhld_sample_temp",
+                                  "drop table person_pums1"]
 
                                   """create table person_sample select state, pumano, hhid, serialno, pnum, """\
                                       """person_tot_bmc, agep_bmc, sex_bmc, esr_bmc, rel, pernp, jwtr, """\
@@ -430,36 +459,93 @@ DEFAULT_SF2000_QUERIES = ["alter table %s add column hhperson1 bigint",
                               """from %s"""]
 
 
-DEFAULT_SFACS_QUERIES = ["alter table %s add column hhperson1 bigint",
-                          "alter table %s add column hhperson2 bigint",
-                          "alter table %s add column hhperson3 bigint",
-                          "alter table %s add column hhperson4 bigint",
-                          "alter table %s add column hhperson5 bigint",
-                          "alter table %s add column hhldrage1 bigint",
-                          "alter table %s add column hhldrage2 bigint",
-                          "alter table %s add column hhldrage3 bigint",
-                          "alter table %s add column hhldrage4 bigint",
-                          #"alter table %s add column bldgsz1 bigint",
-                          #"alter table %s add column bldgsz2 bigint",
-                          #"alter table %s add column bldgsz3 bigint",
+DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
+                         "alter table %s add column agep2 bigint",
+                         "alter table %s add column agep3 bigint",
+                         "alter table %s add column agep4 bigint",
+                         "alter table %s add column agep5 bigint",
+                         "alter table %s add column agep6 bigint",
+                         "alter table %s add column agep7 bigint",
+                         "alter table %s add column agep8 bigint",
+                         "alter table %s add column agep9 bigint",
+                         "alter table %s add column agep10 bigint",
+                         "alter table %s add column gender1 bigint",
+                         "alter table %s add column gender2 bigint",
+                         "alter table %s add column race1 bigint",
+                         "alter table %s add column race2 bigint",
+                         "alter table %s add column race3 bigint",
+                         "alter table %s add column race4 bigint",
+                         "alter table %s add column race5 bigint",
+                         "alter table %s add column race6 bigint",
+                         "alter table %s add column race7 bigint",
+                         "alter table %s add column race11 bigint",
+                         "alter table %s add column race12 bigint",
+                         "alter table %s add column race13 bigint",
+                         "alter table %s add column race14 bigint",
+                         "alter table %s add column race15 bigint",
+                         "alter table %s add column race16 bigint",
+                         "alter table %s add column race17 bigint",
+                         "alter table %s add column race21 bigint",
+                         "alter table %s add column race22 bigint",
+                         "alter table %s add column race23 bigint",
+                         "alter table %s add column race24 bigint",
+                         "alter table %s add column race25 bigint",
+                         "alter table %s add column race26 bigint",
+                         "alter table %s add column race27 bigint",
+                         "alter table %s add column employment1 bigint",
+                         "alter table %s add column employment2 bigint",
+                         "alter table %s add column employment3 bigint",
+                         "alter table %s add column employment4 bigint",
+                         "alter table %s add column childpresence1 bigint",
+                         "alter table %s add column childpresence2 bigint",
+                         "alter table %s add column groupquarter1 bigint",
+                         "alter table %s add column hhldinc1 bigint",
+                         "alter table %s add column hhldinc2 bigint",
+                         "alter table %s add column hhldinc3 bigint",
+                         "alter table %s add column hhldinc4 bigint",
+                         "alter table %s add column hhldinc5 bigint",
+                         "alter table %s add column hhldinc6 bigint",
+                         "alter table %s add column hhldinc7 bigint",
+                         "alter table %s add column hhldinc8 bigint",
+                         "alter table %s add column hhldsize1 bigint",
+                         "alter table %s add column hhldsize2 bigint",
+                         "alter table %s add column hhldsize3 bigint",
+                         "alter table %s add column hhldsize4 bigint",
+                         "alter table %s add column hhldsize5 bigint",
+                         "alter table %s add column hhldsize6 bigint",
+                         "alter table %s add column hhldsize7 bigint",
+                         "alter table %s add column hhldtype1 bigint",
+                         "alter table %s add column hhldtype2 bigint",
+                         "alter table %s add column hhldtype3 bigint",
+                         "alter table %s add column hhldtype4 bigint",
+                         "alter table %s add column hhldtype5 bigint",
+                         "alter table %s add column hhldrage1 bigint",
+                         "alter table %s add column hhldrage2 bigint",
+                         "alter table %s add column hhldfam1 bigint",
+                         "alter table %s add column hhldfam2 bigint",
 
-                          "alter table %s add column persontotal bigint",
-                          "alter table %s add column employment1 bigint",
-                          "alter table %s add column employment2 bigint",
-                          "alter table %s add column employment3 bigint",
-                          "alter table %s add column employment4 bigint",
-                          "alter table %s add column age1 bigint",
-                          "alter table %s add column age2 bigint",
-                          "alter table %s add column age3 bigint",
-                          "alter table %s add column age4 bigint",
-                          "alter table %s add column age5 bigint",
-                          "alter table %s add column age6 bigint",
-                          "alter table %s add column age7 bigint",
-                          "alter table %s add column age8 bigint",
-                          "alter table %s add column age9 bigint",
-                          "alter table %s add column age10 bigint",
-                          "alter table %s add column sex1 bigint",
-                          "alter table %s add column sex2 bigint",
+                         "alter table %s add column workers0 bigint",
+                         "alter table %s add column workers1 bigint",
+                         "alter table %s add column workers2 bigint",
+                         "alter table %s add column workers3 bigint",
+
+
+                         "alter table %s add column check_gender bigint",
+                         "alter table %s add column check_age bigint",
+                         "alter table %s add column check_race bigint",
+                         "alter table %s add column check_race1 bigint",
+                         "alter table %s add column check_race2 bigint",
+                         "alter table %s add column check_employment bigint",
+                         
+                         "alter table %s add column check_type bigint",
+                         "alter table %s add column check_size bigint",
+                         "alter table %s add column check_fam bigint",
+                         "alter table %s add column check_hhldrage bigint",
+                         "alter table %s add column check_inc bigint",
+                         "alter table %s add column check_child bigint",
+                         "alter table %s add column check_workers bigint",
+
+                         
 
                           "alter table %s add column gq bigint",
 
@@ -520,6 +606,12 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column hhperson1 bigint",
 
                          "update %s set gq = B26001000001",
 
+                         "update %s set workers0 = B08202000002",
+                         "update %s set workers1 = B08202000003",
+                         "update %s set workers2 = B08202000004",
+                         "update %s set workers3 = B08202000005",
+
+
 
 
                           "alter table %s add column hhperson_tot_chk bigint",
@@ -532,8 +624,13 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column hhperson1 bigint",
                           "update %s set hhldrage_tot_chk = hhldrage1 + hhldrage2 + hhldrage3 + hhldrage4",
                           #"update %s set bldgsz_tot_chk = bldgsz1 + bldgsz2 + bldgsz3",
 
-                          "update %s set employment_tot_chk = employment1 + employment2 + employment3 + employment4",
-                          "update %s set age_tot_chk = age1 + age2 + age3 + age4 + age5 + age6 + age7 + age8 + age9 + age10",
+                         "update %s set check_workers = workers0+workers1+workers2+workers3",
+                         "update %s set check_type = hhldtype1+hhldtype2+hhldtype3+hhldtype4+hhldtype5",
+                         "update %s set check_size = hhldsize1+hhldsize2+hhldsize3+hhldsize4+hhldsize5+hhldsize6+hhldsize7",
+                         "update %s set check_hhldrage = hhldrage1+hhldrage2",
+                         "update %s set check_inc = hhldinc1+hhldinc2+hhldinc3+hhldinc4+hhldinc5+hhldinc6+hhldinc7+hhldinc8",
+                         "update %s set check_fam = hhldfam1+hhldfam2",
+                         "update %s set check_child = childpresence1+childpresence2",
 
                         
                           "drop table hhld_marginals",
@@ -547,8 +644,16 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column hhperson1 bigint",
                               """hhperson_tot_chk, hhldrage_tot_chk """\
                               """from %s""",
 
-                          """create table gq_marginals select state, county, tract, bg, """\
-                              """gq from %s""",
+                         "drop table hhld_marginals",
+                         "drop table gq_marginals",
+                         "drop table person_marginals",
+                         """create table hhld_marginals select state, county, tract, bg, hhldinc1, hhldinc2, hhldinc3, hhldinc4, hhldinc5, hhldinc6, hhldinc7, hhldinc8,"""
+                         """hhldsize1, hhldsize2, hhldsize3, hhldsize4, hhldsize5, hhldsize6, hhldsize7, hhldtype1, hhldtype2, hhldtype3, hhldtype4, hhldtype5,"""
+                         """childpresence1, childpresence2, hhldrage1, hhldrage2, hhldfam1, hhldfam2, workers0, workers1, workers2, workers3 from %s""",
+                         "create table gq_marginals select state, county, tract, bg, groupquarter1 from %s",
+                         """create table person_marginals select state, county, tract, bg, employment1, employment2, employment3, employment4, """
+                         """agep1, agep2, agep3, agep4, agep5, agep6, agep7, agep8, agep9, agep10,"""
+                         """gender1, gender2, race1, race2, race3, race4, race5, race6, race7 from %s"""]
 
                           """create table person_marginals select state, county, tract, bg, """\
                               """persontotal, employment1, employment2, employment3, employment4, """\
