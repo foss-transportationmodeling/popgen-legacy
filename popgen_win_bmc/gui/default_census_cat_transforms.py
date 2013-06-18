@@ -612,21 +612,25 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set workers3 = B08202000005",
 
 
+                         "alter table %s add column persontot bigint",
+                         "alter table %s add column persontoteq bigint",
+			 "update %s set persontot = gender1 + gender2",
+			 "update %s set persontoteq = hhldsize1*1+hhldsize2*2+hhldsize3*3+hhldsize4*4+hhldsize5*5+hhldsize6*6+hhldsize7*7.98",
+			 "update %s set groupquarter1 = persontot - persontoteq",
+			 "update %s set groupquarter1 = 0 where groupquarter1 <= 0",
+			
 
 
-                         "update %s set childpresence1 = B09002000001",
-                         "update %s set childpresence2 = workers0+workers1+workers2+workers3-childpresence1",
+                         "update %s set childpresence1 = B25115000005 + B25115000009 + B25115000012 + B25115000018 + B25115000022 + B25115000025",
+                         "update %s set childpresence2 = B25115000006 + B25115000010 + B25115000013 + B25115000019 + B25115000023 + B25115000026 + B25115000027 + B25115000014",
 
 
-                          "alter table %s add column hhperson_tot_chk bigint",
-                          "alter table %s add column hhldrage_tot_chk bigint",
-                          #"alter table %s add column bldgsz_tot_chk bigint",                          
-                          "alter table %s add column employment_tot_chk bigint",                          
-                          "alter table %s add column age_tot_chk bigint",                          
-                          
-                          "update %s set hhperson_tot_chk = hhperson1 + hhperson2 + hhperson3 + hhperson4 + hhperson5",
-                          "update %s set hhldrage_tot_chk = hhldrage1 + hhldrage2 + hhldrage3 + hhldrage4",
-                          #"update %s set bldgsz_tot_chk = bldgsz1 + bldgsz2 + bldgsz3",
+                         "update %s set check_gender = gender1 + gender2",
+                         "update %s set check_age = agep1+agep2+agep3+agep4+agep5+agep6+agep7+agep8+agep9+agep10",
+                         "update %s set check_race = race1+race2+race3+race4+race5+race6+race7",
+                         "update %s set check_race1 = race11+race12+race13+race14+race15+race16+race17",
+                         "update %s set check_race2 = race21+race22+race23+race24+race25+race26+race27",
+                         "update %s set check_employment = employment1 + employment2 + employment3 + employment4",
 
                          "update %s set check_workers = workers0+workers1+workers2+workers3",
                          "update %s set check_type = hhldtype1+hhldtype2+hhldtype3+hhldtype4+hhldtype5",
