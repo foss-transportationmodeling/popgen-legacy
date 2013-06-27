@@ -88,8 +88,11 @@ class FileProperties():
 		    intVal = int(field)
 		    varTypes.append('bigint')
 		except ValueError, e:
-		    floatVal = float(field)
-		    varTypes.append('float(27)')
+		    try: 
+                        floatVal = float(field)
+                        varTypes.append('float(27)')
+                    except ValueError, e:
+                        varTypes.append('text')
 		
 	#print 'LINE - ', line
 	#print 'Variable Types', varTypes
