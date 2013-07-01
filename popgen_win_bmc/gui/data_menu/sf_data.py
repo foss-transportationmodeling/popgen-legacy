@@ -349,6 +349,7 @@ class AutoImportSF2000Data():
                 sumlev = 140
             if self.project.resolution == 'County':
 
+
                 sumlev = 50
             if not self.query.exec_("""create table mastersftable%s """
                                     """select * from mastersftable where sumlev = %s and geocomp = 00"""
@@ -576,15 +577,15 @@ class AutoImportSF5yrACSData(AutoImportSFACSData):
 
 
 	if self.project.resolution == 'County':
-	    #print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(self.state)
+	    #print 'County', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""%(web_state)
 	    sf_loc = self.loc + os.path.sep + "%s_All_Geographies_Not_Tracts_Block_Groups.zip"%self.state
             urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_All_Geographies_Not_Tracts_Block_Groups.zip"""
-                               	   %(self.state), sf_loc)
+                               	   %(web_state), sf_loc)
 	elif self.project.resolution == 'Blockgroup' or self.project.resolution == 'Tract':
-	    #print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(self.state)
+	    #print 'Tract/Blockgroup', """ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip""" %(web_state)
 	    sf_loc = self.loc + os.path.sep + "%s_Tracts_Block_Groups_Only.zip"%self.state
             urllib.urlretrieve("""ftp://ftp2.census.gov/acs2009_5yr/summaryfile/2005-2009_ACSSF_By_State_All_Tables/%s_Tracts_Block_Groups_Only.zip"""
-                             	   %(self.state), sf_loc)
+                             	   %(web_state), sf_loc)
 
 	"""
         
