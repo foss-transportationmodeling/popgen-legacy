@@ -319,32 +319,39 @@ class RunDialog(QDialog):
             if geoCount > 1:
                 index.append((1, geoCount))
 
-        geo = geoList[0]
-        geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
 
         index.sort()
 
-        try:
-            self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
-                                     %(geo.state, geo.county, geo.tract, geo.bg))
-            if self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                demo.configure_and_run(self.project, geo, varCorrDict)
-            if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                demo_noper.configure_and_run(self.project, geo, varCorrDict)
-            if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
-                print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-                demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
-            if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
-                print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-                demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
-            self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
-        except Exception, e:
-            self.outputWindow.append("\t- Error in the Synthesis for geography")
-            import traceback, sys
-            traceback.print_exc(file=sys.stdout)
-            print ('Exception: %s' %e)
+	syn_success = False
+	syn_geoIndex = 0
+	syn_geoIndexMax = len(geoList)
+	while (not syn_success and syn_geoIndex < syn_geoIndexMax):
+            geo = geoList[syn_geoIndex]
+            geo = Geography(geo[0], geo[1], geo[3], geo[4], geo[2])
+	
+            try:
+                self.outputWindow.append("Running Syntheiss for geography State - %s, County - %s, Tract - %s, BG - %s"
+                                         %(geo.state, geo.county, geo.tract, geo.bg))
+                if self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                    print 'GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                    demo.configure_and_run(self.project, geo, varCorrDict)
+                if self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                    print 'GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                    demo_noper.configure_and_run(self.project, geo, varCorrDict)
+                if not self.gqAnalyzed and self.project.selVariableDicts.persControl:
+                    print 'NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+                    demo_nogqs.configure_and_run(self.project, geo, varCorrDict)
+                if not self.gqAnalyzed and not self.project.selVariableDicts.persControl:
+                    print 'NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+                    demo_nogqs_noper.configure_and_run(self.project, geo, varCorrDict)
+                self.project.synGeoIds[(geo.state, geo.county, geo.puma5, geo.tract, geo.bg)] = True                        
+		syn_success = True
+            except Exception, e:
+                self.outputWindow.append("\t- Error in the Synthesis for geography")
+                import traceback, sys
+                traceback.print_exc(file=sys.stdout)
+                print ('Exception: %s' %e)
+		syn_geoIndex+= 1
 
             # Synthesizing the population for all geographies in parallel after the first one is done in serial
 
