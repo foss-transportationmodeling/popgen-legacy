@@ -306,22 +306,7 @@ class RunDialog(QDialog):
 
 
     def run_synthesizer_in_parallel_for_geoList(self, geoList, varCorrDict):
-        geoCount = len(geoList)
-        binsize = 50
-        bins = int(floor(geoCount/binsize))
-        index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
-                
-        if bins > 0:
-            index.append((1, binsize))
-            index.append((bins*binsize, geoCount))
-
-        else:
-            if geoCount > 1:
-                index.append((1, geoCount))
-
-
-        index.sort()
-
+        # Synthesizing the population for all geographies in parallel after the first one is done in serial
 	syn_success = False
 	syn_geoIndex = 0
 	syn_geoIndexMax = len(geoList)
@@ -353,7 +338,20 @@ class RunDialog(QDialog):
                 print ('Exception: %s' %e)
 		syn_geoIndex+= 1
 
-            # Synthesizing the population for all geographies in parallel after the first one is done in serial
+        # Altering the geoList so the geography is not repeated again
+        geoList = geoList[syn_geoIndex:]
+
+        geoCount = len(geoList)
+        binsize = 50
+        bins = int(floor(geoCount/binsize))
+        index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
+        if bins > 0:
+            index.append((1, binsize))
+            index.append((bins*binsize, geoCount))
+        else:
+            if geoCount > 1:
+                index.append((1, geoCount))
+        index.sort()
 
         for i in index:
             if self.gqAnalyzed and self.project.selVariableDicts.persControl:
