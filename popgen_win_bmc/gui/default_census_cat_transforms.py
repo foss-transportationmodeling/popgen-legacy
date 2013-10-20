@@ -104,6 +104,32 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums add column person_tot
                                   "alter table person_pums change puma pumano bigint",
                                   "alter table person_pums change sporder pnum bigint",
 
+                                  "alter table person_pums add column agep bigint",
+                                  "alter table person_pums add column gender bigint",
+                                  "alter table person_pums add column race bigint",
+                                  "alter table person_pums add column employment bigint",
+                                  "update person_pums set agep = 1 where age < 5",
+                                  "update person_pums set agep = 2 where age >= 5 and age < 15",
+                                  "update person_pums set agep = 3 where age >= 15 and age < 25",
+                                  "update person_pums set agep = 4 where age >= 25 and age < 35",
+                                  "update person_pums set agep = 5 where age >= 35 and age < 45",
+                                  "update person_pums set agep = 6 where age >= 45 and age < 55",
+                                  "update person_pums set agep = 7 where age >= 55 and age < 65",
+                                  "update person_pums set agep = 8 where age >= 65 and age < 75",
+                                  "update person_pums set agep = 9 where age >= 75 and age < 85",
+                                  "update person_pums set agep = 10 where age >= 85",
+                                  "update person_pums set gender = sex",
+                                  "update person_pums set race = 1 where race1 = 1",
+                                  "update person_pums set race = 2 where race1 = 2",
+                                  "update person_pums set race = 3 where race1 >=3 and race1 <= 5",
+                                  "update person_pums set race = 4 where race1 = 6",
+                                  "update person_pums set race = 5 where race1 = 7",
+                                  "update person_pums set race = 6 where race1 = 8",
+                                  "update person_pums set race = 7 where race1 = 9",
+                                  "update person_pums set employment = 1 where esr = 0 or esr = -99",
+                                  "update person_pums set employment = 2 where esr = 1 or esr = 2 or esr = 4 or esr = 5",
+                                  "update person_pums set employment = 3 where esr = 3",
+                                  "update person_pums set employment = 4 where esr = 6",
 
                                   "update person_pums set agep_bmc = 1 where agep < 5",
                                   "update person_pums set agep_bmc = 2 where agep >= 5 and agep < 15",
@@ -137,6 +163,18 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums add column person_tot
                                   "alter table hhld_sample rename to hhld_sample_temp",
                                   "drop table hhld_sample",
                                   "create table hhld_sample select hhld_sample_temp.*, agep as hhldrage from hhld_sample_temp left join person_sample using(serialno) where relate = 0",
+
+                                  "drop table hhld_sample_temp",
+                                  "drop table hhld_sample_temp_workers",
+
+                                  "alter table hhld_sample drop column workers",
+                                  "alter table hhld_sample rename to hhld_sample_temp",
+                                  "drop table hhld_sample",
+                                  "create table hhld_sample_temp_workers select a.* from (select serialno, count(*) workers from person_sample where employment = 2 group by serialno) a",
+                                  "alter table hhld_sample_temp_workers add index(serialno)",
+				
+                                  """create table hhld_sample select hhld_sample_temp.*, hhld_sample_temp_workers.workers from hhld_sample_temp left join hhld_sample_temp_workers """
+					"""using(serialno)""",
 
                                   "drop table hhld_sample_temp",
                                   "drop table hhld_sample_temp_workers",
@@ -545,6 +583,8 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column check_child bigint",
                          "alter table %s add column check_workers bigint",
 
+                         "alter table %s add column check_workers bigint",
+
                          
 
                           "alter table %s add column gq bigint",
@@ -604,7 +644,22 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set persontotal = sex1 + sex2",
                          "update %s set employment1 = sex1 + sex2 - employment2 - employment3 - employment4",
 
-                         "update %s set gq = B26001000001",
+                         #"update %s set groupquarter1 = B26001000001",
+                         "update %s set hhldinc1 = B19001000002 + B19001000003",
+                         "update %s set hhldinc2 = B19001000004 + B19001000005",
+                         "update %s set hhldinc3 = B19001000006 + B19001000007",
+                         "update %s set hhldinc4 = B19001000008 + B19001000009",
+                         "update %s set hhldinc5 = B19001000010 + B19001000011",
+                         "update %s set hhldinc6 = B19001000012 + B19001000013",
+                         "update %s set hhldinc7 = B19001000014 + B19001000015",
+                         "update %s set hhldinc8 = B19001000016 + B19001000017",
+                         "update %s set hhldsize1 = B25009000003+B25009000011",
+                         "update %s set hhldsize2 = B25009000004+B25009000012",
+                         "update %s set hhldsize3 = B25009000005+B25009000013",
+                         "update %s set hhldsize4 = B25009000006+B25009000014",
+                         "update %s set hhldsize5 = B25009000007+B25009000015",
+                         "update %s set hhldsize6 = B25009000008+B25009000016",
+                         "update %s set hhldsize7 = B25009000009+B25009000017",
 
                          "update %s set workers0 = B08202000002",
                          "update %s set workers1 = B08202000003",
@@ -619,6 +674,22 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
 			 "update %s set groupquarter1 = persontot - persontoteq",
 			 "update %s set groupquarter1 = 0 where groupquarter1 <= 0",
 			
+
+                         "update %s set hhldtype1 = B11001000003",
+                         "update %s set hhldtype2 = B11001000005",
+                         "update %s set hhldtype3 = B11001000006",
+                         "update %s set hhldtype4 = B11001000008",
+                         "update %s set hhldtype5 = B11001000009",
+                         """update %s set hhldrage1 = (B25007000003+B25007000004+B25007000005+B25007000006+B25007000007+B25007000008)+"""
+                         """(B25007000013+B25007000014+B25007000015+B25007000016+B25007000017+B25007000018)""", 
+                         "update %s set hhldrage2 = (B25007000009+ B25007000010+B25007000011)+(B25007000019+ B25007000020+B25007000021)",
+                         "update %s set hhldfam1 = hhldtype1 + hhldtype2 + hhldtype3",
+                         "update %s set hhldfam2 = hhldtype4 + hhldtype5",
+                         "update %s set childpresence1 = C23007000002",
+                         "update %s set childpresence2 = C23007000017 + hhldtype4 + hhldtype5",
+
+                         "update %s set childpresence1 = B09002000001",
+                         "update %s set childpresence2 = workers0+workers1+workers2+workers3-childpresence1",
 
 
                          "update %s set childpresence1 = B25115000005 + B25115000009 + B25115000012 + B25115000018 + B25115000022 + B25115000025",
