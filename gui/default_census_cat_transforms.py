@@ -206,6 +206,18 @@ DEFAULT_PERSON_PUMSACS_QUERIES = ["alter table person_pums change agep age bigin
 				
                                   """create table hhld_sample select hhld_sample_temp.*, hhld_sample_temp_workers.workers from hhld_sample_temp left join hhld_sample_temp_workers """
 					"""using(serialno)""",
+
+                                  "drop table hhld_sample_temp",
+                                  "drop table hhld_sample_temp_workers",
+
+                                  "alter table hhld_sample drop column workers",
+                                  "alter table hhld_sample rename to hhld_sample_temp",
+                                  "drop table hhld_sample",
+                                  "create table hhld_sample_temp_workers select a.* from (select serialno, count(*) workers from person_sample where employment = 2 group by serialno) a",
+                                  "alter table hhld_sample_temp_workers add index(serialno)",
+				
+                                  """create table hhld_sample select hhld_sample_temp.*, hhld_sample_temp_workers.workers from hhld_sample_temp left join hhld_sample_temp_workers """
+					"""using(serialno)""",
                                   "alter table hhld_sample add index(serialno)",
 
                                   "update hhld_sample set workers = workers + 1",
@@ -991,6 +1003,8 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "alter table %s add column check_child bigint",
                          "alter table %s add column check_workers bigint",
 
+                         "alter table %s add column check_workers bigint",
+
                          
 
 
@@ -1096,6 +1110,10 @@ DEFAULT_SFACS_QUERIES = ["alter table %s add column agep1 bigint",
                          "update %s set hhldfam2 = hhldtype4 + hhldtype5",
                          "update %s set childpresence1 = C23007000002",
                          "update %s set childpresence2 = C23007000017 + hhldtype4 + hhldtype5",
+
+                         "update %s set childpresence1 = B09002000001",
+                         "update %s set childpresence2 = workers0+workers1+workers2+workers3-childpresence1",
+
 
                          "update %s set childpresence1 = B25115000005 + B25115000009 + B25115000012 + B25115000018 + B25115000022 + B25115000025",
                          "update %s set childpresence2 = B25115000006 + B25115000010 + B25115000013 + B25115000019 + B25115000023 + B25115000026 + B25115000027 + B25115000014",

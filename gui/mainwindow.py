@@ -1057,8 +1057,8 @@ def main():
     if splash.exec_():
 
         app.processEvents()
-	if QGIS_flag:
-	    QgsApplication.setPrefixPath(qgis_prefix, True)
+        if QGIS_flag:
+            QgsApplication.setPrefixPath(qgis_prefix, True)
             QgsApplication.initQgis()
 
         app.setApplicationName("Population Generator (PopGen)")
