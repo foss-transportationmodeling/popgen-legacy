@@ -802,40 +802,51 @@ class PopgenManager(object):
 
     def run_synthesizer_in_parallel_for_geoList(self, scenario, geoList, varCorrDict):
 
-	
-	geo = geoList[0]
-	print geo
-	try:
+	syn_success = False
+	syn_geoIndex = 0
+	syn_geoIndexMax = len(geoList)	
+
+	while (not syn_success and syn_geoIndex < syn_geoIndexMax):
+	    geo = geoList[syn_geoIndex]
+	    print geo
+
+	    try:
 	    
-	    if self.gqAnalyzed and scenario.selVariableDicts.persControl:
-		print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-		demo.configure_and_run(scenario, geo, varCorrDict)
-	    if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
-		print '  - GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-		demo_noper.configure_and_run(scenario, geo, varCorrDict)
-	    if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
-		print '  - NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
-		demo_nogqs.configure_and_run(scenario, geo, varCorrDict)
-	    if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
-		print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
-		demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
+	    	if self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		    print '  - GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+		    demo.configure_and_run(scenario, geo, varCorrDict)
+	        if self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		    print '  - GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+		    demo_noper.configure_and_run(scenario, geo, varCorrDict)
+	        if not self.gqAnalyzed and scenario.selVariableDicts.persControl:
+		    print '  - NO GQ ANALYZED WITH PERSON ATTRIBUTES CONTROLLED'
+		    demo_nogqs.configure_and_run(scenario, geo, varCorrDict)
+	        if not self.gqAnalyzed and not scenario.selVariableDicts.persControl:
+		    print '  - NO GQ ANALYZED WITH NO PERSON ATTRIBUTES CONTROLLED'
+		    demo_nogqs_noper.configure_and_run(scenario, geo, varCorrDict)
+		syn_success = True
+	    except Exception, e:
+		import traceback, sys
+		traceback.print_exc(file=sys.stdout)
+		print ("Exception: %s" %e)
+		syn_geoIndex += 1
             
 	    runGeoIds = []
-	    for geo in geoList[1:]:
+	    for geo in geoList[syn_geoIndex:]:
 	    	runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+
             geoCount = len(runGeoIds)
             binsize = 50
-
             bins = int(floor(geoCount/binsize))
 	    index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
-                
+
             if bins > 0:
-                index.append((0, binsize))
+                index.append((1, binsize))
             	index.append((bins*binsize, geoCount))
 
             else:
                 if geoCount > 1:
-                    index.append((0, geoCount))
+                    index.append((1, geoCount))
 
 	    print 'len of geoList - ', len(geoList)
 	    print 'len of runGeoIds - ', len(runGeoIds)
