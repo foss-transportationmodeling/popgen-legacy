@@ -806,6 +806,7 @@ class PopgenManager(object):
 	syn_geoIndex = 0
 	syn_geoIndexMax = len(geoList)	
 
+
 	while (not syn_success and syn_geoIndex < syn_geoIndexMax):
 	    geo = geoList[syn_geoIndex]
 	    print geo
@@ -831,23 +832,23 @@ class PopgenManager(object):
 		print ("Exception: %s" %e)
 		syn_geoIndex += 1
             
-	    runGeoIds = []
-	    for geo in geoList[syn_geoIndex:]:
-	    	runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
+	runGeoIds = []
+	for geo in geoList[syn_geoIndex:]:
+	    runGeoIds.append((geo.state, geo.county, geo.puma5, geo.tract, geo.bg))
 
-            geoCount = len(runGeoIds)
-            binsize = 50
-            bins = int(floor(geoCount/binsize))
-	    index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
+        geoCount = len(runGeoIds)
+        binsize = 50
+        bins = int(floor(geoCount/binsize))
+	index = [((i+1)*binsize, (i+1)*binsize+binsize) for i in range(bins-1)]
 
-            if bins > 0:
-                index.append((1, binsize))
-            	index.append((bins*binsize, geoCount))
+        if bins > 0:
+            index.append((1, binsize))
+            index.append((bins*binsize, geoCount))
 
-            else:
-                if geoCount > 1:
-                    index.append((1, geoCount))
-
+        else:
+            if geoCount > 1:
+                index.append((1, geoCount))
+	try:
 	    print 'len of geoList - ', len(geoList)
 	    print 'len of runGeoIds - ', len(runGeoIds)
 	    for i in index:
